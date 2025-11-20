@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/galaxyworld/development/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/galaxyworld/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/galaxyworld/Desktop/akshya_development_latest/demo_app/tinydroplets/android/app/.cxx/Debug/454y5p30/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/galaxyworld/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/galaxyworld/Desktop/akshya_development_latest/demo_app/tinydroplets/android/app/.cxx/Debug/454y5p30/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

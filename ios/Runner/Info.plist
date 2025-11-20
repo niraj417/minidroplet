@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CADisableMinimumFrameDurationOnPhone</key>
+		<true/>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>CFBundleDisplayName</key>
+		<string>Tiny Droplets</string>
+		<key>CFBundleExecutable</key>
+		<string>$(EXECUTABLE_NAME)</string>
+		<key>CFBundleIdentifier</key>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleName</key>
+		<string>tinydroplets</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>$(FLUTTER_BUILD_NAME)</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleVersion</key>
+		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>LSRequiresIPhoneOS</key>
+		<true/>
+		<!-- ✅ Network Security Config -->
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+			<key>NSExceptionDomains</key>
+			<dict>
+				<key>api.tinydroplets.com</key>
+				<dict>
+					<key>NSExceptionAllowsInsecureHTTPLoads</key>
+					<true/>
+					<key>NSIncludesSubdomains</key>
+					<true/>
+				</dict>
+			</dict>
+		</dict>
+		<!-- ✅ Permissions -->
+		<key>NSMicrophoneUsageDescription</key>
+		<string>This app requires access to the microphone to enable voice input, audio recording, and interactive features that enhance your user experience. Your privacy is our priority, and your audio data will be used solely for its intended purpose.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photo library to share images.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>We need access to your camera to take pictures to share.</string>
+		<!-- ✅ Ads -->
+		<key>GADApplicationIdentifier</key>
+		<string>ca-app-pub-8918303949279078~7689008088</string>
+		<!-- ✅ Background Modes -->
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>processing</string>
+			<string>remote-notification</string>
+		</array>
+		<!-- ✅ UI Settings -->
+		<key>UILaunchStoryboardName</key>
+		<string>LaunchScreen</string>
+		<key>UIMainStoryboardFile</key>
+		<string>Main</string>
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UISupportedInterfaceOrientations~ipad</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UIApplicationSupportsIndirectInputEvents</key>
+		<true/>
+		<key>UIStatusBarHidden</key>
+		<false/>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<false/>
+		<key>SKAdNetworkItems</key>
+		<array/>
+
+		<!-- Disable ATS entirely -->
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
+		<!--Localize notification messages:  -->
+		<key>FDAllFilesDownloadedMessage</key>
+		<string>All files have been downloaded</string>
+		<!-- changes this number to configure the maximum number of concurrent tasks -->
+		<key>FDMaximumConcurrentTasks</key>
+		<integer>5</integer>
+		<!--  -->
+		<key>BGTaskSchedulerPermittedIdentifiers</key>
+		<array>
+			<string>com.tinydroplets.tinydroplets.downloader</string>
+		</array>
+	</dict>
+</plist>

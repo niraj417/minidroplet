@@ -1,0 +1,2 @@
+D:/developer/tinydroplets/android/app/.cxx/Debug/z3x6td2y/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/developer/tinydroplets/android/app/.cxx/Debug/z3x6td2y/arm64-v8a/CMakeFiles/rebuild_cache.dir
