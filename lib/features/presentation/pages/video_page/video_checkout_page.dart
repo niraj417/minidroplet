@@ -21,6 +21,7 @@ import '../../../../core/services/payment_service/payment_state.dart';
 import '../../../../injections/dependency_injection.dart';
 import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
 import '../ebook_page/purchased_ebook/purchased_ebook_detail_page.dart';
+import '../remove_ads/widget/remove_ads_bottom_sheet.dart';
 import 'model/all_recipe_video_model.dart';
 
 class VideoCheckoutPage extends StatefulWidget {
@@ -603,45 +604,46 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
         AppButton(
           useCupertino: true,
           width: 180,
-          text: 'Pay Now',
+          //text: 'Pay Now',
+          text: 'Subscribe',
           onPressed: () async {
-            if (Platform.isIOS) {
-              final productId = IAPUtils.getIAPProductId('video');
-              if (productId != null) {
-                CommonMethods.devLog(
-                  logName: 'Video Order id here',
-                  message: orderId,
-                );
-                try {
-                  _paymentBloc.add(
-                    InitiateIAPurchase(
-                      productId: IAPService.videoProductId,
-                      dataId: widget.id,
-                      itemType: 'video',
-                      orderId: orderId!,
-                    ),
-                  );
-
-                  CommonMethods.showSnackBar(
-                    context,
-                    'Processing In-App Purchase...',
-                  );
-                } catch (e) {
-                  CommonMethods.devLog(
-                    logName: 'IAP Error',
-                    message: e.toString(),
-                  );
-                  CommonMethods.showSnackBar(
-                    context,
-                    "Something went wrong. Please try again.",
-                  );
-                }
-              } else {
-                CommonMethods.showSnackBar(context, "Order ID is missing.");
-              }
-            } else {
-              await _buildPaymentMode(context);
-            }
+            // if (Platform.isIOS) {
+            //   final productId = IAPUtils.getIAPProductId('video');
+            //   if (productId != null) {
+            //     CommonMethods.devLog(
+            //       logName: 'Video Order id here',
+            //       message: orderId,
+            //     );
+            //     try {
+            //       _paymentBloc.add(
+            //         InitiateIAPurchase(
+            //           productId: IAPService.videoProductId,
+            //           dataId: widget.id,
+            //           itemType: 'video',
+            //           orderId: orderId!,
+            //         ),
+            //       );
+            //
+            //       CommonMethods.showSnackBar(
+            //         context,
+            //         'Processing In-App Purchase...',
+            //       );
+            //     } catch (e) {
+            //       CommonMethods.devLog(
+            //         logName: 'IAP Error',
+            //         message: e.toString(),
+            //       );
+            //       CommonMethods.showSnackBar(
+            //         context,
+            //         "Something went wrong. Please try again.",
+            //       );
+            //     }
+            //   } else {
+            //     CommonMethods.showSnackBar(context, "Order ID is missing.");
+            //   }
+            // } else {
+            //   await _buildPaymentMode(context);
+            // }
           },
         ),
       ],
@@ -672,7 +674,8 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Choose Payment Mode',
+                //'Choose Payment Mode',
+                'Subscription',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
@@ -724,15 +727,16 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
                   Expanded(
                     child: AppButton(
                       onPressed: () {
-                        Navigator.pop(context);
-                        goto(
-                          context,
-                          PaypalWebViewPage(
-                            id: widget.id,
-                            type: 'video',
-                            amount: amount ?? '0',
-                          ),
-                        );
+                        _openRemoveAdsSubscription();
+                        // Navigator.pop(context);
+                        // goto(
+                        //   context,
+                        //   PaypalWebViewPage(
+                        //     id: widget.id,
+                        //     type: 'video',
+                        //     amount: amount ?? '0',
+                        //   ),
+                        // );
                       },
                       text: 'PayPal',
                     ),
@@ -743,6 +747,15 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
           ),
         );
       },
+    );
+  }
+
+  void _openRemoveAdsSubscription() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const RemoveAdsBottomSheet(),
     );
   }
 }

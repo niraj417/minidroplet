@@ -6,6 +6,8 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:tinydroplets/common/widgets/app_button.dart';
 import 'package:tinydroplets/common/widgets/loader.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/create_password_page/create_password_page.dart';
+import 'package:tinydroplets/features/presentation/pages/auth/login_page/login_page.dart';
+import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
 import '../../../../../core/constant/app_export.dart';
 import '../../../../../core/constant/app_vector.dart';
 import '../../../../../core/network/api_controller.dart';
@@ -36,6 +38,9 @@ class _OtpPageState extends State<OtpPage> {
   @override
   void initState() {
     super.initState();
+    if(widget.otp == '0'){
+      _resendOtp(widget.id);
+    }
     _otp = widget.otp;
     _id = widget.id;
     startTimer();
@@ -94,7 +99,7 @@ class _OtpPageState extends State<OtpPage> {
         final serverOtp = response.data['data']['otp'].toString();
         if (serverOtp == otp) {
           CommonMethods.showSnackBar(context, "OTP Verified Successfully!");
-          gotoReplacement(context, CreatePasswordPage(id: id));
+          gotoReplacement(context, LoginPage());
         } else {
           CommonMethods.showSnackBar(context, "Invalid OTP. Please try again.");
         }
@@ -262,13 +267,13 @@ class _OtpPageState extends State<OtpPage> {
 
                 const SizedBox(height: 20),
                 // optional debug text
-                Text(
-                  'Your OTP is: $_otp',
-                  style: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 12,
-                  ),
-                ),
+                // Text(
+                //   'Your OTP is: $_otp',
+                //   style: TextStyle(
+                //     color: Colors.grey.shade400,
+                //     fontSize: 12,
+                //   ),
+                // ),
               ],
             ),
           ),

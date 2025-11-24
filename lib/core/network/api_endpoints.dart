@@ -1,7 +1,7 @@
 class ApiEndpoints {
 
-  //static const String serverURL = "http://192.168.31.198:8080/adminapp_tinydroplets/appadmin/api";
-  static const String serverURL = "https://testbackend.tinydroplets.com/api";
+  static const String serverURL = "http://192.168.31.198:8080/adminapp_tinydroplets/appadmin/api";
+  //static const String serverURL = "https://testbackend.tinydroplets.com/api";
   // static const String serverURL = "http://43.204.111.100/api";
   // static const String serverURL = "http://43.204.111.100/api";
   //static const String serverURL = "https://backend.tinydroplets.com/api";

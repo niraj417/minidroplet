@@ -227,7 +227,8 @@ class _MyAccountState extends State<MyAccount> {
               builder: (context, state) {
                 return ProfileItem(
                   icon: CupertinoIcons.money_dollar_circle,
-                  title: state.isPurchased ? 'Ad-Free Status' : 'Remove Ads',
+                  //title: state.isPurchased ? 'Ad-Free Status' : 'Remove Ads',
+                  title: "Subscription",
                   onTap: () {
                     if (state.isPurchased) {
                       _showPurchaseDetailsBottomSheet(context);

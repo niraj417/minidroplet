@@ -11,6 +11,7 @@ import 'package:tinydroplets/common/widgets/app_button.dart';
 import 'package:tinydroplets/common/widgets/loader.dart';
 import 'package:tinydroplets/core/constant/app_vector.dart';
 import 'package:tinydroplets/core/utils/shared_pref.dart';
+import 'package:tinydroplets/features/presentation/pages/auth/otp_page/otp_page.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/sign_up_page/sign_up_page.dart';
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
 import '../../../../../core/constant/app_export.dart';
@@ -61,13 +62,31 @@ class _LoginPageState extends State<LoginPage> {
       CommonMethods.devLog(logName: 'Login res', message: response);
 
       if (response.data['status'] == 1) {
-        CommonMethods.showSnackBar(context, response.data['message']);
+        // Check for unverified user
+        if (response.data['message'].toLowerCase().contains('unverified') &&
+            response.data['data'] != null) {
+          CommonMethods.showSnackBar(context, response.data['message']);
+
+          // Navigate to OTP verification page with user data
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OtpPage(
+                id: response.data['data']['id'].toString(),
+                email: response.data['data']['email'],
+                otp: '0', // Flag to indicate this is from login flow
+              ),
+            ),
+          );
+        } else {
+
+          CommonMethods.showSnackBar(context, response.data['message']);
+        }
+        //CommonMethods.showSnackBar(context, response.data['message']);
         final loginData = LoginDataModel.fromJson(response.data);
         await SharedPref.saveLoginData(loginData);
         await SharedPref.setKeepLoggedIn(_isChecked);
         gotoRemoveAll(context, Dashboard());
-      } else {
-        CommonMethods.showSnackBar(context, response.data['message']);
       }
     } catch (e) {
       CommonMethods.showSnackBar(context, e.toString());
@@ -98,9 +117,13 @@ class _LoginPageState extends State<LoginPage> {
         await SharedPref.setKeepLoggedIn(_isChecked);
         gotoRemoveAll(context, Dashboard());
       } else {
+        setState(() => _loading3 = false);
+        setState(() => _loading2 = false);
         CommonMethods.showSnackBar(context, response.data['message']);
       }
     } catch (e) {
+      setState(() => _loading3 = false);
+      setState(() => _loading2 = false);
       CommonMethods.showSnackBar(context, e.toString());
       CommonMethods.devLog(logName: 'Error response', message: e.toString());
     } finally {

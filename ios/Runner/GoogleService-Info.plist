@@ -28,5 +28,20 @@
 	<string>1:674903063868:ios:74052dace4c8e2958bb239</string>
 	<key>DATABASE_URL</key>
 	<string>https://tinydroplets-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+	<!-- ✅ Google SignIn -->
+    <key>GIDClientID</key>
+    <string>674903063868-kqri9715c9s6u0s49ujir6ektc11kpon.apps.googleusercontent.com</string>
+
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.674903063868-kqri9715c9s6u0s49ujir6ektc11kpon</string>
+        </array>
+      </dict>
+    </array>
 </dict>
 </plist>

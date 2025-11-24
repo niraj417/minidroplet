@@ -136,7 +136,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                             ),
                           ),
                         ),
-                        BannerAdWidget(),
+                        //BannerAdWidget(),
                         ActivityGridWidget(),
                       ],
                     ),
@@ -160,7 +160,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                                     ),
                                   ),
                                   SizedBox(height: 10),
-                                  BannerAdWidget(),
+                                  //BannerAdWidget(),
                                   ListView.builder(
                                     itemCount: state.postData!.length,
                                     shrinkWrap: true,

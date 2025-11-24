@@ -23,7 +23,7 @@ class PaypalWebViewPage extends StatefulWidget {
 class _PaypalWebViewPageState extends State<PaypalWebViewPage> {
   String? paymentUrl;
   bool isLoading = true;
-  late WebViewController controller;
+  WebViewController? controller;
   final DioClient _dioClient = DioClient();
 
   @override
@@ -39,55 +39,48 @@ class _PaypalWebViewPageState extends State<PaypalWebViewPage> {
         "type": widget.type,
         "amount": widget.amount,
       });
+
       debugPrint("API Response: ${response.data}");
 
-      if (response.data['status'] == 1) {
-        paymentUrl = response.data['data'];
+      if (response.data['status'] == 1 &&
+          response.data['data'] != null &&
+          response.data['data'].toString().isNotEmpty) {
+
+        String rawUrl = response.data['data'].toString();
+
+        if (!rawUrl.startsWith("http")) {
+          rawUrl = "https://$rawUrl";
+        }
+
+        paymentUrl = rawUrl;
+
         controller = WebViewController()
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
           ..loadRequest(Uri.parse(paymentUrl!));
-
-
-        setState(() {
-          isLoading = false;
-        });
       } else {
-        debugPrint('Something went wrong');
-        setState(() {
-          isLoading = false;
-        });
+        debugPrint("❌ Paypal URL empty from API");
       }
     } catch (e) {
-      debugPrint(e.toString());
-      setState(() {
-        isLoading = false;
-      });
+      debugPrint("❌ Paypal Error: $e");
     }
+
+    setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Paypal'),
-      ),
+      appBar: AppBar(title: const Text('Paypal')),
       body: isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Loader(),
-                  SizedBox(height: 10),
-                  Text(
-                    'Loading PayPal...',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            )
-          : paymentUrl != null
-              ? WebViewWidget(controller: controller)
-              : const Center(child: Text('Failed to load PayPal page')),
+          ? const Center(child: Loader())
+          : paymentUrl != null && controller != null
+          ? WebViewWidget(controller: controller!)
+          : const Center(
+        child: Text(
+          "Failed to load PayPal payment link",
+          style: TextStyle(fontSize: 16),
+        ),
+      ),
     );
   }
 }

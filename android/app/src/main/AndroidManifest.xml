@@ -8,7 +8,7 @@
     <uses-permission android:name="com.android.vending.BILLING"/>
 
 
-    <application android:label="Tiny Droplets" android:name="${applicationName}" android:icon="@mipmap/ic_launcher" android:usesCleartextTraffic="true" android:requestLegacyExternalStorage="true" android:networkSecurityConfig="@xml/network_security_config">
+    <application android:label="Tiny Droplets" android:name="${applicationName}" android:icon="@mipmap/ic_launcher" android:usesCleartextTraffic="true" android:requestLegacyExternalStorage="true" android:networkSecurityConfig="@xml/network_security_config" android:allowBackup="false">
 
         <!-- Add this service before the activity -->
         <service android:name="com.ryanheise.audioservice.AudioService" android:foregroundServiceType="mediaPlayback" android:exported="true">

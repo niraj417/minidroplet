@@ -1,11 +1,14 @@
 import 'package:get_it/get_it.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tinydroplets/core/constant/app_vector.dart';
 import 'package:tinydroplets/core/utils/validators.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/otp_page/otp_page.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/model/cms_model.dart';
-import 'package:tinydroplets/features/presentation/pages/my_account/privacy_policy_screen.dart';
+import 'package:flutter/gestures.dart';
 
+import '../../../../../common/widgets/loader.dart';
 import '../../../../../core/constant/app_export.dart';
+import '../../../../../core/utils/url_opener.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,7 +20,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _name = TextEditingController();
-  final TextEditingController _mobile = TextEditingController();
+  final TextEditingController _confPass = TextEditingController();
   final TextEditingController _pass = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
@@ -49,7 +52,7 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
 
     _email.dispose();
-    _mobile.dispose();
+    _confPass.dispose();
     _name.dispose();
     _pass.dispose();
   }
@@ -82,6 +85,7 @@ class _SignUpPageState extends State<SignUpPage> {
         "name": name,
         "email": email,
         "mobile": mobile,
+        "password": _pass.text,
         "accepted_terms": _isChecked,
       });
 
@@ -120,190 +124,271 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-
-              // 🔵 Blue Header Section
-              Container(
-                width: double.infinity,
-                height: MediaQuery.of(context).size.height * 0.45,
-                color: const Color(0xFF2C68EE),
-                padding: const EdgeInsets.only(top: 50, left: 30, right: 30),
+      backgroundColor: const Color(0xFF2C68EE),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔵 TOP BLUE SECTION
+            Expanded(
+              flex: 5,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 24, top: 5, right: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Hi Welcome!\nCreate your account',
-                      style: TextStyle(
+                    /// 🔙 Back Button
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
                         color: Colors.white,
-                        fontSize: 32,
-                        height: 1.2,
-                        fontWeight: FontWeight.bold,
+                        size: 26,
                       ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    Row(
-                      children: [
-                        const Text(
-                          'Already Registered?',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                        const SizedBox(width: 5),
-                        InkWell(
-                          onTap: () => backTo(context),
-                          child: const Text(
-                            'Sign in',
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              fontStyle: FontStyle.italic,
-                              color: Color(0xFFFFB300),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+
+                    //const SizedBox(height: 5),
+
+                    /// Title
+                    Text(
+                      "Create\nAccount",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 34,
+                        fontWeight: FontWeight.bold,
+                        height: 1.1,
+                      ),
                     ),
                   ],
                 ),
               ),
+            ),
 
-              // ⚪ Bottom Form Section
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.42,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(24, 60, 30, 0),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
+
+            /// ⚪ WHITE CARD SECTION
+            Expanded(
+              flex: 7,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30),
+                        topRight: Radius.circular(30),
+                      ),
                     ),
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        // 🔹 NAME
-                        TextFormField(
-                          controller: _name,
-                          decoration: _inputDecoration('Full Name'),
-                          validator: (value) =>
-                              Validator.validateName(value ?? ''),
-                          onChanged: (_) => _validateForm(),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 🔹 EMAIL
-                        TextFormField(
-                          controller: _email,
-                          decoration: _inputDecoration('Email'),
-                          validator: (value) =>
-                              Validator.validateEmail(value ?? ''),
-                          keyboardType: TextInputType.emailAddress,
-                          onChanged: (_) => _validateForm(),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 🔹 Terms & Conditions Checkbox
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    child: SingleChildScrollView(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
                           children: [
-                            Transform.scale(
-                              scale: 1.2,
-                              child: Checkbox(
-                                value: _isChecked,
-                                side: const BorderSide(
-                                    color: Color(0xFF2C68EE), width: 1.5),
-                                activeColor: Colors.white,
-                                checkColor: const Color(0xFF2C68EE),
-                                onChanged: (v) {
-                                  setState(() => _isChecked = v ?? false);
-                                  _validateForm();
+                            //const SizedBox(height: 50),
+
+                            _buildInput(
+                              controller: _name,
+                              hint: "Full Name",
+                              icon: Icons.person_outline,
+                              validator: (v) => Validator.validateName(v ?? ''),
+                            ),
+                            const SizedBox(height: 14),
+
+                            _buildInput(
+                              controller: _email,
+                              hint: "Email address",
+                              icon: Icons.email_outlined,
+                              validator: (v) => Validator.validateEmail(v ?? ''),
+                            ),
+                            const SizedBox(height: 14),
+
+                            _buildInput(
+                              controller: _pass,
+                              hint: "Password",
+                              icon: Icons.lock_outline,
+                              obscure: _showPass,
+                              suffix: IconButton(
+                                icon: Icon(
+                                  _showPass ? Icons.visibility_off : Icons.visibility,
+                                  color: const Color(0xFF2C68EE),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _showPass = !_showPass;
+                                  });
                                 },
                               ),
+                              validator: (v) => Validator.validatePassword(v ?? ''),
                             ),
 
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: cmsModel == null
-                                    ? _showSnack
-                                    : () => goto(
-                                  context,
-                                  CmsScreen(
-                                    title: cmsModel!
-                                        .data!.termsConditions!.title!,
-                                    description: cmsModel!.data!
-                                        .termsConditions!.description!,
-                                  ),
+                            const SizedBox(height: 14),
+
+                            _buildInput(
+                              controller: _confPass,
+                              hint: "Confirm password",
+                              icon: Icons.lock_outline,
+                              obscure: _showPass,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return "Confirm password required";
+                                }
+                                if (v != _pass.text) {
+                                  return "Passwords do not match";
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            /// ✅ AGREEMENT
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isChecked,
+                                  activeColor: const Color(0xFF2C68EE),
+                                  onChanged: (val) {
+                                    setState(() => _isChecked = val ?? false);
+                                  },
                                 ),
-                                child: const Padding(
-                                  padding: EdgeInsets.only(top: 12),
-                                  child: Text(
-                                    "I agree to the Terms & Conditions",
-                                    style: TextStyle(
-                                      color: Color(0xFF2C68EE),
-                                      decoration: TextDecoration.underline,
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        color: Colors.black,
+                                      ),
+                                      children: [
+                                        const TextSpan(text: "I agree to Tinydroplets "),
+                                        TextSpan(
+                                          text: "Terms & Conditions",
+                                          style: const TextStyle(
+                                            color: Color(0xFF2C68EE),
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              UrlOpener.launchURL(
+                                                  "https://tinydroplets.com/terms-conditions");
+                                            },
+                                        ),
+                                        const TextSpan(text: " and acknowledge the "),
+                                        TextSpan(
+                                          text: "Privacy Policy",
+                                          style: const TextStyle(
+                                            color: Color(0xFF2C68EE),
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                          recognizer: TapGestureRecognizer()
+                                            ..onTap = () {
+                                              UrlOpener.launchURL(
+                                                  "https://tinydroplets.com/privacy-policy");
+                                            },
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// 🔵 SIGN UP BUTTON
+                            _loading
+                                ? const Loader()
+                                : AppButton(
+                              text: "Sign up",
+                              color: const Color(0xFF2C68EE),
+                              valid: true, // ALWAYS ENABLE
+                              onPressed: () async {
+                                if (!_isChecked) {
+                                  CommonMethods.showSnackBar(context, "Please accept Terms & Conditions");
+                                  return;
+                                }
+
+                                if (_formKey.currentState!.validate()) {
+                                  await _signUp(
+                                    _name.text,
+                                    _email.text,
+                                    '',
+                                  );
+                                }
+                              },
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 20),
-
-                        // 🔹 Sign Up Button
-                        _loading
-                            ? const CircularProgressIndicator(
-                          color: Color(0xFF2C68EE),
-                        )
-                            : AppButton(
-                          color: const Color(0xFF2C68EE),
-                          text: 'Sign Up',
-                          valid: isFormValid && _isChecked,
-                          onPressed: (isFormValid && _isChecked)
-                              ? () => _signUp(
-                            _name.text,
-                            _email.text,
-                            _mobile.text, // <-- YOU ALREADY HAD THIS IN LOGIC, NOT REMOVING
-                          )
-                              : null,
-                        ),
-
-                        const SizedBox(height: 40),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
 
-              // 👶 Floating Baby Image (correct placement)
-              Positioned(
-                top: MediaQuery.of(context).size.height * 0.23,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Image.asset(
-                    AppVector.babyImage7,
-                    height: 150,
-                    width: 150,
+                  /// 👶 FLOATING BABY IMAGE
+                  Positioned(
+                    top: -140,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Image.asset(
+                        AppVector.babyImage7,
+                        height: 150,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildInput({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    bool obscure = false,
+    Widget? suffix,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      validator: validator,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: Colors.black87),
+        suffixIcon: suffix,
+        hintStyle: GoogleFonts.poppins(
+          color: const Color(0xFF2C68EE),
+          fontSize: 14,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF2C68EE)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF2C68EE)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF2C68EE), width: 2),
+        ),
+      ),
+    );
+  }
+
+
 
   /// Shared input decoration same as Login Page
   InputDecoration _inputDecoration(String label) {

@@ -1,5 +1,6 @@
 import 'package:sizer/sizer.dart';
 import 'package:tinydroplets/core/constant/app_vector.dart';
+import 'package:tinydroplets/features/presentation/pages/splash_page/desicive_screen.dart';
 import 'package:tinydroplets/features/presentation/pages/splash_page/widget/onboarding_widget.dart';
 
 import '../../../../core/constant/app_export.dart';
@@ -46,7 +47,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       ),
     ];
 
-    SharedPref.setOnboardingViewed(true);
+    //SharedPref.setOnboardingViewed(true);
     super.initState();
   }
 
@@ -65,7 +66,11 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
         curve: Curves.easeInOut,
       );
     } else {
-      gotoReplacement(context, LoginPage());
+      if(!SharedPref.getOnboardingViewed()){
+        gotoReplacement(context, DesiciveScreen());
+      } else {
+        gotoReplacement(context, LoginPage());
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/login_page/login_page.dart';
+import 'package:tinydroplets/features/presentation/pages/auth/sign_up_page/sign_up_page.dart';
 
 class GuestRestrictionDialog {
   static Future<void> show(BuildContext context) async {
@@ -57,10 +58,10 @@ class GuestRestrictionDialog {
                         ),
                         onPressed: () {
                           Navigator.pop(context); // close dialog
-                          goto(context, const LoginPage());
+                          goto(context, const SignUpPage());
                         },
                         child: Text(
-                          "Sign In",
+                          "Create Account",
                           style: GoogleFonts.poppins(
                             color: Colors.black,
                             fontSize: 16,
