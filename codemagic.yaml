@@ -26,13 +26,14 @@ workflows:
         script: |
           echo "Configuring Sign in with Apple entitlement..."
 
-          mkdir -p ios/Runner
-
+          # Create entitlements file
           cat > ios/Runner/Runner.entitlements <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
+              <key>aps-environment</key>
+              <string>production</string>
               <key>com.apple.developer.applesignin</key>
               <array>
                   <string>Default</string>
@@ -41,7 +42,15 @@ workflows:
           </plist>
           EOF
 
-          /usr/libexec/PlistBuddy -c "Set :CODE_SIGN_ENTITLEMENTS Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj || true
+          echo "Linking entitlements to Xcode project..."
+
+          /usr/libexec/PlistBuddy -c "Add :CODE_SIGN_ENTITLEMENTS string Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj || \
+          /usr/libexec/PlistBuddy -c "Set :CODE_SIGN_ENTITLEMENTS Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj
+
+      - name: Verify entitlements
+        script: |
+          echo "Verifying entitlements..."
+          cat ios/Runner/Runner.entitlements
 
       - name: Get Flutter packages
         script: |
