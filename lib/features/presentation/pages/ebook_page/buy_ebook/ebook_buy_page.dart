@@ -8,6 +8,7 @@ import 'package:tinydroplets/features/presentation/pages/pdf_viewer/pdf_viewer_s
 
 import '../../../../../core/constant/app_export.dart';
 import '../../feed_page/widget/expandable_text.dart';
+import '../../remove_ads/widget/remove_ads_bottom_sheet.dart';
 import '../model/all_review_model.dart';
 
 class EbookBuyDetailPage extends StatefulWidget {
@@ -120,11 +121,14 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
     }
   }
 
+  bool isSubscribed = false;
+
   void _getPrefData() {
     final prefData = SharedPref.getLoginData();
     name = prefData?.data?.name ?? '';
     contact = prefData?.data?.mobile ?? '';
     email = prefData?.data?.email ?? '';
+    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
   }
 
   @override
@@ -344,54 +348,62 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Price",
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22),
-            ),
-            Text(
-              CommonMethods.formatRupees(amount ?? ''),
-              // "₹$amount",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 22),
-            ),
-          ],
-        ),
+        // Column(
+        //   crossAxisAlignment: CrossAxisAlignment.start,
+        //   children: [
+        //     Text(
+        //       "Price",
+        //       style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22),
+        //     ),
+        //     Text(
+        //       CommonMethods.formatRupees(amount ?? ''),
+        //       // "₹$amount",
+        //       style: TextStyle(fontWeight: FontWeight.w600, fontSize: 22),
+        //     ),
+        //   ],
+        // ),
         AppButton(
           useCupertino: true,
           width: 180,
-          text: 'Buy Now',
+          text: 'Subscribe to Unlock',
           onPressed: () {
-            if (amount != null &&
-                orderId != null &&
-                name != null &&
-                contact != null &&
-                email != null) {
-              goto(
-                context,
-                CheckoutPage(
-                  ebookId: widget.ebookId,
-                  orderId: orderId ?? '',
-                  ebookCover: image ?? '',
-                  ebookName: ebookName ?? '',
-                  authorName: authorName ?? '',
-                  totalPage: page ?? '',
-                  audio: audio ?? '',
-                  amount: price ?? '',
-                  discountPercentage: '10',
-                  mainPrice: mainPrice ?? '0',
-                  name: name ?? '',
-                  contact: contact ?? '',
-                  email: email ?? '',
-                ),
-              );
-            } else {
-              CommonMethods.showSnackBar(
-                context,
-                "Something went wrong, Please try again later",
-              );
-            }
+
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const RemoveAdsBottomSheet(),
+            );
+
+            // if (amount != null &&
+            //     orderId != null &&
+            //     name != null &&
+            //     contact != null &&
+            //     email != null) {
+            //   goto(
+            //     context,
+            //     CheckoutPage(
+            //       ebookId: widget.ebookId,
+            //       orderId: orderId ?? '',
+            //       ebookCover: image ?? '',
+            //       ebookName: ebookName ?? '',
+            //       authorName: authorName ?? '',
+            //       totalPage: page ?? '',
+            //       audio: audio ?? '',
+            //       amount: price ?? '',
+            //       discountPercentage: '10',
+            //       mainPrice: mainPrice ?? '0',
+            //       name: name ?? '',
+            //       contact: contact ?? '',
+            //       email: email ?? '',
+            //     ),
+            //   );
+            // } else {
+            //   CommonMethods.showSnackBar(
+            //     context,
+            //     "Something went wrong, Please try again later",
+            //   );
+            // }
           },
         ),
       ],

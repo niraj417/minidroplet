@@ -3,62 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:tinydroplets/common/widgets/app_button.dart';
 
-import '../../../../../core/network/api_controller.dart';
-import '../../../../../core/network/api_endpoints.dart';
 import '../bloc/remove_ads_cubit.dart';
 import '../bloc/remove_ads_state.dart';
 
-class PurchaseDetailsBottomSheet extends StatefulWidget {
+class PurchaseDetailsBottomSheet extends StatelessWidget {
   const PurchaseDetailsBottomSheet({super.key});
-
-  @override
-  State<PurchaseDetailsBottomSheet> createState() => _PurchaseDetailsBottomSheetState();
-}
-
-class _PurchaseDetailsBottomSheetState extends State<PurchaseDetailsBottomSheet> {
-
-  bool isLoading = true;
-  String transactionId = '';
-  String expiryDate = '';
-  String statusText = 'Inactive';
-
-  final DioClient _dioClient = DioClient();
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchSubscriptionDetails();
-  }
-
-  Future<void> _fetchSubscriptionDetails() async {
-    try {
-      final response = await _dioClient.sendGetRequest(
-        ApiEndpoints.getUserSubscription,
-      );
-
-      if (response.data['status'] == 1) {
-        final data = response.data['data'];
-
-        setState(() {
-          transactionId = data['transaction_id'] ?? '';
-          expiryDate = data['expiry_date'] ?? '';
-          statusText = data['is_active'] == 1 ? 'Active' : 'Inactive';
-          isLoading = false;
-        });
-      } else {
-        setState(() => isLoading = false);
-      }
-    } catch (e) {
-      setState(() => isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.65,
-      minChildSize: 0.4,
-      maxChildSize: 0.8,
+      initialChildSize: 0.52,
+      minChildSize: 0.3,
+      maxChildSize: 0.7,
       builder: (_, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -68,18 +24,18 @@ class _PurchaseDetailsBottomSheetState extends State<PurchaseDetailsBottomSheet>
           padding: const EdgeInsets.all(16),
           child: BlocBuilder<RemoveAdsCubit, RemoveAdsState>(
             builder: (context, state) {
-              if (state.isLoading && isLoading) {
+              if (state.isLoading) {
                 return const Center(child: CircularProgressIndicator());
               }
 
               // Format the expiry date if available
               String formattedDate = 'Not available';
-              if (state.expiryDate != null || expiryDate != null) {
+              if (state.expiryDate != null) {
                 try {
-                  final DateTime expiry = DateTime.parse(state.expiryDate ?? expiryDate);
+                  final DateTime expiry = DateTime.parse(state.expiryDate!);
                   formattedDate = DateFormat('MMM dd, yyyy').format(expiry);
                 } catch (e) {
-                  formattedDate = state.expiryDate ?? expiryDate;
+                  formattedDate = state.expiryDate!;
                 }
               }
 
@@ -98,14 +54,14 @@ class _PurchaseDetailsBottomSheetState extends State<PurchaseDetailsBottomSheet>
                   const Icon(Icons.verified, color: Colors.green, size: 64),
                   const SizedBox(height: 16),
                   const Text(
-                    'Subscription Status Active',
+                    'Ad-Free Status Active',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 32),
                   _buildInfoRow(
                     context,
                     'Transaction ID',
-                    state.transactionId ?? transactionId,
+                    state.transactionId ?? 'Not available',
                   ),
                   const Divider(),
                   _buildInfoRow(context, 'Expiry Date', formattedDate),

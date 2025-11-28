@@ -24,6 +24,7 @@ import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../common/widgets/loader.dart';
 import '../../../../core/constant/app_export.dart';
 import '../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
+import '../../../../core/services/subscription_service.dart';
 import '../feed_page/bloc/age_group_bloc/age_group_cubit.dart';
 import 'bloc/ingredient_bloc/ingredient_cubit.dart';
 import 'bloc/video_page_bloc/video_page_bloc.dart';
@@ -36,23 +37,30 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
+
+  bool isSubscribed = false;
+
   @override
   void initState() {
     super.initState();
     context.read<AgeGroupCubit>().fetchAgeGroup();
+    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => VideoPageCubit(),
-      child: const _VideoPageContent(),
+      child: _VideoPageContent(isSubscribed),
     );
   }
 }
 
 class _VideoPageContent extends StatelessWidget {
-  const _VideoPageContent();
+
+  final bool isSubscribed;
+
+  _VideoPageContent(this.isSubscribed);
 
   @override
   Widget build(BuildContext context) {
@@ -114,17 +122,21 @@ class _VideoPageContent extends StatelessWidget {
           itemBuilder:
               (context, feedSliderItem, index) => GestureDetector(
                 onTap: () {
-                  if (feedSliderItem.isBuy == '0') {
-                    goto(
-                      context,
-                      VideoCheckoutPage(
-                        id: feedSliderItem.id,
-                        title: feedSliderItem.title ?? '',
-                        thumbnail: feedSliderItem.thumbnail ?? '',
-                        amount: feedSliderItem.price ?? '',
-                        mainPrice: feedSliderItem.mainPrice ?? '',
-                      ),
-                    );
+                  if (feedSliderItem.isBuy == '0' || isSubscribed) {
+                    if(state.subscribed || isSubscribed){
+                      goto(context, RecipeDetailScreen(videoId: feedSliderItem.id.toString()));
+                    } else {
+                      goto(
+                        context,
+                        VideoCheckoutPage(
+                          id: feedSliderItem.id,
+                          title: feedSliderItem.title ?? '',
+                          thumbnail: feedSliderItem.thumbnail ?? '',
+                          amount: feedSliderItem.price ?? '',
+                          mainPrice: feedSliderItem.mainPrice ?? '',
+                        ),
+                      );
+                    }
                   } else {
                     goto(
                       context,
@@ -340,20 +352,25 @@ class _VideoPageContent extends StatelessWidget {
       debugPrint('Playlist detected');
       debugPrint('isBuy value: ${item.isBuy}');
 
-      if (item.isBuy.trim() == '0') {
-        debugPrint('Navigating to PlaylistCheckoutPage');
-        goto(
-          context,
-          PlaylistCheckoutPage(
-            id: int.parse(item.id) ?? 0,
-            title: item.name ?? '',
-            thumbnail: item.videoThumbnail ?? '',
-            amount: item.price ?? '',
-            mainPrice: item.mainPrice ?? '',
-            totalVideo: item.totalVideos ?? '',
-            description: item.description ?? '',
-          ),
-        );
+      if (item.isBuy.trim() == '0' || isSubscribed) {
+        if(state.subscribed || isSubscribed) {
+          debugPrint('Navigating to RecipePlaylistScreen');
+          goto(context, RecipePlaylistScreen(playlistId: item.id.toString()));
+        } else {
+          debugPrint('Navigating to PlaylistCheckoutPage');
+          goto(
+            context,
+            PlaylistCheckoutPage(
+              id: int.parse(item.id) ?? 0,
+              title: item.name ?? '',
+              thumbnail: item.videoThumbnail ?? '',
+              amount: item.price ?? '',
+              mainPrice: item.mainPrice ?? '',
+              totalVideo: item.totalVideos ?? '',
+              description: item.description ?? '',
+            ),
+          );
+        }
       } else {
         debugPrint('Navigating to RecipePlaylistScreen');
         goto(context, RecipePlaylistScreen(playlistId: item.id.toString()));
@@ -362,18 +379,23 @@ class _VideoPageContent extends StatelessWidget {
       debugPrint('Video detected');
       debugPrint('isBuy value: ${item.isBuy}');
 
-      if (item.isBuy.trim() == '0') {
-        debugPrint('Navigating to VideoCheckoutPage');
-        goto(
-          context,
-          VideoCheckoutPage(
-            id: int.parse(item.id) ?? 0,
-            title: item.videoTitle ?? '',
-            thumbnail: item.videoThumbnail ?? '',
-            amount: item.price ?? '',
-            mainPrice: item.mainPrice ?? '',
-          ),
-        );
+      if (item.isBuy.trim() == '0' || isSubscribed) {
+        if(state.subscribed || isSubscribed){
+          debugPrint('Navigating to RecipeDetailScreen');
+          goto(context, RecipeDetailScreen(videoId: item.id.toString()));
+        } else {
+          debugPrint('Navigating to VideoCheckoutPage');
+          goto(
+            context,
+            VideoCheckoutPage(
+              id: int.parse(item.id) ?? 0,
+              title: item.videoTitle ?? '',
+              thumbnail: item.videoThumbnail ?? '',
+              amount: item.price ?? '',
+              mainPrice: item.mainPrice ?? '',
+            ),
+          );
+        }
       } else {
         debugPrint('Navigating to RecipeDetailScreen');
         goto(context, RecipeDetailScreen(videoId: item.id.toString()));
@@ -394,20 +416,25 @@ class _VideoPageContent extends StatelessWidget {
       debugPrint('Playlist detected');
       debugPrint('isBuy value: ${item.isBuy}');
 
-      if (item.isBuy.trim() == '0') {
-        debugPrint('Navigating to PlaylistCheckoutPage');
-        goto(
-          context,
-          PlaylistCheckoutPage(
-            id: int.parse(item.id) ?? 0,
-            title: item.name ?? '',
-            thumbnail: item.videoThumbnail ?? '',
-            amount: item.price ?? '',
-            mainPrice: item.mainPrice ?? '',
-            totalVideo: item.totalVideos ?? '',
-            description: item.description ?? '',
-          ),
-        );
+      if (item.isBuy.trim() == '0' || isSubscribed) {
+        if(state.subscribed || isSubscribed){
+          debugPrint('Navigating to RecipePlaylistScreen');
+          goto(context, RecipePlaylistScreen(playlistId: item.id.toString()));
+        } else {
+          debugPrint('Navigating to PlaylistCheckoutPage');
+          goto(
+            context,
+            PlaylistCheckoutPage(
+              id: int.parse(item.id) ?? 0,
+              title: item.name ?? '',
+              thumbnail: item.videoThumbnail ?? '',
+              amount: item.price ?? '',
+              mainPrice: item.mainPrice ?? '',
+              totalVideo: item.totalVideos ?? '',
+              description: item.description ?? '',
+            ),
+          );
+        }
       } else {
         debugPrint('Navigating to RecipePlaylistScreen');
         goto(context, RecipePlaylistScreen(playlistId: item.id.toString()));
@@ -416,18 +443,23 @@ class _VideoPageContent extends StatelessWidget {
       debugPrint('Video detected');
       debugPrint('isBuy value: ${item.isBuy}');
 
-      if (item.isBuy.trim() == '0') {
-        debugPrint('Navigating to VideoCheckoutPage');
-        goto(
-          context,
-          VideoCheckoutPage(
-            id: int.parse(item.id) ?? 0,
-            title: item.videoTitle ?? '',
-            thumbnail: item.videoThumbnail ?? '',
-            amount: item.price ?? '',
-            mainPrice: item.mainPrice ?? '',
-          ),
-        );
+      if (item.isBuy.trim() == '0' || isSubscribed) {
+        if(state.subscribed || isSubscribed){
+          debugPrint('Navigating to RecipeDetailScreen');
+          goto(context, RecipeDetailScreen(videoId: item.id.toString()));
+        } else {
+          debugPrint('Navigating to VideoCheckoutPage');
+          goto(
+            context,
+            VideoCheckoutPage(
+              id: int.parse(item.id) ?? 0,
+              title: item.videoTitle ?? '',
+              thumbnail: item.videoThumbnail ?? '',
+              amount: item.price ?? '',
+              mainPrice: item.mainPrice ?? '',
+            ),
+          );
+        }
       } else {
         debugPrint('Navigating to RecipeDetailScreen');
         goto(context, RecipeDetailScreen(videoId: item.id.toString()));
@@ -514,19 +546,23 @@ class _VideoPageContent extends StatelessWidget {
       GuestRestrictionDialog.show(context);
       return;
     }
-    if (item.isBuy == '0') {
-      goto(
-        context,
-        PlaylistCheckoutPage(
-          id: item.id,
-          title: item.name,
-          thumbnail: item.thumbnail,
-          amount: item.price,
-          mainPrice: item.mainPrice,
-          totalVideo: item.totalVideos,
-          description: item.description,
-        ),
-      );
+    if (item.isBuy == '0' || isSubscribed) {
+      if(state.subscribed || isSubscribed){
+        goto(context, RecipePlaylistScreen(playlistId: item.id.toString()));
+      } else {
+        goto(
+          context,
+          PlaylistCheckoutPage(
+            id: item.id,
+            title: item.name,
+            thumbnail: item.thumbnail,
+            amount: item.price,
+            mainPrice: item.mainPrice,
+            totalVideo: item.totalVideos,
+            description: item.description,
+          ),
+        );
+      }
     } else {
       goto(context, RecipePlaylistScreen(playlistId: item.id.toString()));
     }
@@ -624,18 +660,23 @@ class _VideoPageContent extends StatelessWidget {
     debugPrint('Navigating for week recipe item: ${item.toString()}');
     debugPrint('isBuy value: ${item.isBuy}');
 
-    if (item.isBuy == '0') {
-      debugPrint('Navigating to VideoCheckoutPage');
-      goto(
-        context,
-        VideoCheckoutPage(
-          id: item.id,
-          title: item.title,
-          thumbnail: item.thumbnail,
-          amount: item.price,
-          mainPrice: item.mainPrice,
-        ),
-      );
+    if (item.isBuy == '0' || isSubscribed) {
+      if(state.subscribed || isSubscribed) {
+        debugPrint('Navigating to RecipeDetailScreen');
+        goto(context, RecipeDetailScreen(videoId: item.id.toString()));
+      } else {
+        debugPrint('Navigating to VideoCheckoutPage');
+        goto(
+          context,
+          VideoCheckoutPage(
+            id: item.id,
+            title: item.title,
+            thumbnail: item.thumbnail,
+            amount: item.price,
+            mainPrice: item.mainPrice,
+          ),
+        );
+      }
     } else {
       debugPrint('Navigating to RecipeDetailScreen');
       goto(context, RecipeDetailScreen(videoId: item.id.toString()));

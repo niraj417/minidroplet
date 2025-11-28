@@ -18,6 +18,7 @@ import '../../../../core/services/payment_service.dart';
 import '../../../../core/services/payment_service/payment_bloc.dart';
 import '../../../../core/services/payment_service/payment_event.dart';
 import '../../../../core/services/payment_service/payment_state.dart';
+import '../../../../core/services/subscription_service.dart';
 import '../../../../injections/dependency_injection.dart';
 import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
 import '../ebook_page/purchased_ebook/purchased_ebook_detail_page.dart';
@@ -50,13 +51,15 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
   String? _appliedCoupon;
   String? mainPrice;
 
+  bool _hasSubscription = false;
+
+
   // Payment data
   String? orderId;
   String? amount;
   String? name;
   String? contact;
   String? email;
-  bool isSubscribed = false;
 
   late final PaymentBloc _paymentBloc;
 
@@ -68,14 +71,36 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
     amount = widget.amount;
     _getPrefData();
     _createOrder();
+    //_checkSubscription();
   }
+
+  // Future<void> _checkSubscription() async {
+  //   try {
+  //     final status = await SubscriptionPaymentService.hasActiveSubscription();
+  //     setState(() {
+  //       _hasSubscription = status;
+  //     });
+  //
+  //     if (_hasSubscription) {
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (_) => RecipeDetailScreen(videoId: widget.id.toString()),
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     debugPrint('Subscription check failed: $e');
+  //   }
+  // }
+
 
   void _getPrefData() {
     final prefData = SharedPref.getLoginData();
     name = prefData?.data?.name ?? '';
     contact = prefData?.data?.mobile ?? '';
     email = prefData?.data?.email ?? '';
-    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    _hasSubscription = SharedPref.getBool("isSubscribed") ?? false;
   }
 
   bool _isPaymentLoading = false;
@@ -254,6 +279,24 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    // if (!_hasSubscription) {
+    //   return Scaffold(
+    //     appBar: AppBar(title: Text("Premium Access")),
+    //     body: Center(
+    //       child: AppButton(
+    //         text: 'Subscribe to Watch',
+    //         onPressed: () {
+    //           showModalBottomSheet(
+    //             context: context,
+    //             isScrollControlled: true,
+    //             backgroundColor: Colors.transparent,
+    //             builder: (_) => const RemoveAdsBottomSheet(), // Your new Subscription Sheet
+    //           );
+    //         },
+    //       ),
+    //     ),
+    //   );
+    // }
     return BlocProvider<VideoPageCubit>(
       create: (context) => VideoPageCubit(),
       child: BlocListener<PaymentBloc, PaymentState>(
@@ -268,9 +311,9 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
               CupertinoPageRoute(
                 builder:
                     (context) =>
-                        RecipeDetailScreen(videoId: state.dataId.toString()),
+                    RecipeDetailScreen(videoId: state.dataId.toString()),
               ),
-              (route) => route.isFirst,
+                  (route) => route.isFirst,
             );
           } else if (state is PaymentError) {
             CommonMethods.showSnackBar(context, state.message);
@@ -285,9 +328,9 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
               CupertinoPageRoute(
                 builder:
                     (context) =>
-                        RecipeDetailScreen(videoId: state.dataId.toString()),
+                    RecipeDetailScreen(videoId: state.dataId.toString()),
               ),
-              (route) => route.isFirst,
+                  (route) => route.isFirst,
             );
           } else if (state is IAPError) {
             CommonMethods.showSnackBar(
@@ -466,117 +509,117 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
                 _allCouponLoading
                     ? Loader()
                     : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Apply Coupon', style: TextStyle(fontSize: 19)),
-                        SizedBox(height: 10),
-                        SizedBox(
-                          height: 40,
-                          width: double.infinity,
-                          child: ListView.builder(
-                            itemCount: _allCouponList.length,
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: InkWell(
-                                  onTap: () async {
-                                    if (_allCouponList[index].name.isNotEmpty) {
-                                      _appliedCoupon =
-                                          _allCouponList[index].name;
-                                      await _applyCouponCode(
-                                        _appliedCoupon ?? '',
-                                      );
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 3,
-                                    ),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Theme.of(context).cardColor,
-                                    ),
-                                    child: Text(
-                                      _allCouponList[index].name,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Apply Coupon', style: TextStyle(fontSize: 19)),
+                    SizedBox(height: 10),
+                    SizedBox(
+                      height: 40,
+                      width: double.infinity,
+                      child: ListView.builder(
+                        itemCount: _allCouponList.length,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: InkWell(
+                              onTap: () async {
+                                if (_allCouponList[index].name.isNotEmpty) {
+                                  _appliedCoupon =
+                                      _allCouponList[index].name;
+                                  await _applyCouponCode(
+                                    _appliedCoupon ?? '',
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 3,
+                                ),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Theme.of(context).cardColor,
+                                ),
+                                child: Text(
+                                  _allCouponList[index].name,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontStyle: FontStyle.italic,
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        Divider(height: 32, thickness: 1),
-                      ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
+                    Divider(height: 32, thickness: 1),
+                  ],
+                ),
 
                 _recipeCouponList.isNotEmpty
                     ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Order Summary",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        ListView.builder(
-                          itemCount: _recipeCouponList.length,
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final data = _recipeCouponList[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 4.0,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Order Summary",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    ListView.builder(
+                      itemCount: _recipeCouponList.length,
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        final data = _recipeCouponList[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 4.0,
+                          ),
+                          child: Column(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildSummaryRow(
+                                'Amount:',
+                                '₹${CommonMethods.formatRupees(amount ?? '')}',
                               ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildSummaryRow(
-                                    'Amount:',
-                                    '₹${CommonMethods.formatRupees(amount ?? '')}',
-                                  ),
-                                  _buildSummaryRow(
-                                    'Total discount:',
-                                    "₹${data.discountAmount}",
-                                  ),
-                                  _buildSummaryRow(
-                                    'Discount percentage:',
-                                    "${data.discountPercentage}%",
-                                  ),
-                                ],
+                              _buildSummaryRow(
+                                'Total discount:',
+                                "₹${data.discountAmount}",
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    )
+                              _buildSummaryRow(
+                                'Discount percentage:',
+                                "${data.discountPercentage}%",
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                )
                     : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Text(
+                    //   "Order Summary",
+                    //   style: TextStyle(fontWeight: FontWeight.bold),
+                    // ),
+                    SizedBox(height: 8),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Order Summary",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildSummaryRow(
-                              'Amount:',
-                              CommonMethods.formatRupees(amount ?? ''),
-                            ),
-                          ],
-                        ),
+                        // _buildSummaryRow(
+                        //   'Amount:',
+                        //   CommonMethods.formatRupees(amount ?? ''),
+                        // ),
                       ],
                     ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -593,10 +636,10 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Overall Total",
-              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
-            ),
+            // Text(
+            //   "Overall Total",
+            //   style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+            // ),
             Text(
               CommonMethods.formatRupees(amount ?? ''),
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
@@ -609,15 +652,6 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
           //text: 'Pay Now',
           text: 'Subscribe to Unlock',
           onPressed: () async {
-
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const RemoveAdsBottomSheet(),
-            );
-
-
             // if (Platform.isIOS) {
             //   final productId = IAPUtils.getIAPProductId('video');
             //   if (productId != null) {
@@ -652,9 +686,9 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
             //   } else {
             //     CommonMethods.showSnackBar(context, "Order ID is missing.");
             //   }
-            // } else {
-            //   await _buildPaymentMode(context);
-            // }
+            //} else {
+              await _buildPaymentMode(context);
+            //}
           },
         ),
       ],
@@ -693,67 +727,61 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
 
               Row(
                 children: [
-                  // Expanded(
-                  //   child: AppButton(
-                  //     onPressed: () {
-                  //       // if (amount!.isNotEmpty && orderId!.isNotEmpty) {
-                  //       //   CommonMethods.devLog(
-                  //       //     logName: 'Video Order id here',
-                  //       //     message: orderId,
-                  //       //   );
-                  //       //   try {
-                  //       //     _paymentBloc.add(
-                  //       //       InitiatePayment(
-                  //       //         amount: amount ?? '0',
-                  //       //         orderId: orderId ?? '',
-                  //       //         dataId: widget.id,
-                  //       //         name: name ?? '',
-                  //       //         contact: contact ?? '',
-                  //       //         email: email ?? '',
-                  //       //         itemType: 'video',
-                  //       //       ),
-                  //       //     );
-                  //       //   } catch (e) {
-                  //       //     CommonMethods.devLog(
-                  //       //       logName: 'Error',
-                  //       //       message: e.toString(),
-                  //       //     );
-                  //       //   }
-                  //       // } else {
-                  //       //   CommonMethods.showSnackBar(
-                  //       //     context,
-                  //       //     "Something went wrong, Please try again later",
-                  //       //   );
-                  //       // }
-                  //       Navigator.pop(context);
-                  //       CommonMethods.showSnackBar(
-                  //         context,
-                  //         'Payment Mode: Razorpay',
-                  //       );
-                  //     },
-                  //     text: 'Razorpay',
-                  //   ),
-                  // ),
+                  Expanded(
+                    child: AppButton(
+                      onPressed: () {
+                        if (amount!.isNotEmpty && orderId!.isNotEmpty) {
+                          CommonMethods.devLog(
+                            logName: 'Video Order id here',
+                            message: orderId,
+                          );
+                          try {
+                            _paymentBloc.add(
+                              InitiatePayment(
+                                amount: amount ?? '0',
+                                orderId: orderId ?? '',
+                                dataId: widget.id,
+                                name: name ?? '',
+                                contact: contact ?? '',
+                                email: email ?? '',
+                                itemType: 'video',
+                              ),
+                            );
+                          } catch (e) {
+                            CommonMethods.devLog(
+                              logName: 'Error',
+                              message: e.toString(),
+                            );
+                          }
+                        } else {
+                          CommonMethods.showSnackBar(
+                            context,
+                            "Something went wrong, Please try again later",
+                          );
+                        }
+                        Navigator.pop(context);
+                        CommonMethods.showSnackBar(
+                          context,
+                          'Payment Mode: Razorpay',
+                        );
+                      },
+                      text: 'Razorpay',
+                    ),
+                  ),
                   SizedBox(width: 10),
                   Expanded(
                     child: AppButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => const RemoveAdsBottomSheet(),
-                        );
                         //_openRemoveAdsSubscription();
-                        // Navigator.pop(context);
-                        // goto(
-                        //   context,
-                        //   PaypalWebViewPage(
-                        //     id: widget.id,
-                        //     type: 'video',
-                        //     amount: amount ?? '0',
-                        //   ),
-                        // );
+                        Navigator.pop(context);
+                        goto(
+                          context,
+                          PaypalWebViewPage(
+                            id: widget.id,
+                            type: 'video',
+                            amount: amount ?? '0',
+                          ),
+                        );
                       },
                       text: 'PayPal',
                     ),
@@ -766,13 +794,13 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
       },
     );
   }
-  //
-  // void _openRemoveAdsSubscription() {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: Colors.transparent,
-  //     builder: (context) => const RemoveAdsBottomSheet(),
-  //   );
-  // }
+
+  void _openRemoveAdsSubscription() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const RemoveAdsBottomSheet(),
+    );
+  }
 }

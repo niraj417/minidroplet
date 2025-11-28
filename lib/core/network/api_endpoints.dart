@@ -1,7 +1,7 @@
 class ApiEndpoints {
 
-  static const String serverURL = "http://192.168.31.198:8080/adminapp_tinydroplets/appadmin/api";
-  //static const String serverURL = "https://testbackend.tinydroplets.com/api";
+  //static const String serverURL = "http://192.168.31.198:8080/adminapp_tinydroplets/appadmin/api";
+  static const String serverURL = "https://testbackend.tinydroplets.com/api";
   // static const String serverURL = "http://43.204.111.100/api";
   // static const String serverURL = "http://43.204.111.100/api";
   //static const String serverURL = "https://backend.tinydroplets.com/api";
@@ -154,4 +154,10 @@ class ApiEndpoints {
   static const String videoRating = '$serverURL/add_video_rating';
   static const String relatedRecipe = '$serverURL/related_recpie';
   static const String razorPay = '$serverURL/get_all_settings_data';
+
+  static const String checkSubscription = '$serverURL/check_subscription_status';
+  static const String subscriptionPayment = '$serverURL/subscription_payment';
+  static const String createSubscriptionOrder = '$serverURL/create_subscription_order';
+  static const String subscriptionPlans = '$serverURL/subscription_plans';
+  static const String getUserSubscription = '$serverURL/get_user_subscription';
 }

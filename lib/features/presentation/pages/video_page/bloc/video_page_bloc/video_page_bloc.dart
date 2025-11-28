@@ -4,6 +4,7 @@ import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe
 
 import '../../../../../../core/network/api_controller.dart';
 import '../../../../../../core/network/api_endpoints.dart';
+import '../../../../../../core/services/subscription_service.dart';
 import '../../../feed_page/model/feed_slider_model.dart';
 import '../../model/all_recipe_video_model.dart';
 import '../../model/recipe_category_model.dart';
@@ -23,6 +24,7 @@ class VideoPageCubit extends Cubit<VideoPageState> {
     fetchRecommendationRecipe();
     fetchAllRecipeVideo();
     fetchRecipeAllPlaylist();
+    _loadSubscriptionStatus();
   }
 
   Future<void> refreshData() async {
@@ -32,7 +34,17 @@ class VideoPageCubit extends Cubit<VideoPageState> {
       fetchRecommendationRecipe(),
       fetchAllRecipeVideo(),
       fetchRecipeAllPlaylist(),
+      _loadSubscriptionStatus(),
     ]);
+  }
+
+  Future<void> _loadSubscriptionStatus() async {
+    try{
+      final data = await SubscriptionPaymentService.hasActiveSubscription();
+      emit(state.copyWith(subscribed: data));
+    }catch(e){
+      debugPrint('Error fetching video subscription status: $e');
+    }
   }
 
   Future<void> fetchRecipeCarousel() async {
@@ -107,6 +119,7 @@ class VideoPageState {
   final List<RecipeRecommendationDataModel> recommendationRecipeList;
   final List<AllRecipeVideoDataModel> allRecipeVideoList;
   final List<RecipeAllPlaylistDataModel> recipeAllPlaylistList;
+  final bool subscribed;
 
   VideoPageState({
     required this.recipeCarouselList,
@@ -114,6 +127,7 @@ class VideoPageState {
     required this.recommendationRecipeList,
     required this.allRecipeVideoList,
     required this.recipeAllPlaylistList,
+    required this.subscribed
   });
 
   VideoPageState.initial()
@@ -121,7 +135,8 @@ class VideoPageState {
         allRecipeCategoryList = [],
         recommendationRecipeList = [],
         allRecipeVideoList = [],
-        recipeAllPlaylistList = [];
+        recipeAllPlaylistList = [],
+        subscribed = false;
 
   VideoPageState copyWith({
     List<FeedSliderDataModel>? recipeCarouselList,
@@ -129,16 +144,17 @@ class VideoPageState {
     List<RecipeRecommendationDataModel>? recommendationRecipeList,
     List<AllRecipeVideoDataModel>? allRecipeVideoList,
     List<RecipeAllPlaylistDataModel>? recipeAllPlaylistList,
+    bool? subscribed,
   }) {
     return VideoPageState(
       recipeCarouselList: recipeCarouselList ?? this.recipeCarouselList,
-      allRecipeCategoryList:
-          allRecipeCategoryList ?? this.allRecipeCategoryList,
+      allRecipeCategoryList: allRecipeCategoryList ?? this.allRecipeCategoryList,
       recommendationRecipeList:
-          recommendationRecipeList ?? this.recommendationRecipeList,
+      recommendationRecipeList ?? this.recommendationRecipeList,
       allRecipeVideoList: allRecipeVideoList ?? this.allRecipeVideoList,
       recipeAllPlaylistList:
-          recipeAllPlaylistList ?? this.recipeAllPlaylistList,
+      recipeAllPlaylistList ?? this.recipeAllPlaylistList,
+      subscribed: subscribed ?? this.subscribed,
     );
   }
 }

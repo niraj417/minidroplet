@@ -15,6 +15,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/widget/post_w
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/profile_completion/profile_completion_cubit.dart';
 import '../../../../common/widgets/custom_caraousel.dart';
+import '../../../../core/services/subscription_service.dart';
 import '../my_account/profile_bloc/profile_cubit.dart';
 import '../my_account/profile_bloc/profile_state.dart';
 import '../my_account/profile_completion/profile_completion_widget.dart';
@@ -32,6 +33,24 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
     final TextEditingController _comment = TextEditingController();
     TextEditingController replyController = TextEditingController();
     final DioClient dioClient = GetIt.instance<DioClient>();
+
+    bool isSubscribed = false;
+
+    @override
+    void initState() {
+      // TODO: implement initState
+      super.initState();
+      checkStatus();
+    }
+
+    Future<void> checkStatus() async {
+      try{
+        isSubscribed = await SubscriptionPaymentService.hasActiveSubscription();
+        SharedPref.setBool("isSubscribed", isSubscribed);
+      } catch(e){
+        print("check Status error : ${e.toString()}");
+      }
+    }
 
     @override
     Widget build(BuildContext context) {

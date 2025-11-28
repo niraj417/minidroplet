@@ -18,6 +18,7 @@ import 'package:tinydroplets/features/presentation/pages/my_account/widget/socia
 
 import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../core/constant/app_export.dart';
+import '../../../../core/services/subscription_service.dart';
 import '../../../../core/theme/theme_bloc/theme_state.dart';
 import '../dashboard/dashboard_bloc/dashboard_bloc.dart';
 import '../dashboard/dashboard_bloc/dashboard_event.dart';
@@ -37,15 +38,33 @@ class MyAccount extends StatefulWidget {
 class _MyAccountState extends State<MyAccount> {
   String _appVersion = "Loading...";
   final _dioClient = DioClient();
+  bool isSubscribed = false;
   CmsModel? cmsModel;
+  final SubscriptionPaymentService _subscriptionPayment = SubscriptionPaymentService();
+
   @override
   void initState() {
     super.initState();
+    checkStatus();
     _loadAppVersion();
     getUserProfile();
     _getCms();
   }
 
+  Future<void> checkStatus() async {
+    try{
+      isSubscribed = await SubscriptionPaymentService.hasActiveSubscription();
+    } catch(e){
+      print("check Status error : ${e.toString()}");
+    }
+  }
+
+
+  @override
+  void dispose(){
+    _subscriptionPayment.dispose();
+    super.dispose();
+  }
   String name = '';
   String email = '';
   String image = '';
@@ -230,7 +249,7 @@ class _MyAccountState extends State<MyAccount> {
                   //title: state.isPurchased ? 'Ad-Free Status' : 'Remove Ads',
                   title: "Subscription",
                   onTap: () {
-                    if (state.isPurchased) {
+                    if (state.isPurchased || isSubscribed) {
                       _showPurchaseDetailsBottomSheet(context);
                     } else {
                       _showRemoveAdsBottomSheet(context);

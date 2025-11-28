@@ -170,14 +170,12 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
 
 
-            /// ⚪ WHITE CARD SECTION
             Expanded(
               flex: 7,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
@@ -185,146 +183,155 @@ class _SignUpPageState extends State<SignUpPage> {
                         topRight: Radius.circular(30),
                       ),
                     ),
-                    child: SingleChildScrollView(
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            //const SizedBox(height: 50),
-
-                            _buildInput(
-                              controller: _name,
-                              hint: "Full Name",
-                              icon: Icons.person_outline,
-                              validator: (v) => Validator.validateName(v ?? ''),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight, // 👈 THIS IS THE KEY
                             ),
-                            const SizedBox(height: 14),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                              child: Form(
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    _buildInput(
+                                      controller: _name,
+                                      hint: "Full Name",
+                                      icon: Icons.person_outline,
+                                      validator: (v) => Validator.validateName(v ?? ''),
+                                    ),
+                                    const SizedBox(height: 14),
 
-                            _buildInput(
-                              controller: _email,
-                              hint: "Email address",
-                              icon: Icons.email_outlined,
-                              validator: (v) => Validator.validateEmail(v ?? ''),
-                            ),
-                            const SizedBox(height: 14),
+                                    _buildInput(
+                                      controller: _email,
+                                      hint: "Email address",
+                                      icon: Icons.email_outlined,
+                                      validator: (v) => Validator.validateEmail(v ?? ''),
+                                    ),
+                                    const SizedBox(height: 14),
 
-                            _buildInput(
-                              controller: _pass,
-                              hint: "Password",
-                              icon: Icons.lock_outline,
-                              obscure: _showPass,
-                              suffix: IconButton(
-                                icon: Icon(
-                                  _showPass ? Icons.visibility_off : Icons.visibility,
-                                  color: const Color(0xFF2C68EE),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _showPass = !_showPass;
-                                  });
-                                },
-                              ),
-                              validator: (v) => Validator.validatePassword(v ?? ''),
-                            ),
-
-                            const SizedBox(height: 14),
-
-                            _buildInput(
-                              controller: _confPass,
-                              hint: "Confirm password",
-                              icon: Icons.lock_outline,
-                              obscure: _showPass,
-                              validator: (v) {
-                                if (v == null || v.isEmpty) {
-                                  return "Confirm password required";
-                                }
-                                if (v != _pass.text) {
-                                  return "Passwords do not match";
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: 12),
-
-                            /// ✅ AGREEMENT
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _isChecked,
-                                  activeColor: const Color(0xFF2C68EE),
-                                  onChanged: (val) {
-                                    setState(() => _isChecked = val ?? false);
-                                  },
-                                ),
-                                Expanded(
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        color: Colors.black,
-                                      ),
-                                      children: [
-                                        const TextSpan(text: "I agree to Tinydroplets "),
-                                        TextSpan(
-                                          text: "Terms & Conditions",
-                                          style: const TextStyle(
-                                            color: Color(0xFF2C68EE),
-                                            decoration: TextDecoration.underline,
-                                          ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              UrlOpener.launchURL(
-                                                  "https://tinydroplets.com/terms-conditions");
-                                            },
+                                    _buildInput(
+                                      controller: _pass,
+                                      hint: "Password",
+                                      icon: Icons.lock_outline,
+                                      obscure: _showPass,
+                                      suffix: IconButton(
+                                        icon: Icon(
+                                          _showPass ? Icons.visibility_off : Icons.visibility,
+                                          color: const Color(0xFF2C68EE),
                                         ),
-                                        const TextSpan(text: " and acknowledge the "),
-                                        TextSpan(
-                                          text: "Privacy Policy",
-                                          style: const TextStyle(
-                                            color: Color(0xFF2C68EE),
-                                            decoration: TextDecoration.underline,
+                                        onPressed: () {
+                                          setState(() => _showPass = !_showPass);
+                                        },
+                                      ),
+                                      validator: (v) => Validator.validatePassword(v ?? ''),
+                                    ),
+                                    const SizedBox(height: 14),
+
+                                    _buildInput(
+                                      controller: _confPass,
+                                      hint: "Confirm password",
+                                      icon: Icons.lock_outline,
+                                      obscure: _showPass,
+                                      validator: (v) {
+                                        if (v == null || v.isEmpty) {
+                                          return "Confirm password required";
+                                        }
+                                        if (v != _pass.text) {
+                                          return "Passwords do not match";
+                                        }
+                                        return null;
+                                      },
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    Row(
+                                      children: [
+                                        Checkbox(
+                                          value: _isChecked,
+                                          activeColor: const Color(0xFF2C68EE),
+                                          onChanged: (val) {
+                                            setState(() => _isChecked = val ?? false);
+                                          },
+                                        ),
+                                        Expanded(
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 11,
+                                                color: Colors.black,
+                                              ),
+                                              children: [
+                                                const TextSpan(text: "I agree to Tinydroplets "),
+                                                TextSpan(
+                                                  text: "Terms & Conditions",
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF2C68EE),
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                                  recognizer: TapGestureRecognizer()
+                                                    ..onTap = () {
+                                                      UrlOpener.launchURL(
+                                                        "https://tinydroplets.com/terms-conditions",
+                                                      );
+                                                    },
+                                                ),
+                                                const TextSpan(text: " and acknowledge the "),
+                                                TextSpan(
+                                                  text: "Privacy Policy",
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF2C68EE),
+                                                    decoration: TextDecoration.underline,
+                                                  ),
+                                                  recognizer: TapGestureRecognizer()
+                                                    ..onTap = () {
+                                                      UrlOpener.launchURL(
+                                                        "https://tinydroplets.com/privacy-policy",
+                                                      );
+                                                    },
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                          recognizer: TapGestureRecognizer()
-                                            ..onTap = () {
-                                              UrlOpener.launchURL(
-                                                  "https://tinydroplets.com/privacy-policy");
-                                            },
                                         ),
                                       ],
                                     ),
-                                  ),
+
+                                    const SizedBox(height: 16),
+
+                                    _loading
+                                        ? const Loader()
+                                        : AppButton(
+                                      text: "Sign up",
+                                      color: const Color(0xFF2C68EE),
+                                      valid: true,
+                                      onPressed: () async {
+                                        if (!_isChecked) {
+                                          CommonMethods.showSnackBar(
+                                              context, "Please accept Terms & Conditions");
+                                          return;
+                                        }
+
+                                        if (_formKey.currentState!.validate()) {
+                                          await _signUp(
+                                            _name.text,
+                                            _email.text,
+                                            '',
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-
-                            const SizedBox(height: 16),
-
-                            /// 🔵 SIGN UP BUTTON
-                            _loading
-                                ? const Loader()
-                                : AppButton(
-                              text: "Sign up",
-                              color: const Color(0xFF2C68EE),
-                              valid: true, // ALWAYS ENABLE
-                              onPressed: () async {
-                                if (!_isChecked) {
-                                  CommonMethods.showSnackBar(context, "Please accept Terms & Conditions");
-                                  return;
-                                }
-
-                                if (_formKey.currentState!.validate()) {
-                                  await _signUp(
-                                    _name.text,
-                                    _email.text,
-                                    '',
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
 

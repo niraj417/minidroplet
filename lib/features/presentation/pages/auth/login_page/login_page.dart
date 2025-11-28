@@ -232,228 +232,237 @@ class _LoginPageState extends State<LoginPage> {
                           topRight: Radius.circular(30),
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 20.0),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // ------------------ Form Starts ------------------
-                              Form(
-                                key: _formKey,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight, // 👈 THIS IS THE KEY
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24.0, vertical: 20.0),
                                 child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    TextFormField(
-                                      controller: _emailOrMobile,
-                                      decoration: InputDecoration(
-                                        labelText: 'Email or Mobile Number',
-                                        labelStyle: const TextStyle(
-                                          color: Color(0xFF2C68EE),
-                                          fontSize: 14,
-                                        ),
-                                        floatingLabelStyle: const TextStyle(
-                                          color: Color(0xFF2C68EE),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        contentPadding:
-                                        const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 18),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: Color(0xFF2C68EE)),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: Color(0xFF2C68EE)),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: Color(0xFF2C68EE), width: 2),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.emailAddress,
-                                      validator: (value) =>
-                                          Validator.validateMobileOrEmail(
-                                              value ?? ''),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    TextFormField(
-                                      controller: _pass,
-                                      obscureText: _showPass,
-                                      decoration: InputDecoration(
-                                        labelText: 'Password',
-                                        labelStyle: const TextStyle(
-                                          color: Color(0xFF2C68EE),
-                                          fontSize: 14,
-                                        ),
-                                        floatingLabelStyle: const TextStyle(
-                                          color: Color(0xFF2C68EE),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        suffixIcon: InkWell(
-                                          onTap: _showPassword,
-                                          child: Icon(
-                                            _showPass
-                                                ? Icons.visibility_off
-                                                : Icons.visibility,
-                                            color: const Color(0xFF2C68EE),
+                                    // ------------------ Form Starts ------------------
+                                    Form(
+                                      key: _formKey,
+                                      child: Column(
+                                        children: [
+                                          TextFormField(
+                                            controller: _emailOrMobile,
+                                            decoration: InputDecoration(
+                                              labelText: 'Email or Mobile Number',
+                                              labelStyle: const TextStyle(
+                                                color: Color(0xFF2C68EE),
+                                                fontSize: 14,
+                                              ),
+                                              floatingLabelStyle: const TextStyle(
+                                                color: Color(0xFF2C68EE),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 20, vertical: 18),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                    color: Color(0xFF2C68EE)),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                    color: Color(0xFF2C68EE)),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                    color: Color(0xFF2C68EE), width: 2),
+                                              ),
+                                            ),
+                                            keyboardType: TextInputType.emailAddress,
+                                            validator: (value) =>
+                                                Validator.validateMobileOrEmail(
+                                                    value ?? ''),
                                           ),
-                                        ),
-                                        contentPadding:
-                                        const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 18),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: Color(0xFF2C68EE)),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: Color(0xFF2C68EE)),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: Color(0xFF2C68EE), width: 2),
-                                        ),
-                                      ),
-                                      validator: (value) =>
-                                          Validator.validateSimplePassword(
-                                              value ?? ''),
-                                    ),
-                                    const SizedBox(height: 8),
-      
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton(
-                                        onPressed: () {},
-                                        style: TextButton.styleFrom(
-                                          padding: EdgeInsets.zero,
-                                          minimumSize: Size.zero,
-                                          tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                        ),
-                                        child: Text(
-                                          'Forgot password?',
-                                          style: GoogleFonts.poppins(
-                                            decoration:
-                                            TextDecoration.underline,
-                                            color: const Color(0xFF2C68EE),
-                                            fontSize: 14,
+                                          const SizedBox(height: 16),
+                                          TextFormField(
+                                            controller: _pass,
+                                            obscureText: _showPass,
+                                            decoration: InputDecoration(
+                                              labelText: 'Password',
+                                              labelStyle: const TextStyle(
+                                                color: Color(0xFF2C68EE),
+                                                fontSize: 14,
+                                              ),
+                                              floatingLabelStyle: const TextStyle(
+                                                color: Color(0xFF2C68EE),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                              suffixIcon: InkWell(
+                                                onTap: _showPassword,
+                                                child: Icon(
+                                                  _showPass
+                                                      ? Icons.visibility_off
+                                                      : Icons.visibility,
+                                                  color: const Color(0xFF2C68EE),
+                                                ),
+                                              ),
+                                              contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 20, vertical: 18),
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                    color: Color(0xFF2C68EE)),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                    color: Color(0xFF2C68EE)),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                                borderSide: const BorderSide(
+                                                    color: Color(0xFF2C68EE), width: 2),
+                                              ),
+                                            ),
+                                            validator: (value) =>
+                                                Validator.validateSimplePassword(
+                                                    value ?? ''),
                                           ),
-                                        ),
+                                          const SizedBox(height: 8),
+
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: TextButton(
+                                              onPressed: () {},
+                                              style: TextButton.styleFrom(
+                                                padding: EdgeInsets.zero,
+                                                minimumSize: Size.zero,
+                                                tapTargetSize:
+                                                MaterialTapTargetSize.shrinkWrap,
+                                              ),
+                                              child: Text(
+                                                'Forgot password?',
+                                                style: GoogleFonts.poppins(
+                                                  decoration:
+                                                  TextDecoration.underline,
+                                                  color: const Color(0xFF2C68EE),
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+
+                                          // 🔹 Continue Button
+                                          _loading
+                                              ? const Loader()
+                                              : AppButton(
+                                            color: const Color(0xFF2C68EE),
+                                            text: 'Continue',
+                                            textStyle: GoogleFonts.poppins(
+                                              color: Color(0xFFffA314),
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 18,
+                                            ),
+                                            valid: true,
+                                            onPressed: () async {
+                                              if (_formKey.currentState!
+                                                  .validate()) {
+                                                if (Platform.isAndroid) {
+                                                  _login(
+                                                      _emailOrMobile.text,
+                                                      _pass.text,
+                                                      fcmToken,
+                                                      'Android');
+                                                } else {
+                                                  _login(
+                                                      _emailOrMobile.text,
+                                                      _pass.text,
+                                                      fcmToken,
+                                                      'ios');
+                                                }
+                                              }
+                                            },
+                                          ),
+                                        ],
                                       ),
+                                    ),
+                                    // ------------------ Form Ends ------------------
+                                    const SizedBox(height: 20),
+
+                                    // 🔹 Social Login Buttons (OUTSIDE FORM)
+                                    _loading2
+                                        ? const Loader()
+                                        : _socialButton(
+                                      icon: 'assets/images/google.png',
+                                      text: 'Continue with Google',
+                                      onPressed: _handleGoogleSignIn,
                                     ),
                                     const SizedBox(height: 10),
-      
-                                    // 🔹 Continue Button
-                                    _loading
+                                    _loading2
                                         ? const Loader()
-                                        : AppButton(
-                                      color: const Color(0xFF2C68EE),
-                                      text: 'Continue',
-                                      textStyle: GoogleFonts.poppins(
-                                        color: Color(0xFFffA314),
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 18,
+                                        : _socialButton(
+                                      icon: 'assets/images/apple.png',
+                                      text: 'Continue with Apple',
+                                      onPressed: _handleAppleSignIn,
+                                    ),
+                                    const SizedBox(height: 10),
+
+                                    Text(
+                                      'Explore without Login',
+                                      style: GoogleFonts.poppins(
+                                        color: AppColor.grey,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w300,
                                       ),
-                                      valid: true,
+                                    ),
+                                    const SizedBox(height: 6),
+
+                                    _loading3
+                                        ? const Loader()
+                                        :OutlinedButton(
                                       onPressed: () async {
-                                        if (_formKey.currentState!
-                                            .validate()) {
-                                          if (Platform.isAndroid) {
-                                            _login(
-                                                _emailOrMobile.text,
-                                                _pass.text,
-                                                fcmToken,
-                                                'Android');
-                                          } else {
-                                            _login(
-                                                _emailOrMobile.text,
-                                                _pass.text,
-                                                fcmToken,
-                                                'ios');
-                                          }
-                                        }
+                                        setState(() => _loading3 = true);
+                                        const guestName = "Guest User";
+                                        const guestEmail = "guest@tinydroplets.com";
+                                        const guestPassword = "guest123";
+                                        const deviceName = "ios";
+
+                                        await _thirdPartyAuth(
+                                          guestName,
+                                          guestEmail,
+                                          guestPassword,
+                                          "guest_token_123", // you can pass null if not needed
+                                          deviceName,
+                                        );
                                       },
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(
+                                            color: Color(0xff295BBE)),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(30),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 5, horizontal: 24),
+                                      ),
+                                      child: Text(
+                                        'Continue as Guest User',
+                                        style: GoogleFonts.poppins(
+                                          color: Color(0xff295BBE),
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              // ------------------ Form Ends ------------------
-                              const SizedBox(height: 20),
-      
-                              // 🔹 Social Login Buttons (OUTSIDE FORM)
-                              _loading2
-                                  ? const Loader()
-                                  : _socialButton(
-                                icon: 'assets/images/google.png',
-                                text: 'Continue with Google',
-                                onPressed: _handleGoogleSignIn,
-                              ),
-                              const SizedBox(height: 10),
-                              _loading2
-                                  ? const Loader()
-                                  : _socialButton(
-                                icon: 'assets/images/apple.png',
-                                text: 'Continue with Apple',
-                                onPressed: _handleAppleSignIn,
-                              ),
-                              const SizedBox(height: 10),
-      
-                              Text(
-                                'Explore without Login',
-                                style: GoogleFonts.poppins(
-                                  color: AppColor.grey,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w300,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-      
-                              _loading3
-                                  ? const Loader()
-                                  :OutlinedButton(
-                                onPressed: () async {
-                                  setState(() => _loading3 = true);
-                                  const guestName = "Guest User";
-                                  const guestEmail = "guest@tinydroplets.com";
-                                  const guestPassword = "guest123";
-                                  const deviceName = "ios";
-      
-                                  await _thirdPartyAuth(
-                                    guestName,
-                                    guestEmail,
-                                    guestPassword,
-                                    "guest_token_123", // you can pass null if not needed
-                                    deviceName,
-                                  );
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(
-                                      color: Color(0xff295BBE)),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 5, horizontal: 24),
-                                ),
-                                child: Text(
-                                  'Continue as Guest User',
-                                  style: GoogleFonts.poppins(
-                                    color: Color(0xff295BBE),
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        }
                       ),
                       height: double.infinity,
                     ),

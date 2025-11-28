@@ -7,10 +7,7 @@ import 'package:tinydroplets/common/widgets/app_button.dart';
 import 'package:tinydroplets/core/utils/shared_pref.dart';
 import 'package:tinydroplets/features/presentation/pages/remove_ads/widget/purchase_details_bottom_sheet.dart';
 
-import '../../../../../core/network/api_endpoints.dart';
-import '../../../../../core/services/payment_service.dart';
 import '../../../../../core/services/remove_ads_payment.dart';
-import '../../../../../core/services/subscription_service.dart';
 import '../bloc/remove_ads_cubit.dart';
 import '../bloc/remove_ads_state.dart';
 
@@ -22,44 +19,18 @@ class RemoveAdsBottomSheet extends StatefulWidget {
 }
 
 class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
-  //late RemoveAdsPaymentService _paymentService;
-  late SubscriptionPaymentService _subscriptionPayment;// = SubscriptionPaymentService();
-  String? _orderId;
-  int? _planId;
-  String? _amount;
-  bool _creatingOrder = true;
+  late RemoveAdsPaymentService _paymentService;
 
   @override
   void initState() {
     super.initState();
     context.read<RemoveAdsCubit>().getRemoveAdsPrice();
-    //_paymentService = RemoveAdsPaymentService();
-    _subscriptionPayment = SubscriptionPaymentService();
-    _loadSubscriptionOrder();
-  }
-
-  Future<void> _loadSubscriptionOrder() async {
-    try {
-      await _subscriptionPayment.createSubscriptionOrder(plan: 2);
-
-      setState(() {
-        _orderId = _subscriptionPayment.orderId;
-        _planId = _subscriptionPayment.planId;
-        _amount = _subscriptionPayment.amount;
-        _creatingOrder = false;
-      });
-    } catch (e) {
-      _creatingOrder = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create order')),
-      );
-    }
+    _paymentService = RemoveAdsPaymentService();
   }
 
   @override
   void dispose() {
-    _subscriptionPayment.dispose();
-    //_paymentService.dispose();
+    _paymentService.dispose();
     super.dispose();
   }
 
@@ -83,7 +54,7 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                       .showSnackBar(SnackBar(content: Text(state.errorMessage!)));
                   context.read<RemoveAdsCubit>().resetError();
                 }
-          
+
                 if (state.isPurchased) {
                   Navigator.pop(context);
                   showModalBottomSheet(
@@ -95,10 +66,10 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                 }
               },
               builder: (context, state) {
-                if (state.isLoading && _creatingOrder) {
+                if (state.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-          
+
                 return SingleChildScrollView(
                   controller: scrollController,
                   child: Padding(
@@ -114,9 +85,9 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-          
+
                         const SizedBox(height: 20),
-          
+
                         /// HEADER
                         Container(
                           padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
@@ -150,9 +121,9 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                             ],
                           ),
                         ),
-          
+
                         const SizedBox(height: 20),
-          
+
                         // /// DESCRIPTION
                         // if (state.description != null)
                         //   Text(
@@ -174,12 +145,12 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                             _FeaturePoint(text: "Ad-free premium environment"),
                           ],
                         ),
-          
-          
+
+
                         const SizedBox(height: 20),
-          
+
                         /// PRICE CARD
-                        if (_amount != null)
+                        if (state.amount != null)
                           Container(
                             padding: const EdgeInsets.all(18),
                             decoration: BoxDecoration(
@@ -200,7 +171,7 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  "₹${_amount}",
+                                  "₹${state.amount}",
                                   style: const TextStyle(
                                     fontSize: 32,
                                     color: Color(0xFF2C68EE),
@@ -210,39 +181,30 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                               ],
                             ),
                           ),
-          
+
                         const SizedBox(height: 30),
-          
+
                         /// CTA BUTTON
                         AppButton(
                           text: 'Subscribe To Unlock',
                           onPressed: () async {
-                            if (_orderId != null && _planId != null && _amount != null) {
-                              final prefData = await SharedPref.getLoginData();
+                            if (state.amount != null && state.orderId != null) {
+                              final prefData = SharedPref.getLoginData();
                               final name = prefData?.data?.name ?? '';
                               final contact = prefData?.data?.mobile ?? '';
                               final email = prefData?.data?.email ?? '';
-          
+
                               if (Theme.of(context).platform ==
                                   TargetPlatform.iOS) {
                                 try {
-                                  await _subscriptionPayment.makePayment(
+                                  await _paymentService.makePayment(
                                     context: context,
-                                    amount: _amount!,
-                                    orderId: _orderId!,
-                                    planId: _planId ?? 2,
-                                    name: prefData?.data?.name ?? '',
-                                    contact: prefData?.data?.mobile ?? '',
-                                    email: prefData?.data?.email ?? '',
+                                    amount: state.amount!,
+                                    orderId: state.orderId!,
+                                    name: name,
+                                    contact: contact,
+                                    email: email,
                                   );
-                                  // await _paymentService.makePayment(
-                                  //   context: context,
-                                  //   amount: state.amount!,
-                                  //   orderId: state.orderId!,
-                                  //   name: name,
-                                  //   contact: contact,
-                                  //   email: email,
-                                  // );
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -251,14 +213,13 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                                   );
                                 }
                               } else {
-                                await _subscriptionPayment.makePayment(
+                                await _paymentService.makePayment(
                                   context: context,
-                                  amount: _amount!,
-                                  orderId: _orderId!,
-                                  planId: _planId ?? 2,
-                                  name: prefData?.data?.name ?? '',
-                                  contact: prefData?.data?.mobile ?? '',
-                                  email: prefData?.data?.email ?? '',
+                                  amount: state.amount!,
+                                  orderId: state.orderId!,
+                                  name: name,
+                                  contact: contact,
+                                  email: email,
                                 );
                               }
                             } else {
@@ -271,9 +232,9 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                             }
                           },
                         ),
-          
+
                         const SizedBox(height: 16),
-          
+
                         if (Platform.isIOS)
                           TextButton(
                             onPressed: () async {
@@ -288,7 +249,7 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                                 );
                                 return;
                               }
-          
+
                               try {
                                 await InAppPurchase.instance.restorePurchases();
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -305,14 +266,14 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                             },
                             child: const Text("Restore Purchases"),
                           ),
-          
+
                         const SizedBox(height: 12),
-          
+
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: const Text("Cancel"),
                         ),
-          
+
                         const SizedBox(height: 10),
                         Text(
                           "Note: Your purchase will be verified automatically after payment.",

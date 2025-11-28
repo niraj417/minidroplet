@@ -11,6 +11,8 @@ class IAPUtils {
         return IAPurchaseService.videoProductId;
       case 'playlist':
         return IAPurchaseService.playlistProductId;
+      case 'subscription':
+        return IAPurchaseService.subscriptionProductId;
       default:
         return null;
     }

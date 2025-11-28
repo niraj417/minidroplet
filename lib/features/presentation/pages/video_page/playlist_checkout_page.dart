@@ -66,6 +66,8 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
   String? contact;
   String? email;
 
+  bool isSubscribed = false;
+
   late final PaymentBloc _paymentBloc;
   @override
   void initState() {
@@ -82,6 +84,7 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
     name = prefData?.data?.name ?? '';
     contact = prefData?.data?.mobile ?? '';
     email = prefData?.data?.email ?? '';
+    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
   }
 
   bool _isPaymentLoading = false;
@@ -591,41 +594,49 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
         //     :
         AppButton(
           useCupertino: true,
-          width: 180,
+          width: 200,
           //text: 'Pay Now',
-          text: 'Subscribe',
+          text: 'Subscribe to Unlock',
           onPressed: () async {
-            if (Platform.isIOS) {
-              await _buildPaymentMode(context);
-              // final productId = IAPUtils.getIAPProductId(
-              //   'playlist',
-              // ); // helper method defined below
-              // if (productId != null) {
-              //   try {
-              //     _paymentBloc.add(
-              //       InitiatePurchase(
-              //         orderId: orderId ?? "",
-              //         amount: amount ?? "",
-              //         dataId: widget.id,
-              //         name: name ?? "",
-              //         contact: contact ?? "",
-              //         email: email ?? "",
-              //         itemType: 'playlist',
-              //       ),
-              //     );
-              //   } catch (e) {
-              //     CommonMethods.devLog(
-              //       logName: 'IAP Error',
-              //       message: e.toString(),
-              //     );
-              //   }
-              // } else {
-              //   CommonMethods.showSnackBar(context, 'Invalid product ID');
-              // }
-            } else {
-              await _buildPaymentMode(context);
-              return;
-            }
+
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const RemoveAdsBottomSheet(),
+            );
+
+            // if (Platform.isIOS) {
+            //   await _buildPaymentMode(context);
+            //   final productId = IAPUtils.getIAPProductId(
+            //     'playlist',
+            //   ); // helper method defined below
+            //   if (productId != null) {
+            //     try {
+            //       _paymentBloc.add(
+            //         InitiatePurchase(
+            //           orderId: orderId ?? "",
+            //           amount: amount ?? "",
+            //           dataId: widget.id,
+            //           name: name ?? "",
+            //           contact: contact ?? "",
+            //           email: email ?? "",
+            //           itemType: 'playlist',
+            //         ),
+            //       );
+            //     } catch (e) {
+            //       CommonMethods.devLog(
+            //         logName: 'IAP Error',
+            //         message: e.toString(),
+            //       );
+            //     }
+            //   } else {
+            //     CommonMethods.showSnackBar(context, 'Invalid product ID');
+            //   }
+            // } else {
+            //   await _buildPaymentMode(context);
+            //   return;
+            // }
           },
         ),
       ],
@@ -664,62 +675,62 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
                 SizedBox(height: 20),
                 Row(
                   children: [
-                    // Expanded(
-                    //   child: AppButton(
-                    //     onPressed: () {
-                    //       if (amount!.isNotEmpty && orderId!.isNotEmpty) {
-                    //         CommonMethods.devLog(
-                    //           logName: 'Video Order id here',
-                    //           message: orderId,
-                    //         );
-                    //         try {
-                    //           _paymentBloc.add(
-                    //             InitiatePayment(
-                    //               amount: amount ?? '0',
-                    //               orderId: orderId ?? '',
-                    //               dataId: widget.id,
-                    //               name: name ?? '',
-                    //               contact: contact ?? '',
-                    //               email: email ?? '',
-                    //               itemType: 'playlist',
-                    //             ),
-                    //           );
-                    //         } catch (e) {
-                    //           CommonMethods.devLog(
-                    //             logName: 'Error',
-                    //             message: e.toString(),
-                    //           );
-                    //         }
-                    //       } else {
-                    //         CommonMethods.showSnackBar(
-                    //           context,
-                    //           "Something went wrong, Please try again later",
-                    //         );
-                    //       }
-                    //       Navigator.pop(context);
-                    //       CommonMethods.showSnackBar(
-                    //         context,
-                    //         'Payment Mode: Razorpay',
-                    //       );
-                    //     },
-                    //     text: 'Razorpay',
-                    //   ),
-                    // ),
-                    // SizedBox(width: 10),
                     Expanded(
                       child: AppButton(
                         onPressed: () {
-                          _openRemoveAdsSubscription();
-                          // Navigator.pop(context);
-                          // goto(
-                          //   context,
-                          //   PaypalWebViewPage(
-                          //     id: widget.id,
-                          //     type: 'playlist',
-                          //     amount: amount ?? '0',
-                          //   ),
-                          // );
-                          // CommonMethods.showSnackBar(context, 'Payment Mode: PayPal');
+                          if (amount!.isNotEmpty && orderId!.isNotEmpty) {
+                            CommonMethods.devLog(
+                              logName: 'Video Order id here',
+                              message: orderId,
+                            );
+                            try {
+                              _paymentBloc.add(
+                                InitiatePayment(
+                                  amount: amount ?? '0',
+                                  orderId: orderId ?? '',
+                                  dataId: widget.id,
+                                  name: name ?? '',
+                                  contact: contact ?? '',
+                                  email: email ?? '',
+                                  itemType: 'playlist',
+                                ),
+                              );
+                            } catch (e) {
+                              CommonMethods.devLog(
+                                logName: 'Error',
+                                message: e.toString(),
+                              );
+                            }
+                          } else {
+                            CommonMethods.showSnackBar(
+                              context,
+                              "Something went wrong, Please try again later",
+                            );
+                          }
+                          Navigator.pop(context);
+                          CommonMethods.showSnackBar(
+                            context,
+                            'Payment Mode: Razorpay',
+                          );
+                        },
+                        text: 'Razorpay',
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: AppButton(
+                        onPressed: () {
+                          //_openRemoveAdsSubscription();
+                          Navigator.pop(context);
+                          goto(
+                            context,
+                            PaypalWebViewPage(
+                              id: widget.id,
+                              type: 'playlist',
+                              amount: amount ?? '0',
+                            ),
+                          );
+                          CommonMethods.showSnackBar(context, 'Payment Mode: PayPal');
                         },
                         //text: 'PayPal',
                         text: 'Subscribe to Unlock',

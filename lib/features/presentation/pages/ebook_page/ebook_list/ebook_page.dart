@@ -25,8 +25,23 @@ import 'bloc/ebook_bloc.dart';
 import 'bloc/ebook_event.dart';
 import 'bloc/ebook_state.dart';
 
-class EbookPage extends StatelessWidget {
+class EbookPage extends StatefulWidget {
   const EbookPage({super.key});
+
+  @override
+  State<EbookPage> createState() => _EbookPageState();
+}
+
+class _EbookPageState extends State<EbookPage> {
+
+  bool isSubscribed = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+  }
 
   Future<void> _handleRefresh(BuildContext context) async {
     context.read<EbookBloc>().add(RefreshEbookData());
@@ -71,7 +86,7 @@ class EbookPage extends StatelessWidget {
                                 onTap: () {
                                   // UrlOpener.launchURL(imageUrl.image);
 
-                                  if (imageUrl.isBuy == '1') {
+                                  if (imageUrl.isBuy == '1' || !isSubscribed) {
                                     if (imageUrl.openId == null) {
                                       CommonMethods.showSnackBar(
                                         context,
@@ -214,7 +229,7 @@ class EbookPage extends StatelessWidget {
                                             }
 
                                             print('Ad closed for recently viewed item ${data.id}');
-                                            if (data.isBuy == '1') {
+                                            if (data.isBuy == '1' || !isSubscribed) {
                                               goto(
                                                 context,
                                                 PurchasedEbookBuyDetailPage(ebookId: data.id),
@@ -241,7 +256,7 @@ class EbookPage extends StatelessWidget {
                                             : GestureDetector(
                                           onTap: () {
                                             print('GestureDetector tapped for recently viewed item ${data.id}');
-                                            if (data.isBuy == '1') {
+                                            if (data.isBuy == '1' || !isSubscribed) {
                                               goto(
                                                 context,
                                                 PurchasedEbookBuyDetailPage(ebookId: data.id),
@@ -346,7 +361,7 @@ class EbookPage extends StatelessWidget {
                                                   GuestRestrictionDialog.show(context);
                                                   return;
                                                 }
-                                                if (data.isBuy == '1') {
+                                                if (data.isBuy == '1' || !isSubscribed) {
                                                   goto(
                                                     context,
                                                     PurchasedEbookBuyDetailPage(ebookId: data.id),
@@ -367,7 +382,7 @@ class EbookPage extends StatelessWidget {
                                             )
                                                 : InkWell(
                                               onTap: () {
-                                                if (data.isBuy == '1') {
+                                                if (data.isBuy == '1' || !isSubscribed) {
                                                   goto(
                                                     context,
                                                     PurchasedEbookBuyDetailPage(ebookId: data.id),

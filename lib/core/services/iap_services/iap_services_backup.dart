@@ -17,15 +17,12 @@ class IAPService {
   static const String ebookProductId = 'com.tinydroplets.ebook';
   static const String videoProductId = 'com.tinydroplets.video';
   static const String playlistProductId = 'com.tinydroplets.video.playlist';
-  static const String subscriptionProductId = 'com.tinydroplets.subscription.yearly';
 
   static const Set<String> _productIds = {
     ebookProductId,
     videoProductId,
     playlistProductId,
-    subscriptionProductId, // ✅ subscription unified product
   };
-
 
   // Available products
   List<ProductDetails> _products = [];
