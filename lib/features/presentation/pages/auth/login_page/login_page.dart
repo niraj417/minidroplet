@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:get_it/get_it.dart';
@@ -530,8 +531,9 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final name =
-      '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
-      final email = credential.email ?? 'apple_user@domain.com';
+      '${credential.givenName ?? 'AppleUser_${_randomSixDigit()}'}'.trim();
+      final email = credential.email ??
+          "apple_user${_randomSixDigit()}@domain.com";
       final password = credential.userIdentifier ?? '';
 
       if (Platform.isAndroid) {
@@ -543,5 +545,10 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _loading2 = false);
       CommonMethods.showSnackBar(context, 'Apple Sign-In Error: $e');
     }
+  }
+
+  String _randomSixDigit() {
+    final random = Random();
+    return (100000 + random.nextInt(900000)).toString(); // 6 digits
   }
 }

@@ -84,7 +84,7 @@ class _SignUpPageState extends State<SignUpPage> {
       final response = await dioClient.sendPostRequest(ApiEndpoints.signupUrl, {
         "name": name,
         "email": email,
-        "mobile": mobile,
+        "mobile": mobile ?? '',
         "password": _pass.text,
         "accepted_terms": _isChecked,
       });

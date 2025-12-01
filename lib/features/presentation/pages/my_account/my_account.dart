@@ -264,12 +264,12 @@ class _MyAccountState extends State<MyAccount> {
               title: 'Saved',
               onTap: () => goto(context, SavedItemsScreen()),
             ),
-            Divider(color: Colors.grey),
-            ProfileItem(
-              icon: CupertinoIcons.purchased,
-              title: 'Purchases',
-              onTap: () => goto(context, OrderListScreen()),
-            ),
+            // Divider(color: Colors.grey),
+            // ProfileItem(
+            //   icon: CupertinoIcons.purchased,
+            //   title: 'Purchases',
+            //   onTap: () => goto(context, OrderListScreen()),
+            // ),
 
             Column(
               children: [

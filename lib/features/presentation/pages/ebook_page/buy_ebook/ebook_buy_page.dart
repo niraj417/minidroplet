@@ -192,101 +192,103 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      bottomSheet: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        color: Theme.of(context).scaffoldBackgroundColor,
-        height: 80,
-        child: buildPaymentButton(),
-      ),
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isShare ? CupertinoIcons.share_solid : CupertinoIcons.share_up,
-            ),
-            onPressed: () {
-              setState(() {
-                _isShare = !_isShare;
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              _isSave ? CupertinoIcons.bookmark_solid : CupertinoIcons.bookmark,
-            ),
-            onPressed: () {
-              setState(() {
-                _isSave = !_isSave;
-              });
-            },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        backgroundColor: Color(AppColor.primaryColor),
-        color: Colors.white,
-        onRefresh: _onEbookDetailData,
-        child: SingleChildScrollView(
-          // padding: EdgeInsets.symmetric(horizontal: 10,vertical: 20),
-          child: Column(
-            children: [
-              BookPaletteCard(
-                imagePath: image ?? DummyData.avatarUrl,
-                showPreview: true,
-                onPressed: () {
-                  if (preview != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => PdfViewerPage(pdfUrl: preview ?? ''),
-                      ),
-                    );
-                  } else {
-                    CommonMethods.showSnackBar(context, 'No Preview available');
-                  }
-                },
+    return SafeArea(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        bottomSheet: Container(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          color: Theme.of(context).scaffoldBackgroundColor,
+          height: 80,
+          child: buildPaymentButton(),
+        ),
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.transparent,
+          actions: [
+            IconButton(
+              icon: Icon(
+                _isShare ? CupertinoIcons.share_solid : CupertinoIcons.share_up,
               ),
-              SizedBox(height: 20),
-              StarRating(
-                rating: 3.5,
-                allowHalfRating: true,
-                color: Color(AppColor.primaryColor),
-                onRatingChanged:
-                    (rating) => setState(() => ratingText = rating),
+              onPressed: () {
+                setState(() {
+                  _isShare = !_isShare;
+                });
+              },
+            ),
+            IconButton(
+              icon: Icon(
+                _isSave ? CupertinoIcons.bookmark_solid : CupertinoIcons.bookmark,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  children: [
-                    SizedBox(height: 20),
-                    Text(
-                      ebookName ?? 'No data',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      "Author: $authorName" ?? '',
-                      // authorName ?? 'No data',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    SizedBox(height: 20),
-                    _bookReview(),
-                    SizedBox(height: 20),
-                    ExpandableTextWidget(text: description ?? 'No data'),
-                    SizedBox(height: 150),
-                  ],
+              onPressed: () {
+                setState(() {
+                  _isSave = !_isSave;
+                });
+              },
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          backgroundColor: Color(AppColor.primaryColor),
+          color: Colors.white,
+          onRefresh: _onEbookDetailData,
+          child: SingleChildScrollView(
+            // padding: EdgeInsets.symmetric(horizontal: 10,vertical: 20),
+            child: Column(
+              children: [
+                BookPaletteCard(
+                  imagePath: image ?? DummyData.avatarUrl,
+                  showPreview: true,
+                  onPressed: () {
+                    if (preview != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => PdfViewerPage(pdfUrl: preview ?? ''),
+                        ),
+                      );
+                    } else {
+                      CommonMethods.showSnackBar(context, 'No Preview available');
+                    }
+                  },
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+                StarRating(
+                  rating: 3.5,
+                  allowHalfRating: true,
+                  color: Color(AppColor.primaryColor),
+                  onRatingChanged:
+                      (rating) => setState(() => ratingText = rating),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Text(
+                        ebookName ?? 'No data',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        "Author: $authorName" ?? '',
+                        // authorName ?? 'No data',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      SizedBox(height: 20),
+                      _bookReview(),
+                      SizedBox(height: 20),
+                      ExpandableTextWidget(text: description ?? 'No data'),
+                      SizedBox(height: 150),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -345,7 +347,7 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
 
   Row buildPaymentButton() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Column(
@@ -364,7 +366,7 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
         // ),
         AppButton(
           useCupertino: true,
-          width: 180,
+          width: 200,
           text: 'Subscribe to Unlock',
           onPressed: () {
 

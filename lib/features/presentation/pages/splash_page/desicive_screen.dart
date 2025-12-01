@@ -241,7 +241,7 @@ class _DesiciveScreenState extends State<DesiciveScreen> {
                                       : _socialButton(
                                     icon: 'assets/images/google.png',
                                     text: 'Continue with Google',
-                                    onPressed: _handleGoogleSignIn,
+                                    onPressed: _agreeTerms ? _handleGoogleSignIn : null,
                                   ),
                                   const SizedBox(height: 10),
 
@@ -250,7 +250,7 @@ class _DesiciveScreenState extends State<DesiciveScreen> {
                                       : _socialButton(
                                     icon: 'assets/images/apple.png',
                                     text: 'Continue with Apple',
-                                    onPressed: _handleAppleSignIn,
+                                    onPressed: _agreeTerms ? _handleAppleSignIn : null,
                                   ),
 
                                   const SizedBox(height: 12),
@@ -321,7 +321,7 @@ class _DesiciveScreenState extends State<DesiciveScreen> {
   Widget _socialButton({
     required String icon,
     required String text,
-    required VoidCallback onPressed,
+    VoidCallback? onPressed,
   }) {
     return SizedBox(
       width: double.infinity,

@@ -516,67 +516,67 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
                       ],
                     ),
 
-                _recipeCouponList.isNotEmpty
-                    ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Order Summary",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        ListView.builder(
-                          itemCount: _recipeCouponList.length,
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final data = _recipeCouponList[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 4.0,
-                              ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildSummaryRow(
-                                    'Amount:',
-                                    '₹${CommonMethods.formatRupees(amount ?? '')}',
-                                  ),
-                                  _buildSummaryRow(
-                                    'Total discount:',
-                                    "₹${data.discountAmount}",
-                                  ),
-                                  _buildSummaryRow(
-                                    'Discount percentage:',
-                                    "${data.discountPercentage}%",
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Order Summary",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildSummaryRow(
-                              'Amount:',
-                              CommonMethods.formatRupees(amount ?? ''),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                // _recipeCouponList.isNotEmpty
+                //     ? Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(
+                //           "Order Summary",
+                //           style: TextStyle(fontWeight: FontWeight.bold),
+                //         ),
+                //         SizedBox(height: 8),
+                //         ListView.builder(
+                //           itemCount: _recipeCouponList.length,
+                //           shrinkWrap: true,
+                //           physics: NeverScrollableScrollPhysics(),
+                //           itemBuilder: (context, index) {
+                //             final data = _recipeCouponList[index];
+                //             return Padding(
+                //               padding: const EdgeInsets.symmetric(
+                //                 vertical: 4.0,
+                //               ),
+                //               child: Column(
+                //                 mainAxisAlignment:
+                //                     MainAxisAlignment.spaceBetween,
+                //                 children: [
+                //                   _buildSummaryRow(
+                //                     'Amount:',
+                //                     '₹${CommonMethods.formatRupees(amount ?? '')}',
+                //                   ),
+                //                   _buildSummaryRow(
+                //                     'Total discount:',
+                //                     "₹${data.discountAmount}",
+                //                   ),
+                //                   _buildSummaryRow(
+                //                     'Discount percentage:',
+                //                     "${data.discountPercentage}%",
+                //                   ),
+                //                 ],
+                //               ),
+                //             );
+                //           },
+                //         ),
+                //       ],
+                //     )
+                //     : Column(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         Text(
+                //           "Order Summary",
+                //           style: TextStyle(fontWeight: FontWeight.bold),
+                //         ),
+                //         SizedBox(height: 8),
+                //         Column(
+                //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //           children: [
+                //             _buildSummaryRow(
+                //               'Amount:',
+                //               CommonMethods.formatRupees(amount ?? ''),
+                //             ),
+                //           ],
+                //         ),
+                //       ],
+                //     ),
               ],
             ),
           ),
@@ -587,25 +587,25 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
 
   Row buildPaymentButton() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Overall Total",
-              style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
-            ),
-            Text(
-              CommonMethods.formatRupees(amount ?? ''),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-            ),
-          ],
-        ),
+        // Column(
+        //   crossAxisAlignment: CrossAxisAlignment.start,
+        //   children: [
+        //     Text(
+        //       "Overall Total",
+        //       style: TextStyle(fontWeight: FontWeight.normal, fontSize: 16),
+        //     ),
+        //     Text(
+        //       CommonMethods.formatRupees(amount ?? ''),
+        //       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        //     ),
+        //   ],
+        // ),
         AppButton(
           useCupertino: true,
-          width: 180,
+          width: 200,
           //text: 'Pay Now',
           text: 'Subscribe to Unlock',
           onPressed: () async {

@@ -58,7 +58,7 @@ class SubscriptionPaymentService {
     this.orderId = orderId;
     this.planId = planId;
 
-    if (!Platform.isIOS) {
+    if (Platform.isIOS) {
       await _iap.initialize();
       await _iap.purchaseProduct(
         subscriptionProductId,

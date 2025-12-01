@@ -58,6 +58,7 @@ class _PurchasedEbookBuyDetailPageState
   String? price;
   String? audio;
   dynamic totalReview;
+  dynamic totalRating;
   String? preview;
   String? _isSaved;
 
@@ -90,6 +91,7 @@ class _PurchasedEbookBuyDetailPageState
 
             price = data.data!.price;
             audio = data.data!.audio;
+            totalRating = data.data!.totalRating;
             totalReview = data.data!.totalReview;
             preview = data.data!.preview;
             _isSaved = data.data!.isSaved;
@@ -295,10 +297,10 @@ class _PurchasedEbookBuyDetailPageState
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
-                          5,
+                          totalRating != null ? int.parse(double.parse(totalRating.toString()).ceil().toStringAsFixed(0)) : 5,
                           (index) => Icon(
                             Icons.star,
-                            color: Color(AppColor.primaryColor),
+                            color: totalRating != null ? Color(AppColor.primaryColor) : Colors.grey,
                           ),
                         ),
                       ),

@@ -497,70 +497,70 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
                         ],
                       ),
           
-                  _recipeCouponList.isNotEmpty
-                      ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Order Summary",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 8),
-                          ListView.builder(
-                            itemCount: _recipeCouponList.length,
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              final data = _recipeCouponList[index];
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4.0,
-                                ),
-                                child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildSummaryRow(
-                                      'Amount:',
-                                      '₹${CommonMethods.formatRupees(amount ?? '')}',
-                                    ),
-                                    // _buildSummaryRow('Amount:', '₹${data.amount}'),
-                                    _buildSummaryRow(
-                                      'Total discount:',
-                                      "₹${data.discountAmount}",
-                                    ),
-                                    _buildSummaryRow(
-                                      'Discount percentage:',
-                                      "${data.discountPercentage}%",
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      )
-                      : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Order Summary",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 8),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildSummaryRow(
-                                'Amount:',
-                                CommonMethods.formatRupees(amount ?? ''),
-                              ),
-                              // _buildSummaryRow('Total discount:', "₹${data.discountAmount}"),
-                              // _buildSummaryRow('Discount percentage:', "${data.discountPercentage}%"),
-                            ],
-                          ),
-                        ],
-                      ),
+                  // _recipeCouponList.isNotEmpty
+                  //     ? Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.start,
+                  //       children: [
+                  //         Text(
+                  //           "Order Summary",
+                  //           style: TextStyle(fontWeight: FontWeight.bold),
+                  //         ),
+                  //         SizedBox(height: 8),
+                  //         ListView.builder(
+                  //           itemCount: _recipeCouponList.length,
+                  //           shrinkWrap: true,
+                  //           physics: NeverScrollableScrollPhysics(),
+                  //           itemBuilder: (context, index) {
+                  //             final data = _recipeCouponList[index];
+                  //             return Padding(
+                  //               padding: const EdgeInsets.symmetric(
+                  //                 vertical: 4.0,
+                  //               ),
+                  //               child: Column(
+                  //                 mainAxisAlignment:
+                  //                     MainAxisAlignment.spaceBetween,
+                  //                 children: [
+                  //                   _buildSummaryRow(
+                  //                     'Amount:',
+                  //                     '₹${CommonMethods.formatRupees(amount ?? '')}',
+                  //                   ),
+                  //                   // _buildSummaryRow('Amount:', '₹${data.amount}'),
+                  //                   _buildSummaryRow(
+                  //                     'Total discount:',
+                  //                     "₹${data.discountAmount}",
+                  //                   ),
+                  //                   _buildSummaryRow(
+                  //                     'Discount percentage:',
+                  //                     "${data.discountPercentage}%",
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //             );
+                  //           },
+                  //         ),
+                  //       ],
+                  //     )
+                  //     : Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.start,
+                  //       children: [
+                  //         Text(
+                  //           "Order Summary",
+                  //           style: TextStyle(fontWeight: FontWeight.bold),
+                  //         ),
+                  //         SizedBox(height: 8),
+                  //         Column(
+                  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //           children: [
+                  //             _buildSummaryRow(
+                  //               'Amount:',
+                  //               CommonMethods.formatRupees(amount ?? ''),
+                  //             ),
+                  //             // _buildSummaryRow('Total discount:', "₹${data.discountAmount}"),
+                  //             // _buildSummaryRow('Discount percentage:', "${data.discountPercentage}%"),
+                  //           ],
+                  //         ),
+                  //       ],
+                  //     ),
                   // Divider(height: 32, thickness: 1),
                 ],
               ),
