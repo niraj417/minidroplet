@@ -47,7 +47,7 @@ class _MyAccountState extends State<MyAccount> {
     super.initState();
     checkStatus();
     _loadAppVersion();
-    getUserProfile();
+    //getUserProfile();
     _getCms();
   }
 
@@ -65,18 +65,19 @@ class _MyAccountState extends State<MyAccount> {
     _subscriptionPayment.dispose();
     super.dispose();
   }
-  String name = '';
-  String email = '';
-  String image = '';
-
-  void getUserProfile() async {
-    var data = await SharedPref.getLoginData();
-    setState(() {
-      name = data!.data!.name;
-      email = data.data!.email;
-      image = data.data!.profile;
-    });
-  }
+  // String name = '';
+  // String email = '';
+  // String image = '';
+  //
+  // void getUserProfile() async {
+  //   var data = await SharedPref.getLoginData();
+  //   setState(() {
+  //     name = data!.data!.name;
+  //     email = data.data!.email;
+  //     image = data.data!.profile;
+  //   });
+  //   print("User Profile Data : $name , $email ");
+  // }
 
   Future<void> _getCms() async {
     try {
@@ -129,6 +130,19 @@ class _MyAccountState extends State<MyAccount> {
                 children: [
                   BlocBuilder<ProfileCubit, ProfileState>(
                     builder: (context, state) {
+                      if (state.isProfileLoading) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 12),
+                            Text(
+                              "Loading profile...",
+                              style: TextStyle(fontSize: 14, color: Colors.grey),
+                            ),
+                          ],
+                        );
+                      }
                       return Container(
                         decoration: BoxDecoration(shape: BoxShape.circle),
                         height: 120,
@@ -161,6 +175,19 @@ class _MyAccountState extends State<MyAccount> {
             SizedBox(height: 16),
             BlocBuilder<ProfileCubit, ProfileState>(
               builder: (context, state) {
+                if (state.isProfileLoading) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      // CircularProgressIndicator(),
+                      SizedBox(height: 12),
+                      // Text(
+                      //   "Loading profile...",
+                      //   style: TextStyle(fontSize: 14, color: Colors.grey),
+                      // ),
+                    ],
+                  );
+                }
                 return Center(
                   child: Column(
                     children: [

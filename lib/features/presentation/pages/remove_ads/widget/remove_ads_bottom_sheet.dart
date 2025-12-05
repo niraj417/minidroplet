@@ -218,60 +218,44 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
                           text: 'Subscribe To Unlock',
                           onPressed: () async {
                             if (_orderId != null && _planId != null && _amount != null) {
+
                               final prefData = await SharedPref.getLoginData();
-                              final name = prefData?.data?.name ?? '';
-                              final contact = prefData?.data?.mobile ?? '';
-                              final email = prefData?.data?.email ?? '';
-          
-                              if (Theme.of(context).platform ==
-                                  TargetPlatform.iOS) {
-                                try {
-                                  await _subscriptionPayment.makePayment(
+
+                              _subscriptionPayment.makePayment(
+                                context: context,
+                                amount: _amount!,
+                                orderId: _orderId!,
+                                planId: _planId!,
+                                name: prefData?.data?.name ?? '',
+                                contact: prefData?.data?.mobile ?? '',
+                                email: prefData?.data?.email ?? '',
+
+                                // 🔥 PAYMENT SUCCESS CALLBACK
+                                onSuccess: () async {
+                                  await SharedPref.setBool("isSubscribed", true);
+
+                                  Navigator.pop(context);
+
+                                  showModalBottomSheet(
                                     context: context,
-                                    amount: _amount!,
-                                    orderId: _orderId!,
-                                    planId: _planId ?? 2,
-                                    name: prefData?.data?.name ?? '',
-                                    contact: prefData?.data?.mobile ?? '',
-                                    email: prefData?.data?.email ?? '',
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => const PurchaseDetailsBottomSheet(),
                                   );
-                                  // await _paymentService.makePayment(
-                                  //   context: context,
-                                  //   amount: state.amount!,
-                                  //   orderId: state.orderId!,
-                                  //   name: name,
-                                  //   contact: contact,
-                                  //   email: email,
-                                  // );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content:
-                                        Text('IAP Failed: ${e.toString()}')),
-                                  );
-                                }
-                              } else {
-                                await _subscriptionPayment.makePayment(
-                                  context: context,
-                                  amount: _amount!,
-                                  orderId: _orderId!,
-                                  planId: _planId ?? 2,
-                                  name: prefData?.data?.name ?? '',
-                                  contact: prefData?.data?.mobile ?? '',
-                                  email: prefData?.data?.email ?? '',
-                                );
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                  Text('Order details missing. Try again later.'),
-                                ),
+
+                                  setState(() {}); // 🔥 refresh bottomsheet UI
+                                },
+
+                                // 🔥 PAYMENT FAILURE CALLBACK
+                                onFailure: (err) {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(content: Text(err)));
+                                },
                               );
                             }
                           },
                         ),
-          
+
                         const SizedBox(height: 16),
           
                         if (Platform.isIOS)

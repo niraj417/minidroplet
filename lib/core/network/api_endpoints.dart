@@ -141,7 +141,7 @@ class ApiEndpoints {
   static const String showSubcategories =
       '${ApiEndpoints.serverURL}/show_sub_category';
         static const String reportContentUrl =
-      '${ApiEndpoints.serverURL}/report_post';
+      '${ApiEndpoints.serverURL}/report_content';
 
   static const String removeAdsPrice = '$serverURL/remove_ads_price';
   static const String removeAdsPayment = '$serverURL/remove_ads_payment';

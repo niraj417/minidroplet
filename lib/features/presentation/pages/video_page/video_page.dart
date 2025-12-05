@@ -103,7 +103,7 @@ class _VideoPageContent extends StatelessWidget {
                   _buildRecipeOfTheWeek(state, context),
                   const SizedBox(height: 10),
                   _buildRecipePlaylist(state, context),
-                  const SizedBox(height: 70),
+                  const SizedBox(height: 120),
                 ],
               ),
             ),

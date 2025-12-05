@@ -17,6 +17,7 @@ import 'package:tinydroplets/features/presentation/pages/auth/sign_up_page/sign_
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
 import '../../../../../core/constant/app_export.dart';
 import '../../../../../core/utils/validators.dart';
+import '../forget_page/forget_pass_page.dart';
 import 'model/login_data_model.dart';
 
 class LoginPage extends StatefulWidget {
@@ -338,7 +339,9 @@ class _LoginPageState extends State<LoginPage> {
                                           Align(
                                             alignment: Alignment.centerRight,
                                             child: TextButton(
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                goto(context, ForgetPassPage());
+                                              },
                                               style: TextButton.styleFrom(
                                                 padding: EdgeInsets.zero,
                                                 minimumSize: Size.zero,

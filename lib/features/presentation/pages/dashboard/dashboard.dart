@@ -10,6 +10,7 @@ import 'package:tinydroplets/features/presentation/pages/my_account/my_account.d
 import 'package:tinydroplets/features/presentation/pages/video_page/video_page.dart';
 import '../../../../core/theme/theme_bloc/theme_bloc.dart';
 import '../../../../core/theme/theme_bloc/theme_state.dart';
+import '../my_account/profile_bloc/profile_cubit.dart';
 import 'dashboard_bloc/dashboard_bloc.dart';
 import 'dashboard_bloc/dashboard_event.dart';
 import 'dashboard_bloc/dashboard_state.dart';
@@ -26,7 +27,10 @@ class _DashboardState extends State<Dashboard> {
     const FeedPage(),
     const EbookPage(),
     VideoPage(),
-    const MyAccount(),
+    BlocProvider(
+      create: (_) => ProfileCubit(),
+      child: const MyAccount(),
+    ),
   ];
 
   @override

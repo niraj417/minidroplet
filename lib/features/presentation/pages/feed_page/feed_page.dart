@@ -46,7 +46,8 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
     Future<void> checkStatus() async {
       try{
         isSubscribed = await SubscriptionPaymentService.hasActiveSubscription();
-        SharedPref.setBool("isSubscribed", isSubscribed);
+        await SharedPref.setBool("isSubscribed", isSubscribed);
+        print("Initial Status of isSubscribed : $isSubscribed");
       } catch(e){
         print("check Status error : ${e.toString()}");
       }
@@ -110,12 +111,12 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                         itemBuilder: (context, feedSliderItem, index) {
                           return GestureDetector(
                           onTap: () {
-                            if (feedSliderItem.link.isNotEmpty &&
-                                feedSliderItem.link != null) {
-                              UrlOpener.launchURL(feedSliderItem.link);
-                            } else {
-                              return;
-                            }
+                            // if (feedSliderItem.link.isNotEmpty &&
+                            //     feedSliderItem.link != null) {
+                            //   UrlOpener.launchURL(feedSliderItem.link);
+                            // } else {
+                            //   return;
+                            // }
                           },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),

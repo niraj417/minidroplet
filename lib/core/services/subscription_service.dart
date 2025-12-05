@@ -13,6 +13,8 @@ class SubscriptionPaymentService {
   int? planId;
   String? amount;
   BuildContext? context;
+  Function()? _onSuccessCallback;
+  Function(String)? _onFailureCallback;
 
   final IAPurchaseService _iap = IAPurchaseService();
 
@@ -53,35 +55,46 @@ class SubscriptionPaymentService {
     required String name,
     required String contact,
     required String email,
+    required Function() onSuccess,
+    required Function(String error) onFailure,
   }) async {
     this.context = context;
     this.orderId = orderId;
     this.planId = planId;
 
+    // iOS – IAP
     if (Platform.isIOS) {
       await _iap.initialize();
       await _iap.purchaseProduct(
         subscriptionProductId,
         onSuccess: (purchase) async {
-          await SharedPref.setBool("isSubscribed", true);
           await _confirmSubscription(purchase.purchaseID ?? '');
+          await SharedPref.setBool("isSubscribed", true);
+          onSuccess(); // 🔥 Notify UI
         },
         onError: (err) {
-          CommonMethods.showSnackBar(context, err);
+          onFailure(err); // 🔥 Notify UI
         },
       );
-    } else {
-      var options = {
-        'key': 'rzp_test_49eKLVBErOrmyk',
-        'amount': (double.parse(amount) * 100).toStringAsFixed(0),
-        'name': name,
-        'description': 'Premium Subscription',
-        'orderId': orderId,
-        'prefill': {'contact': contact, 'email': email},
-      };
-      _razorpay.open(options);
+      return;
     }
+
+    // Android – Razorpay
+    var options = {
+      'key': 'rzp_test_RnBHpHeyiVglH8',
+      'amount': (double.parse(amount) * 100).toStringAsFixed(0),
+      'name': name,
+      'description': 'Premium Subscription',
+      'orderId': orderId,
+      'prefill': {'contact': contact, 'email': email},
+    };
+
+    _onSuccessCallback = onSuccess;
+    _onFailureCallback = onFailure;
+
+    _razorpay.open(options);
   }
+
 
   Future<void> _confirmSubscription(String transactionId) async {
     await dioClient.sendPostRequest(
@@ -98,10 +111,12 @@ class SubscriptionPaymentService {
 
   void _handleSuccess(PaymentSuccessResponse response) async {
     await _confirmSubscription(response.paymentId!);
+    await SharedPref.setBool("isSubscribed", true);
+    _onSuccessCallback?.call();   // 🔥 UI notified
   }
 
   void _handleError(PaymentFailureResponse response) {
-    CommonMethods.showSnackBar(context!, 'Payment Failed');
+    _onFailureCallback?.call("Payment Failed");
   }
 
   static Future<bool> hasActiveSubscription() async {
@@ -110,10 +125,13 @@ class SubscriptionPaymentService {
 
       if (res.data['status'] == 1) {
         final expiry = DateTime.parse(res.data['data']['expiry_date']);
+        print("Expiry of : $expiry");
         return expiry.isAfter(DateTime.now());
       }
+      print("Expiry Status : ${res.data['status']}");
       return false;
     } catch (e) {
+      print("Check Subscription Exception : ${e.toString()}");
       return false;
     }
   }

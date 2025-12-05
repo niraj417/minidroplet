@@ -610,12 +610,16 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
           text: 'Subscribe to Unlock',
           onPressed: () async {
 
-            showModalBottomSheet(
+            await showModalBottomSheet(
               context: context,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
               builder: (context) => const RemoveAdsBottomSheet(),
             );
+
+            setState(() {
+
+            });
 
 
             // if (Platform.isIOS) {

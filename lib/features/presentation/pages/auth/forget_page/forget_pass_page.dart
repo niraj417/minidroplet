@@ -189,7 +189,7 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
             Loader();
           } else {
             if (state is ForgetPasswordSuccess) {
-              goto(context, OtpPage(otp: state.otp, id: state.id, email: 'email',));
+              goto(context, OtpPage(otp: state.otp, id: state.id, email: _emailOrMobile.text, fromForgetPass: true,));
             } else if (state is ForgetPasswordError) {
               CommonMethods.showSnackBar(context, state.message);
             }
@@ -279,6 +279,17 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
                                   onPressed: () {
                                     if (_formKey.currentState?.validate() ??
                                         false) {
+                                      if(Platform.isIOS){
+                                        // Exact pattern for apple_user prefix
+                                        final exactPattern = RegExp(r'^apple_user\d{6}@domain\.com$');
+                                        if(_emailOrMobile.text == 'guest@tinydroplets.com') {
+                                          CommonMethods.showSnackBar(context, 'you dont have a genuine account. Please create an account.');
+                                          return;
+                                        } else if(exactPattern.hasMatch(_emailOrMobile.text)) {
+                                          CommonMethods.showSnackBar(context, 'Email is a temporary email. Change it from my accounts page.');
+                                          return;
+                                        }
+                                      }
                                       context
                                           .read<ForgetPasswordCubit>()
                                           .forgetPassword(
@@ -294,7 +305,7 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
                       ),
                     ),
                     Positioned(
-                      top: 100,
+                      top: 50,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -307,7 +318,7 @@ class _ForgetPassPageState extends State<ForgetPassPage> {
                             'Forgot your\npassword?',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 40,
+                              fontSize: 35,
                               height: 1.2,
                               fontWeight: FontWeight.bold,
                             ),

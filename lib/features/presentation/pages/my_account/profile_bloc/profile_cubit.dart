@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -17,26 +15,40 @@ class ProfileCubit extends Cubit<ProfileState> {
     loadProfile();
   }
 
-  void loadProfile() {
-    final data = SharedPref.getLoginData();
-    if (data != null) {
-      final profile = data.data!;
-      emit(state.copyWith(
-        name: profile.name,
-        email: profile.email,
-        image: profile.profile,
-        mobile: profile.mobile,
-        address: profile.address ?? '',
-        aboutUs: profile.aboutUs ?? '',
-        token: profile.apiToken ?? '',
-        // new fields:
-        parentsGender: profile.parentsGender ?? state.parentsGender,
-        parentName: profile.parentName ?? '',
-        babyBorned: profile.babyBorned == 1,
-        babyAge: profile.babyAge ?? '',
-      ));
+  /// Loads saved user profile from SharedPref
+  Future<void> loadProfile() async {
+    emit(state.copyWith(isProfileLoading: true));
+
+    await Future.delayed(Duration(milliseconds: 200)); // 🔥 ensures SharedPref is ready
+
+    final data = await SharedPref.getLoginData();
+
+    print("Fetching Data for profile");
+
+    if (data!.data!.name == null) {
+      print("data is nulll for profile");
+      emit(state.copyWith(isProfileLoading: false));
+      return;
     }
+
+    final profile = data.data!;
+
+    emit(state.copyWith(
+      name: profile.name,
+      email: profile.email,
+      image: profile.profile,
+      mobile: profile.mobile,
+      address: profile.address ?? '',
+      aboutUs: profile.aboutUs ?? '',
+      token: profile.apiToken ?? '',
+      parentsGender: profile.parentsGender ?? state.parentsGender,
+      parentName: profile.parentName ?? '',
+      babyBorned: profile.babyBorned == 1,
+      babyAge: profile.babyAge ?? '',
+      isProfileLoading: false,
+    ));
   }
+
 
   Future<void> pickImage() async {
     final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
@@ -121,11 +133,9 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  void clearSuccessMessage() =>
-      emit(state.copyWith(successMessage: null));
+  void clearSuccessMessage() => emit(state.copyWith(successMessage: null));
 
   void reset() {
     emit(ProfileState.initial());
   }
-
 }

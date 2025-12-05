@@ -494,7 +494,7 @@ class _EbookPageState extends State<EbookPage> {
                                         },
                                       ),
                                     ),*/
-                                    const SizedBox(height: 80),
+                                    const SizedBox(height: 120),
                                   ],
                                 ),
                       ),

@@ -17,7 +17,15 @@ class OtpPage extends StatefulWidget {
   final String otp;
   final String email;
   final String id;
-  const OtpPage({super.key, required this.otp, required this.id, required this.email});
+  final bool fromForgetPass;
+
+  const OtpPage({
+    super.key,
+    required this.otp,
+    required this.id,
+    required this.email,
+    this.fromForgetPass = false, // Default value, not required
+  });
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -99,7 +107,11 @@ class _OtpPageState extends State<OtpPage> {
         final serverOtp = response.data['data']['otp'].toString();
         if (serverOtp == otp) {
           CommonMethods.showSnackBar(context, "OTP Verified Successfully!");
-          gotoReplacement(context, LoginPage());
+          if(widget.fromForgetPass){
+            gotoReplacement(context, CreatePasswordPage(id: widget.id));
+          } else {
+            gotoReplacement(context, LoginPage());
+          }
         } else {
           CommonMethods.showSnackBar(context, "Invalid OTP. Please try again.");
         }
