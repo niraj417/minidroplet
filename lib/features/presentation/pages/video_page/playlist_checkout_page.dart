@@ -79,12 +79,12 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
     _createOrder();
   }
 
-  void _getPrefData() {
+  Future<void> _getPrefData() async {
     final prefData = SharedPref.getLoginData();
     name = prefData?.data?.name ?? '';
     contact = prefData?.data?.mobile ?? '';
     email = prefData?.data?.email ?? '';
-    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    isSubscribed = await SharedPref.getBool("isSubscribed") ?? false;
   }
 
   bool _isPaymentLoading = false;
@@ -599,12 +599,17 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
           text: 'Subscribe to Unlock',
           onPressed: () async {
 
-            showModalBottomSheet(
+            await showModalBottomSheet(
               context: context,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
               builder: (context) => const RemoveAdsBottomSheet(),
             );
+
+            await _getPrefData();
+            if(isSubscribed){
+              gotoReplacement(context, RecipePlaylistScreen(playlistId: widget.id.toString()));
+            }
 
             // if (Platform.isIOS) {
             //   await _buildPaymentMode(context);

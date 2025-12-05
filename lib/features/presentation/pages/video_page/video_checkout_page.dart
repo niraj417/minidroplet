@@ -18,6 +18,7 @@ import '../../../../core/services/payment_service.dart';
 import '../../../../core/services/payment_service/payment_bloc.dart';
 import '../../../../core/services/payment_service/payment_event.dart';
 import '../../../../core/services/payment_service/payment_state.dart';
+import '../../../../core/services/subscription_service.dart';
 import '../../../../injections/dependency_injection.dart';
 import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
 import '../ebook_page/purchased_ebook/purchased_ebook_detail_page.dart';
@@ -68,6 +69,14 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
     amount = widget.amount;
     _getPrefData();
     _createOrder();
+  }
+
+  Future<void> _refreshPage() async {
+    await SubscriptionPaymentService.hasActiveSubscription().then((status) {
+      setState(() {
+        isSubscribed = status;
+      });
+    });
   }
 
   void _getPrefData() {
@@ -616,11 +625,6 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
               backgroundColor: Colors.transparent,
               builder: (context) => const RemoveAdsBottomSheet(),
             );
-
-            setState(() {
-
-            });
-
 
             // if (Platform.isIOS) {
             //   final productId = IAPUtils.getIAPProductId('video');
