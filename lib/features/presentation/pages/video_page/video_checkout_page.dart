@@ -7,6 +7,7 @@ import 'package:tinydroplets/core/utils/get_iap_product_key.dart';
 import 'package:tinydroplets/features/presentation/pages/checkout_page/model/all_coupon_code_model.dart';
 import 'package:tinydroplets/features/presentation/pages/checkout_page/model/apply_coupon_model.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/ebook_list/bloc/ebook_state.dart';
+import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/bloc/video_page_bloc/video_page_bloc.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe_coupon_model.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/paypal_webview_page.dart';
@@ -746,12 +747,13 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
                   Expanded(
                     child: AppButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => const RemoveAdsBottomSheet(),
-                        );
+                        gotoReplacement(context, SubscriptionPage());
+                        // showModalBottomSheet(
+                        //   context: context,
+                        //   isScrollControlled: true,
+                        //   backgroundColor: Colors.transparent,
+                        //   builder: (context) => const RemoveAdsBottomSheet(),
+                        // );
                         //_openRemoveAdsSubscription();
                         // Navigator.pop(context);
                         // goto(

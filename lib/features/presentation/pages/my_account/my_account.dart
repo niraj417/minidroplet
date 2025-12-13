@@ -15,6 +15,7 @@ import 'package:tinydroplets/features/presentation/pages/my_account/profile_page
 import 'package:tinydroplets/features/presentation/pages/my_account/saved_item_screen.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/widget/profile_item.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/widget/social_link_scroll.dart';
+import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
 
 import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../core/constant/app_export.dart';
@@ -276,11 +277,12 @@ class _MyAccountState extends State<MyAccount> {
                   //title: state.isPurchased ? 'Ad-Free Status' : 'Remove Ads',
                   title: "Subscription",
                   onTap: () {
-                    if (state.isPurchased || isSubscribed) {
-                      _showPurchaseDetailsBottomSheet(context);
-                    } else {
-                      _showRemoveAdsBottomSheet(context);
-                    }
+                    goto(context, SubscriptionPage());
+                    // if (state.isPurchased || isSubscribed) {
+                    //   _showPurchaseDetailsBottomSheet(context);
+                    // } else {
+                    //   _showRemoveAdsBottomSheet(context);
+                    // }
                   },
                 );
               },

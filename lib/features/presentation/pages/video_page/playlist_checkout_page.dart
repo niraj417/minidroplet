@@ -25,6 +25,7 @@ import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
 import '../ebook_page/purchased_ebook/purchased_ebook_detail_page.dart';
 import '../feed_page/widget/expandable_text.dart';
 import '../remove_ads/widget/remove_ads_bottom_sheet.dart';
+import '../subscription/subscription_screen.dart';
 import 'model/all_recipe_video_model.dart';
 import 'model/recipe_all_playlist_model.dart';
 
@@ -599,12 +600,13 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
           text: 'Subscribe to Unlock',
           onPressed: () async {
 
-            await showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const RemoveAdsBottomSheet(),
-            );
+            // await showModalBottomSheet(
+            //   context: context,
+            //   isScrollControlled: true,
+            //   backgroundColor: Colors.transparent,
+            //   builder: (context) => const RemoveAdsBottomSheet(),
+            // );
+            gotoReplacement(context, SubscriptionPage());
 
             await _getPrefData();
             if(isSubscribed){

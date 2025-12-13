@@ -168,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(height: 15),
         CustomTextField(
-          readOnly: true,
+          readOnly: false,
           label: 'Mobile',
           hintText: 'Enter your mobile number',
           keyboardType: TextInputType.number,
@@ -176,39 +176,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onChanged: (value) {
             setState(() {});
           },
-          // validator: (value) {
-          //   return Validator.validateMobileNumber(value!);
-          // },
+          validator: (value) {
+            return Validator.validateMobileNumber(value!);
+          },
           prefixIcon: Icon(CupertinoIcons.phone),
         ),
-        const SizedBox(height: 15),
-        CustomTextField(
-          label: 'Address',
-          hintText: 'Enter your address',
-          keyboardType: TextInputType.streetAddress,
-          controller: _address,
-          onChanged: (value) {
-            setState(() {});
-          },
-          validator: (value) {
-            return Validator.validateAddress(value!);
-          },
-          prefixIcon: Icon(CupertinoIcons.location),
-        ),
-        const SizedBox(height: 15),
-        CustomTextField(
-          label: 'About Us',
-          hintText: 'Enter details about yourself',
-          keyboardType: TextInputType.text,
-          controller: _aboutUs,
-          onChanged: (value) {
-            setState(() {});
-          },
-          validator: (value) {
-            return Validator.validateAboutUs(value!);
-          },
-          prefixIcon: Icon(CupertinoIcons.info),
-        ),
+        // const SizedBox(height: 15),
+        // CustomTextField(
+        //   label: 'Address',
+        //   hintText: 'Enter your address',
+        //   keyboardType: TextInputType.streetAddress,
+        //   controller: _address,
+        //   onChanged: (value) {
+        //     setState(() {});
+        //   },
+        //   validator: (value) {
+        //     return Validator.validateAddress(value!);
+        //   },
+        //   prefixIcon: Icon(CupertinoIcons.location),
+        // ),
+        // const SizedBox(height: 15),
+        // CustomTextField(
+        //   label: 'About Us',
+        //   hintText: 'Enter details about yourself',
+        //   keyboardType: TextInputType.text,
+        //   controller: _aboutUs,
+        //   onChanged: (value) {
+        //     setState(() {});
+        //   },
+        //   validator: (value) {
+        //     return Validator.validateAboutUs(value!);
+        //   },
+        //   prefixIcon: Icon(CupertinoIcons.info),
+        // ),
 
         /// Extra features
         Column(

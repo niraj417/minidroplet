@@ -6,6 +6,8 @@ import 'package:tinydroplets/core/network/api_endpoints.dart';
 import 'package:tinydroplets/services/in_app_purchases.dart';
 
 import '../../features/presentation/pages/feed_page/bloc/feed_bloc.dart';
+import '../../features/presentation/pages/subscription/model/subscription_plan_model.dart';
+import '../utils/shared_pref_key.dart';
 
 class SubscriptionPaymentService {
   late Razorpay _razorpay;
@@ -24,6 +26,59 @@ class SubscriptionPaymentService {
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handleSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleError);
+  }
+
+  Future<void> startIosPaidSubscriptionFlow({
+    required SubscriptionPlan selectedPlan,
+    required Function(String message) onSuccess,
+    required Function(String error) onFailure,
+  }) async {
+    try {
+      // 1️⃣ Create backend order
+      await createSubscriptionOrder(plan: selectedPlan.id);
+
+      // 2️⃣ Init IAP
+      await _iap.initialize();
+
+      // 3️⃣ Decide product
+      final productId = selectedPlan.planType == 'monthly'
+          ? IAPurchaseService.monthlySubProductId
+          : IAPurchaseService.yearlySubProductId;
+
+      // 4️⃣ Start IAP
+      await _iap.purchaseProduct(
+        productId,
+        onSuccess: (purchase) async {
+          await _confirmSubscription(purchase.purchaseID ?? '');
+
+          await SharedPref.setBool("isSubscribed", true);
+
+          onSuccess('Subscription activated successfully');
+        },
+        onError: onFailure,
+      );
+    } catch (e) {
+      onFailure(e.toString().replaceAll('Exception:', ''));
+    }
+  }
+
+
+  Future<void> startIosTrialFlow({
+    required Function(String message) onSuccess,
+    required Function(String error) onFailure,
+  }) async {
+    try {
+      final expiry = await startFreeTrial();
+
+      await SharedPref.setString("trialExpiry", expiry.toString());
+
+      onSuccess(
+        'Trial active till '
+            '${expiry != null ? expiry.toLocal().toString().split(' ')[0] : ''}',
+      );
+    } catch (e) {
+      onFailure(e.toString().replaceAll('Exception:', ''));
+    }
   }
 
   Future<void> createSubscriptionOrder({required int plan}) async {
@@ -46,6 +101,46 @@ class SubscriptionPaymentService {
       throw Exception('Order creation failed: $e');
     }
   }
+
+  Future<void> startAndroidPaidSubscriptionFlow({
+    required BuildContext context,
+    required SubscriptionPlan selectedPlan,
+    required String name,
+    required String contact,
+    required String email,
+    required Function(String message) onSuccess,
+    required Function(String error) onFailure,
+  }) async {
+    try {
+      // 1️⃣ Create backend order
+      await createSubscriptionOrder(plan: selectedPlan.id);
+
+      this.context = context;
+      _onSuccessCallback = () =>
+          onSuccess('Subscription activated successfully');
+      _onFailureCallback = onFailure;
+
+      // 2️⃣ Razorpay options
+      final options = {
+        'key': 'rzp_live_Rn8Kp5iMCU2xjr',
+        //'key': 'rzp_test_RnBHpHeyiVglH8',
+        'amount': (double.parse(amount!)).toStringAsFixed(0),
+        'name': name,
+        'description': selectedPlan.name,
+        'order_id': orderId, // 🔴 IMPORTANT: Razorpay uses order_id
+        'prefill': {
+          'contact': contact,
+          'email': email,
+        },
+      };
+
+      // 3️⃣ Open Razorpay
+      _razorpay.open(options);
+    } catch (e) {
+      onFailure(e.toString().replaceAll('Exception:', ''));
+    }
+  }
+
 
   Future<void> makePayment({
     required BuildContext context,
@@ -133,6 +228,55 @@ class SubscriptionPaymentService {
     } catch (e) {
       print("Check Subscription Exception : ${e.toString()}");
       return false;
+    }
+  }
+
+  Future<List<SubscriptionPlan>> fetchSubscriptionPlans() async {
+    try {
+      final response = await dioClient.sendGetRequest(
+        ApiEndpoints.subscriptionPlans, // <-- API endpoint
+      );
+
+      if (response.data['status'] != 1) {
+        throw Exception(response.data['message']);
+      }
+
+      final List list = response.data['data'];
+
+      return list
+          .map((e) => SubscriptionPlan.fromJson(e))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to fetch subscription plans: $e');
+    }
+  }
+
+
+  Future<DateTime?> startFreeTrial() async {
+    try {
+      final response = await dioClient.sendGetRequest(
+        ApiEndpoints.startFreeTrial,
+      );
+
+      if (response.data['status'] == 1) {
+        final expiry =
+        DateTime.tryParse(response.data['data']['expiry_date']);
+
+        // ✅ persist locally for instant UI
+        await SharedPref.setBool('isSubscribed', true);
+        await SharedPref.setBool('isTrial', true);
+        await SharedPref.setBool('trialAvailed', true);
+        await SharedPref.setString(
+          'trialExpiry',
+          expiry?.toIso8601String() ?? '',
+        );
+        await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
+        return expiry;
+      } else {
+        throw Exception(response.data['message']);
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 

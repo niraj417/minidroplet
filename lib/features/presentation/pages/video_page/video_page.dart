@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
 import 'package:tinydroplets/common/widgets/search_text_card.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/bloc/feed_bloc.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/all_recipe_category_page.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/all_recomend_recipe_page.dart';
@@ -39,19 +40,21 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
 
   bool isSubscribed = false;
+  bool paidAvailable = false;
 
   @override
   void initState() {
     super.initState();
     context.read<AgeGroupCubit>().fetchAgeGroup();
     isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    paidAvailable = SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => VideoPageCubit(),
-      child: _VideoPageContent(isSubscribed),
+      child: _VideoPageContent(paidAvailable),
     );
   }
 }

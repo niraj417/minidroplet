@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/ebook_filter/ebook_search_filter_page.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/ebook_list/ebook_all_page.dart';
 import 'package:tinydroplets/common/widgets/search_text_filed.dart';
@@ -40,7 +41,8 @@ class _EbookPageState extends State<EbookPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    //isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    isSubscribed = SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
   }
 
   Future<void> _handleRefresh(BuildContext context) async {
@@ -88,10 +90,10 @@ class _EbookPageState extends State<EbookPage> {
 
                                   if (imageUrl.isBuy == '1' || !isSubscribed) {
                                     if (imageUrl.openId == null) {
-                                      CommonMethods.showSnackBar(
-                                        context,
-                                        'Id not found',
-                                      );
+                                      // CommonMethods.showSnackBar(
+                                      //   context,
+                                      //   'Id not found',
+                                      // );
                                       return;
                                     } else {
                                       goto(

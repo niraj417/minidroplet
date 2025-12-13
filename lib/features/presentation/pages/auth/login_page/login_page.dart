@@ -12,6 +12,7 @@ import 'package:tinydroplets/common/widgets/app_button.dart';
 import 'package:tinydroplets/common/widgets/loader.dart';
 import 'package:tinydroplets/core/constant/app_vector.dart';
 import 'package:tinydroplets/core/utils/shared_pref.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/otp_page/otp_page.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/sign_up_page/sign_up_page.dart';
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
@@ -86,8 +87,29 @@ class _LoginPageState extends State<LoginPage> {
         }
         //CommonMethods.showSnackBar(context, response.data['message']);
         final loginData = LoginDataModel.fromJson(response.data);
+        final subscription = loginData.data?.subscription;
+
+        final bool hasPremiumAccess =
+            subscription != null &&
+                (
+                    subscription.isTrial == 1 ||
+                        (
+                            subscription.isActive == 1 &&
+                                subscription.expiryDate != null &&
+                                subscription.expiryDate!.isAfter(DateTime.now())
+                        )
+                );
         await SharedPref.saveLoginData(loginData);
         await SharedPref.setKeepLoggedIn(_isChecked);
+        // ✅ persist locally for instant UI
+        await SharedPref.setBool('isSubscribed', loginData.data!.subscription == null ? false : loginData.data!.subscription?.isActive == 0 ? false : true );
+        await SharedPref.setBool('isTrial', loginData.data!.subscription?.isTrial == 0 ? false : true);
+        await SharedPref.setBool('trialAvailed', true);
+        await SharedPref.setString(
+          'trialExpiry',
+          loginData.data!.subscription?.expiryDate?.toIso8601String() ?? '',
+        );
+        await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, hasPremiumAccess);
         gotoRemoveAll(context, Dashboard());
       }
     } catch (e) {
@@ -115,8 +137,29 @@ class _LoginPageState extends State<LoginPage> {
       if (response.data['status'] == 1) {
         //CommonMethods.showSnackBar(context, response.data['message']);
         final loginData = LoginDataModel.fromJson(response.data);
+        final subscription = loginData.data?.subscription;
+
+        final bool hasPremiumAccess =
+            subscription != null &&
+                (
+                    subscription.isTrial == 1 ||
+                        (
+                            subscription.isActive == 1 &&
+                                subscription.expiryDate != null &&
+                                subscription.expiryDate!.isAfter(DateTime.now())
+                        )
+                );
         await SharedPref.saveLoginData(loginData);
         await SharedPref.setKeepLoggedIn(_isChecked);
+        // ✅ persist locally for instant UI
+        await SharedPref.setBool('isSubscribed', loginData.data!.subscription == null ? false : loginData.data!.subscription?.isActive == 0 ? false : true );
+        await SharedPref.setBool('isTrial', loginData.data!.subscription?.isTrial == 0 ? false : true);
+        await SharedPref.setBool('trialAvailed', true);
+        await SharedPref.setString(
+          'trialExpiry',
+          loginData.data!.subscription?.expiryDate?.toIso8601String() ?? '',
+        );
+        await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, hasPremiumAccess);
         gotoRemoveAll(context, Dashboard());
       } else {
         setState(() => _loading3 = false);

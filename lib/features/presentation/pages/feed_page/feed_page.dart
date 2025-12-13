@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
 import 'package:tinydroplets/core/services/ad_service/ad_view.dart';
 import 'package:tinydroplets/core/services/ad_service/banner_ad/banner_ad_widget.dart';
@@ -14,6 +17,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/widget/feed_p
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/post_widget.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/profile_completion/profile_completion_cubit.dart';
+import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
 import '../../../../common/widgets/custom_caraousel.dart';
 import '../../../../core/services/subscription_service.dart';
 import '../my_account/profile_bloc/profile_cubit.dart';
@@ -35,6 +39,8 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
     final DioClient dioClient = GetIt.instance<DioClient>();
 
     bool isSubscribed = false;
+    bool isTrialAvailed = false;
+    DateTime? expiry;
 
     @override
     void initState() {
@@ -44,14 +50,60 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
     }
 
     Future<void> checkStatus() async {
-      try{
-        isSubscribed = await SubscriptionPaymentService.hasActiveSubscription();
-        await SharedPref.setBool("isSubscribed", isSubscribed);
-        print("Initial Status of isSubscribed : $isSubscribed");
-      } catch(e){
-        print("check Status error : ${e.toString()}");
+      try {
+        isTrialAvailed = await SharedPref.getBool('trialAvailed') ?? false;
+        isSubscribed = await SharedPref.getBool('isSubscribed') ?? false;
+
+        final expiryStr = await SharedPref.getString('trialExpiry');
+
+        if (expiryStr != null && expiryStr.isNotEmpty) {
+          expiry = DateTime.tryParse(expiryStr);
+        } else {
+          expiry = null;
+        }
+
+        debugPrint("isSubscribed: $isSubscribed");
+        debugPrint("isTrialAvailed: $isTrialAvailed");
+        debugPrint("Trial Expiry: $expiry");
+      } catch (e) {
+        debugPrint("checkStatus error: $e");
       }
     }
+
+    String getTrialBannerTitle() {
+      if (expiry == null) return "Free Trial";
+
+      final daysLeft = getRemainingTrialDays();
+
+      if (daysLeft == 0) {
+        return "Free Trial has ended!";
+      } else if (daysLeft == 1) {
+        return "Trial ends tomorrow!";
+      } else {
+        return "Trial ends in $daysLeft days";
+      }
+    }
+
+    String getTrialBannerSubtitle() {
+      final daysLeft = getRemainingTrialDays();
+
+      if (daysLeft == 0) {
+        return "Click to unlock 2000+ recipes & expert meal plans.";
+      } else {
+        return "Enjoy premium access before your trial expires.";
+      }
+    }
+
+
+    int getRemainingTrialDays() {
+      if (expiry == null) return 0;
+
+      final now = DateTime.now();
+      final diff = expiry!.difference(now).inDays;
+
+      return diff < 0 ? 0 : diff;
+    }
+
 
     @override
     Widget build(BuildContext context) {
@@ -140,6 +192,14 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                   //       () =>
                   //           context.read<FeedBloc>().add(FeedCarouselData()),
                   // ),
+                  const SizedBox(height: 10),
+                    trialStatusBanner(
+                      onTap: () {
+                        // 🔥 Navigate to subscription / open bottom sheet
+                        //_openSubscriptionPage();
+                        goto(context, SubscriptionPage());
+                      },
+                    ),
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -736,4 +796,77 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
           ),
     );
   }
-}
+
+    Widget trialStatusBanner({
+      required VoidCallback onTap,
+    }) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFCEEEE),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                height: 42,
+                width: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6E7EB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.workspace_premium,
+                  color: Color(0xFF6C6C6C),
+                  size: 22,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      getTrialBannerTitle(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      getTrialBannerSubtitle(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: const Color(0xFF4A4A4A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Container(
+                height: 32,
+                width: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFD54F),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+  }

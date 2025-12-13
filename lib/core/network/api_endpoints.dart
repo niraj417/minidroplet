@@ -160,4 +160,5 @@ class ApiEndpoints {
   static const String createSubscriptionOrder = '$serverURL/create_subscription_order';
   static const String subscriptionPlans = '$serverURL/subscription_plans';
   static const String getUserSubscription = '$serverURL/get_user_subscription';
+  static const String startFreeTrial = '$serverURL/start_free_trial';
 }

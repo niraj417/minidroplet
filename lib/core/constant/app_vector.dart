@@ -14,6 +14,7 @@ class AppVector {
   static const String searchUnFiled = '${base}search_unfilled.png';
   static const String shuffle = '${base}shuffle.png';
   static const String logo = '${base}logo.png';
+  static const String noBgLogo = '${base}no_bg_logo.png';
 
   static const String base1 = 'assets/vectors/';
 
@@ -30,8 +31,11 @@ class AppVector {
   static const String babyImage = '${base1}Baby Image.png';
   static const String bgBase = '${base1}Bg base.png';
 
-
-
-
+  static const String tag60off = '${base1}tag60off.png';
+  static const String proCheck = '${base1}proCheck.png';
+  static const String basicCross = '${base1}basicCross.png';
+  static const String iconRecipes = '${base1}iconRecipes.png';
+  static const String iconActivities = '${base1}iconActivities.png';
+  static const String iconTrackGrowth = '${base1}iconTrackGrowth.png';
 
 }

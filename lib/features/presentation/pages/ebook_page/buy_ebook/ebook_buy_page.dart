@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_rating/flutter_rating.dart';
 import 'package:get_it/get_it.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/checkout_page/checkout_page.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/model/ebook_detail_model.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/widget/book_palette_card.dart';
@@ -128,7 +129,8 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
     name = prefData?.data?.name ?? '';
     contact = prefData?.data?.mobile ?? '';
     email = prefData?.data?.email ?? '';
-    isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    //isSubscribed = SharedPref.getBool("isSubscribed") ?? false;
+    isSubscribed = SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
   }
 
   @override

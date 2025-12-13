@@ -64,6 +64,8 @@ class Data {
     required this.updatedAt,
     required this.deleatedAt,
     required this.profileCompletion,
+    required this.trialAvailed,
+    required this.subscription,
   });
 
   final int id;
@@ -99,6 +101,8 @@ class Data {
   final DateTime? updatedAt;
   final int deleatedAt;
   final int profileCompletion;
+  final int trialAvailed;
+  final SubscriptionInfo? subscription;
 
   factory Data.fromJson(Map<String, dynamic> json) {
     return Data(
@@ -135,6 +139,10 @@ class Data {
       updatedAt: DateTime.tryParse(json["updated_at"] ?? ""),
       deleatedAt: json["deleated_at"] ?? 0,
       profileCompletion: json["profile_completion"] ?? 0,
+      trialAvailed: json["trial_availed"] ?? 0,
+      subscription: json["subscription"] == null
+          ? null
+          : SubscriptionInfo.fromJson(json["subscription"]),
     );
   }
 
@@ -172,6 +180,8 @@ class Data {
     "updated_at": updatedAt?.toIso8601String(),
     "deleated_at": deleatedAt,
     "profile_completion": profileCompletion,
+    "trial_availed": trialAvailed,
+    "subscription": subscription?.toJson(),
   };
 
   @override
@@ -179,3 +189,36 @@ class Data {
     return "$id, $name, $email, $location, $idLink, $aboutUs, $profile, $emailVerifiedAt, $otpVerify, $mobile, $online, $dob, $gender, $country, $state, $city, $district, $pincode, $hometown, $address, $parentsGender, $parentName, $babyBorned, $babyAge, $otp, $loginStatus, $apiToken, $createdAt, $deviceName, $deviceToken, $updatedAt, $deleatedAt $profileCompletion";
   }
 }
+
+class SubscriptionInfo {
+  final int isActive;
+  final int isTrial;
+  final DateTime? expiryDate;
+  final int planId;
+
+  SubscriptionInfo({
+    required this.isActive,
+    required this.isTrial,
+    required this.expiryDate,
+    required this.planId,
+  });
+
+  factory SubscriptionInfo.fromJson(Map<String, dynamic> json) {
+    return SubscriptionInfo(
+      isActive: json['is_active'] ?? 0,
+      isTrial: json['is_trial'] ?? 0,
+      expiryDate: json['expiry_date'] != null
+          ? DateTime.tryParse(json['expiry_date'])
+          : null,
+      planId: json['plan_id'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'is_active': isActive,
+    'is_trial': isTrial,
+    'expiry_date': expiryDate?.toIso8601String(),
+    'plan_id': planId,
+  };
+}
+

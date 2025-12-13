@@ -16,4 +16,5 @@ class SharedPrefKeys {
   static const String district = "district";
   static const String pincode = "pincode";
   static const String hometown = "hometown";
+  static const String hasPremiumAccess = "hasPremiumAccess";
 }

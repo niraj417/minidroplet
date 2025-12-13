@@ -19,11 +19,21 @@ class IAPurchaseService {
   static const String playlistProductId = 'com.tinydroplets.video.playlist';
   static const String subscriptionProductId = 'premium_subscriber';
 
+  // Subscription products
+  static const String freeTrialProductId = 'free_trial';
+  static const String monthlySubProductId = 'pro_monthly';
+  static const String yearlySubProductId = 'pro_yearly';
+
+
   static const Set<String> _productIds = {
     ebookProductId,
     videoProductId,
     playlistProductId,
-    subscriptionProductId
+    subscriptionProductId,
+    // subscriptions
+    freeTrialProductId,
+    monthlySubProductId,
+    yearlySubProductId,
   };
 
   final ValueNotifier<List<ProductDetails>> products = ValueNotifier([]);
