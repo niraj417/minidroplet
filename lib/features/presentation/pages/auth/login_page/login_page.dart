@@ -104,12 +104,16 @@ class _LoginPageState extends State<LoginPage> {
         // ✅ persist locally for instant UI
         await SharedPref.setBool('isSubscribed', loginData.data!.subscription == null ? false : loginData.data!.subscription?.isActive == 0 ? false : true );
         await SharedPref.setBool('isTrial', loginData.data!.subscription?.isTrial == 0 ? false : true);
-        await SharedPref.setBool('trialAvailed', true);
+        await SharedPref.setBool('trialAvailed', loginData.data?.trialAvailed != null ? loginData.data?.trialAvailed == 0 ? false : true : false);
         await SharedPref.setString(
           'trialExpiry',
           loginData.data!.subscription?.expiryDate?.toIso8601String() ?? '',
         );
         await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, hasPremiumAccess);
+        debugPrint("isSubscribed: ${loginData.data!.subscription?.isActive}");
+        debugPrint("isThisTrialRunning: ${loginData.data!.subscription?.isTrial}");
+        debugPrint("isTrialAvailed: ${loginData.data?.trialAvailed}");
+        debugPrint("Trial Expiry: ${loginData.data!.subscription?.expiryDate?.toIso8601String() ?? ' '}");
         gotoRemoveAll(context, Dashboard());
       }
     } catch (e) {
@@ -154,12 +158,16 @@ class _LoginPageState extends State<LoginPage> {
         // ✅ persist locally for instant UI
         await SharedPref.setBool('isSubscribed', loginData.data!.subscription == null ? false : loginData.data!.subscription?.isActive == 0 ? false : true );
         await SharedPref.setBool('isTrial', loginData.data!.subscription?.isTrial == 0 ? false : true);
-        await SharedPref.setBool('trialAvailed', true);
+        await SharedPref.setBool('trialAvailed', loginData.data?.trialAvailed != null ? loginData.data?.trialAvailed == 0 ? false : true : false);
         await SharedPref.setString(
           'trialExpiry',
           loginData.data!.subscription?.expiryDate?.toIso8601String() ?? '',
         );
         await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, hasPremiumAccess);
+        debugPrint("isSubscribed: ${loginData.data!.subscription?.isActive}");
+        debugPrint("isThisTrialRunning: ${loginData.data!.subscription?.isTrial}");
+        debugPrint("isTrialAvailed: ${loginData.data?.trialAvailed}");
+        debugPrint("Trial Expiry: ${loginData.data!.subscription?.expiryDate?.toIso8601String() ?? ' '}");
         gotoRemoveAll(context, Dashboard());
       } else {
         setState(() => _loading3 = false);

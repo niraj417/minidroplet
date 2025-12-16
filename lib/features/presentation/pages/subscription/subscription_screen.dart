@@ -11,6 +11,7 @@ import 'package:tinydroplets/features/presentation/pages/subscription/widget/quo
 
 import '../../../../core/constant/app_vector.dart';
 import '../../../../core/services/subscription_service.dart';
+import '../../../../core/utils/shared_pref_key.dart';
 import 'model/subscription_plan_model.dart';
 
 class SubscriptionPage extends StatefulWidget {
@@ -19,8 +20,9 @@ class SubscriptionPage extends StatefulWidget {
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
 }
-
+enum LoadingType { trial, purchase }
 class _SubscriptionPageState extends State<SubscriptionPage> {
+  LoadingType? _loadingType;
 
   bool _trialLoading = false;
 
@@ -37,6 +39,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   bool _loadingPlans = true;
 
   bool _canStartTrial = false;
+  bool _isSubscribed = false;
   bool _checkingTrial = true;
 
   @override
@@ -75,6 +78,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       email = loginData?.data?.email;
       mobile = loginData?.data?.mobile ?? '';
       _canStartTrial = (loginData?.data?.trialAvailed ?? 1) == 0;
+      _isSubscribed = (loginData?.data?.subscription?.isActive ?? 1) == 0;
       _checkingTrial = false;
     });
   }
@@ -202,79 +206,96 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
 
   Future<void> _startPaidSubscription() async {
-    Navigator.pop(context);
+    if (_isSubscribed) return;
 
-    setState(() => _trialLoading = true);
+    setState(() {
+      _checkingTrial = true;
+      _loadingType = LoadingType.purchase;
+    });
 
-    if(Platform.isIOS){
+    if (Platform.isIOS) {
       await _subscriptionService.startIosPaidSubscriptionFlow(
         selectedPlan: selectedPlan!,
-        onSuccess: (msg) {
-          setState(() => _trialLoading = false);
-          CommonMethods.showSnackBar(context, msg);
+        onSuccess: (msg) async {
+          await SharedPref.setBool('isSubscribed', true);
+          await SharedPref.setBool('isTrial', false);
+          await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const Dashboard()),
-          );
+          setState(() {
+            _isSubscribed = true;
+            _checkingTrial = false;
+          });
+
+          CommonMethods.showSnackBar(context, msg);
+          _goToDashboard();
         },
-        onFailure: (err) {
-          setState(() => _trialLoading = false);
-          CommonMethods.showSnackBar(context, err);
-        },
+        onFailure: _handleError,
       );
     } else {
-      _subscriptionService.amount = selectedPlan!.price;
       _subscriptionService.startAndroidPaidSubscriptionFlow(
         context: context,
         selectedPlan: selectedPlan!,
         name: name!,
         contact: mobile!,
         email: email!,
-        onSuccess: (msg) {
-          setState(() => _trialLoading = false);
-          CommonMethods.showSnackBar(context, msg);
+        onSuccess: (msg) async {
+          await SharedPref.setBool('isSubscribed', true);
+          await SharedPref.setBool('isTrial', false);
+          await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const Dashboard()),
-          );
+          setState(() {
+            _isSubscribed = true;
+            _checkingTrial = false;
+          });
+
+          CommonMethods.showSnackBar(context, msg);
+          _goToDashboard();
         },
-        onFailure: (err) {
-          setState(() => _trialLoading = false);
-          CommonMethods.showSnackBar(context, err);
-        },
+        onFailure: _handleError,
       );
     }
   }
 
+  void _handleError(String err) {
+    setState(() => _checkingTrial = false);
+    CommonMethods.showSnackBar(context, err);
+  }
+
+  void _goToDashboard() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const Dashboard()),
+    );
+  }
 
   Future<void> _startTrialOnly() async {
-    Navigator.pop(context);
+    //if (!_canStartTrial || _isSubscribed) return;
 
-    try {
-      setState(() => _trialLoading = true);
+    setState(() {
+      _checkingTrial = true;
+      _loadingType = LoadingType.trial;
+    });
 
-      await _subscriptionService.startIosTrialFlow(
-        onSuccess: (msg) {
-          setState(() => _trialLoading = false);
-          CommonMethods.showSnackBar(context, msg);
+    await _subscriptionService.startIosTrialFlow(
+      onSuccess: (msg) async {
+        await SharedPref.setBool('trialAvailed', true);
+        await SharedPref.setBool('isTrial', true);
+        await SharedPref.setBool('isSubscribed', false);
+        await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const Dashboard()),
-          );
-        },
-        onFailure: (err) {
-          setState(() => _trialLoading = false);
-          CommonMethods.showSnackBar(context, err);
-        },
-      );
-    } catch (e) {
-      CommonMethods.showSnackBar(context, e.toString());
-    } finally {
-      setState(() => _trialLoading = false);
-    }
+        setState(() {
+          _canStartTrial = false;
+          _checkingTrial = false;
+        });
+
+        CommonMethods.showSnackBar(context, msg);
+        //_goToDashboard();
+      },
+      onFailure: (err) {
+        setState(() => _checkingTrial = false);
+        CommonMethods.showSnackBar(context, err);
+      },
+    );
   }
 
 
@@ -354,8 +375,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     /// CHOOSE YOUR PLAN TITLE
                     Text(
                       "CHOOSE YOUR PLAN",
-                      style: GoogleFonts.poppins(
-                        fontSize: 22,
+                      style: TextStyle(
+                        fontFamily: "BobbyJones",
+                        fontSize: 28,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.white,
+                        decorationThickness: 1.5,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -368,17 +393,18 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF93C5FD), // Light sky blue background
+                        color: const Color(0xFF93C5FD),
                         borderRadius: BorderRadius.circular(22),
                       ),
                       child: Row(
                         children: [
-                          Expanded(child: _monthlyPlanCardStyled(monthlyPlan!)),
+                          Expanded(child: _planCard(plan: monthlyPlan!, isYearly: false)),
                           const SizedBox(width: 16),
-                          Expanded(child: _yearlyPlanCardStyled(yearlyPlan!)),
+                          Expanded(child: _planCard(plan: yearlyPlan!, isYearly: true)),
                         ],
                       ),
                     ),
+
 
                     const SizedBox(height: 30),
 
@@ -421,32 +447,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     const SizedBox(height: 20),
 
                     /// FREE TRIAL BUTTON
-                    _startFreeTrialButton(
-                      isLoading: _trialLoading,
-                      onTap: () async {
-                        try {
-                          setState(() => _trialLoading = true);
-
-                          if(_canStartTrial) {
-                            final result = await _showTrialChoiceSheet();
-                            if (result != true) {
-                              // Bottom sheet dismissed without selection
-                              setState(() => _trialLoading = false);
-                            }
-                          } else {
-                            _startPaidSubscription();
-                          }
-                        } catch (e) {
-                          setState(() => _trialLoading = false);
-
-                          CommonMethods.showSnackBar(
-                            context,
-                            e.toString().replaceAll('Exception:', ''),
-                          );
-                        }
-                      },
-                    ),
-
+                    _actionButtons(),
 
                     const SizedBox(height: 10),
 
@@ -503,190 +504,113 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     );
   }
 
-  Widget _monthlyPlanCardStyled(SubscriptionPlan plan) {
+  Widget _planCard({
+    required SubscriptionPlan plan,
+    required bool isYearly,
+  }) {
     final bool isSelected = selectedPlan?.id == plan.id;
+
     return GestureDetector(
       onTap: () {
         setState(() => selectedPlan = plan);
       },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          CustomPaint(
-            painter: QuoteBorderPainter(
-              color: isSelected
-                  ? const Color(0xFF295BBE)
-                  : const Color(0xFF7AA3E5),
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 18),
+      child: AspectRatio( // 👈 makes both cards equal size
+        aspectRatio: 1.25,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+
+                /// ✅ BACKGROUND BASED ON SELECTION
+                gradient: isSelected
+                    ? const LinearGradient(
+                  colors: [
+                    Color(0xFFFFE680),
+                    Color(0xFF8BE38B),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+                    : null,
+
                 color: isSelected
-                    ? const Color(0xFFCFE2FF)
-                    : const Color(0xFFDFF0FF),
-                borderRadius: BorderRadius.all(Radius.circular(16)),
+                    ? (isYearly ? const Color(0xFFCFE2FF) : null)
+                    : const Color(0xFFEAF4FF),
+
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF295BBE)
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 10),
-
-                  Text("MONTHLY",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  /// TITLE + RADIO
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          isYearly ? "Yearly Plan" : "Monthly Plan",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      _selectionIndicator(isSelected),
+                    ],
                   ),
 
-                  const SizedBox(height: 12),
+                  const Spacer(),
 
-                  Text("₹ ${plan.price}/ month",
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
+                  /// PRICE
                   Text(
-                    "Billed monthly",
+                    isYearly
+                        ? "₹ ${plan.price}/year"
+                        : "₹ ${plan.price}/month",
                     style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-
-                  const SizedBox(height: 14),
                 ],
               ),
             ),
-          ),
 
-          /// QUOTATION MARKS EXACTLY IN GAPS
-          Positioned(
-            top: -6,
-            left: -4,
-            child: Text(
-              "“",
-              style: TextStyle(
-                fontSize: 32,
-                color: const Color(0xFF295BBE),
-                fontWeight: FontWeight.bold,
+            /// 50% OFF TAG
+            if (isYearly)
+              Positioned(
+                top: -22,
+                left: -2,
+                right: 10,
+                child: Image.asset(
+                  AppVector.tag60off,
+                  height: 40,
+                ),
               ),
-            ),
-          ),
-
-          Positioned(
-            bottom: -25,
-            right: -4,
-            child: Text(
-              "”",
-              style: TextStyle(
-                fontSize: 32,
-                color: const Color(0xFF295BBE),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _yearlyPlanCardStyled(SubscriptionPlan plan) {
-    final bool isSelected = selectedPlan?.id == plan.id;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() => selectedPlan = plan);
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          CustomPaint(
-            painter: QuoteBorderPainter(
-              color: isSelected
-                  ? const Color(0xFF295BBE)
-                  : const Color(0xFF7AA3E5),
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 18),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFFCFE2FF)
-                    : const Color(0xFFDFF0FF),
-                borderRadius: BorderRadius.all(Radius.circular(16)),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-      
-                  Text("YEARLY",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-      
-                  const SizedBox(height: 12),
-      
-                  Text("₹ ${plan.price}/ month",
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-      
-                  const SizedBox(height: 6),
-      
-                  Text(
-                    "Billed monthly",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-      
-                  const SizedBox(height: 14),
-                ],
-              ),
-            ),
-          ),
-      
-          Positioned(
-            top: -6,
-            left: -4,
-            child: Text(
-              "“",
-              style: TextStyle(
-                fontSize: 32,
-                color: const Color(0xFF295BBE),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-      
-          Positioned(
-            bottom: -25,
-            right: -4,
-            child: Text(
-              "”",
-              style: TextStyle(
-                fontSize: 32,
-                color: const Color(0xFF295BBE),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-      
-          /// TAG
-          Positioned(
-            top: -15,
-            left: 10,
-            child: Image.asset(AppVector.tag60off, height: 55),
-          ),
-        ],
+  Widget _selectionIndicator(bool isSelected) {
+    return Container(
+      height: 18,
+      width: 18,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.black),
+        color: isSelected ? Colors.black : Colors.transparent,
       ),
+      child: isSelected
+          ? const Icon(Icons.check, size: 12, color: Colors.white)
+          : null,
     );
   }
 
@@ -841,41 +765,84 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   // =============================================================
-  Widget _startFreeTrialButton({
+  Widget _actionButtons() {
+    final bool purchaseEnabled = !_isSubscribed;
+    final bool trialEnabled = _canStartTrial;
+
+    debugPrint("trialEnabled = $trialEnabled , isSubs = $_isSubscribed , _canStartTrial = $_canStartTrial");
+
+    return Row(
+      children: [
+        Expanded(
+          child: _pillButton(
+            text: "Purchase plan",
+            enabled: purchaseEnabled,
+            isLoading: _checkingTrial && _loadingType == LoadingType.purchase,
+            onTap: _startPaidSubscription,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: _pillButton(
+            text: "7 day Trial",
+            enabled: trialEnabled,
+            isLoading: _checkingTrial,
+            onTap: _startTrialOnly,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _pillButton({
+    required String text,
+    required bool enabled,
+    required bool isLoading,
     required VoidCallback onTap,
-    bool isLoading = false,
   }) {
     return GestureDetector(
-      onTap: isLoading ? null : onTap,
+      onTap: enabled && !isLoading ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFFE0FFF7),
           borderRadius: BorderRadius.circular(30),
+          gradient: enabled
+              ? const LinearGradient(
+            colors: [
+              Color(0xFF7CF2D6),
+              Color(0xFF4FD1C5),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+              : null,
+          color: enabled ? null : Colors.grey.shade300,
           border: Border.all(
-            color: Colors.blue.shade900,
+            color: enabled ? Colors.white : Colors.grey,
             width: 2,
           ),
         ),
         child: Center(
           child: isLoading
               ? const SizedBox(
-            height: 22,
-            width: 22,
+            height: 20,
+            width: 20,
             child: CircularProgressIndicator(strokeWidth: 2),
           )
               : Text(
-            _buttonText,
+            text,
             style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: enabled ? Colors.black : Colors.grey.shade600,
             ),
           ),
         ),
       ),
     );
   }
+
+
 
   Widget _restorePurchase() {
     return Column(
@@ -899,24 +866,27 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   Widget _browseAppFirst() {
-    return Column(
-      children: [
-        const SizedBox(height: 10),
-        Text(
-          "Not Now, Browse App First",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () => gotoReplacement(context, Dashboard()),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          Text(
+            "Not Now, Browse App First",
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: 220,
+            height: 2,
             color: Colors.white,
           ),
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: 220,
-          height: 2,
-          color: Colors.white,
-        ),
-      ],
+        ],
+      ),
     );
   }
 

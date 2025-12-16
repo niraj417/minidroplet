@@ -22,8 +22,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _name = TextEditingController();
   final _emailOrMobile = TextEditingController();
   final _mobile = TextEditingController();
-  final _address = TextEditingController();
-  final _aboutUs = TextEditingController();
+  // final _address = TextEditingController();
+  // final _aboutUs = TextEditingController();
   final _key = GlobalKey<FormState>();
 
   final TextEditingController _parentNameController = TextEditingController();
@@ -48,8 +48,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _name.text = state.name;
     _emailOrMobile.text = state.email;
     _mobile.text = state.mobile;
-    _address.text = state.address;
-    _aboutUs.text = state.aboutUs;
+    // _address.text = state.address;
+    // _aboutUs.text = state.aboutUs;
     _parentGender = state.parentsGender ?? 'Mother';
     _parentNameController.text = state.parentName ?? '';
     _babyStatus =
@@ -350,8 +350,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     name: _name.text,
                     email: _emailOrMobile.text,
                     mobile: _mobile.text,
-                    address: _address.text,
-                    aboutUs: _aboutUs.text,
+                    // address: _address.text,
+                    // aboutUs: _aboutUs.text,
                     parentsGender: _parentGender,
                     parentName: _parentNameController.text,
                     babyBorned: _babyStatus == 'Baby is born',
@@ -371,8 +371,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _name.dispose();
     _emailOrMobile.dispose();
     _mobile.dispose();
-    _address.dispose();
-    _aboutUs.dispose();
+    // _address.dispose();
+    // _aboutUs.dispose();
     _parentNameController.dispose();
     _babyAgeController.dispose();
     super.dispose();

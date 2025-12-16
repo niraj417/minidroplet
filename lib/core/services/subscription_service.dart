@@ -120,14 +120,16 @@ class SubscriptionPaymentService {
           onSuccess('Subscription activated successfully');
       _onFailureCallback = onFailure;
 
+      debugPrint("OrderID in razorpay : ${orderId}");
+
       // 2️⃣ Razorpay options
       final options = {
-        'key': 'rzp_live_Rn8Kp5iMCU2xjr',
-        //'key': 'rzp_test_RnBHpHeyiVglH8',
-        'amount': (double.parse(amount!)).toStringAsFixed(0),
+        //'key': 'rzp_live_Rn8Kp5iMCU2xjr',
+        'key': 'rzp_test_RsFXTYqM8J4xnC',
+        'amount': (double.parse(amount!) * 100).round(),
         'name': name,
         'description': selectedPlan.name,
-        'order_id': orderId, // 🔴 IMPORTANT: Razorpay uses order_id
+        //'order_id': orderId, // 🔴 IMPORTANT: Razorpay uses order_id
         'prefill': {
           'contact': contact,
           'email': email,
@@ -263,7 +265,7 @@ class SubscriptionPaymentService {
         DateTime.tryParse(response.data['data']['expiry_date']);
 
         // ✅ persist locally for instant UI
-        await SharedPref.setBool('isSubscribed', true);
+        await SharedPref.setBool('isSubscribed', false);
         await SharedPref.setBool('isTrial', true);
         await SharedPref.setBool('trialAvailed', true);
         await SharedPref.setString(

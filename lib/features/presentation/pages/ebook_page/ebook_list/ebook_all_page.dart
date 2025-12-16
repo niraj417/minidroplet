@@ -7,14 +7,29 @@ import '../../../../../common/navigation/navigation_service.dart';
 import '../../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import '../../../../../core/utils/shared_pref.dart';
+import '../../../../../core/utils/shared_pref_key.dart';
 import '../buy_ebook/ebook_buy_page.dart';
 import '../purchased_ebook/purchased_ebook_detail_page.dart';
 import 'bloc/ebook_bloc.dart';
 import 'bloc/ebook_state.dart';
 
-class EbookAllPage extends StatelessWidget {
+class EbookAllPage extends StatefulWidget {
   final List<AllEbookDataModel> allEbookData;
   const EbookAllPage({super.key, required this.allEbookData});
+
+  @override
+  State<EbookAllPage> createState() => _EbookAllPageState();
+}
+
+class _EbookAllPageState extends State<EbookAllPage> {
+
+  bool paidAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    paidAvailable = SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +46,9 @@ class EbookAllPage extends StatelessWidget {
             mainAxisSpacing: 8.0,
             childAspectRatio: 0.67,
           ),
-          itemCount: allEbookData.length,
+          itemCount: widget.allEbookData.length,
           itemBuilder: (context, index) {
-            final data = allEbookData[index];
+            final data = widget.allEbookData[index];
             bool shouldShowAd = data.priceType == 'free';
 
             print('All Ebook Item ${data.id}: priceType=${data.priceType}, isBuy=${data.isBuy}, shouldShowAd=$shouldShowAd');
@@ -43,12 +58,13 @@ class EbookAllPage extends StatelessWidget {
               child: shouldShowAd
                   ? InterstitialAdWidget(
                 onAdClosed: () {
-                  if(SharedPref.isGuestUser() && allEbookData[index].id != 29 && allEbookData[index].id != 28){
+                  if(SharedPref.isGuestUser() && widget.allEbookData[index].id != 29 && widget.allEbookData[index].id != 28){
                     GuestRestrictionDialog.show(context);
                     return;
                   }
                   print('Ad closed for allEbookData item ${data.id}');
-                  if (data.isBuy == '1') {
+                  if (data.isBuy == '1' || paidAvailable) {
+                    print("Paid Ebook Avialable : ${paidAvailable}");
                     goto(
                       context,
                       PurchasedEbookBuyDetailPage(ebookId: data.id),
@@ -70,7 +86,7 @@ class EbookAllPage extends StatelessWidget {
                   : InkWell(
                 onTap: () {
                   print('Tapped allEbookData item ${data.id}');
-                  if (data.isBuy == '1') {
+                  if (data.isBuy == '1' || paidAvailable) {
                     goto(
                       context,
                       PurchasedEbookBuyDetailPage(ebookId: data.id),

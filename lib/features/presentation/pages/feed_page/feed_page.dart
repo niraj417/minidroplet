@@ -193,13 +193,14 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                   //           context.read<FeedBloc>().add(FeedCarouselData()),
                   // ),
                   const SizedBox(height: 10),
-                    trialStatusBanner(
-                      onTap: () {
-                        // 🔥 Navigate to subscription / open bottom sheet
-                        //_openSubscriptionPage();
-                        goto(context, SubscriptionPage());
-                      },
-                    ),
+                    if(!isSubscribed)
+                      trialStatusBanner(
+                        onTap: () {
+                          // 🔥 Navigate to subscription / open bottom sheet
+                          //_openSubscriptionPage();
+                          goto(context, SubscriptionPage());
+                        },
+                      ),
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
