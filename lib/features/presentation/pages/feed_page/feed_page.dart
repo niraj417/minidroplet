@@ -41,6 +41,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
     bool isSubscribed = false;
     bool isTrialAvailed = false;
     DateTime? expiry;
+    bool isTrial = false;
 
     @override
     void initState() {
@@ -53,7 +54,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
       try {
         isTrialAvailed = await SharedPref.getBool('trialAvailed') ?? false;
         isSubscribed = await SharedPref.getBool('isSubscribed') ?? false;
-
+        isTrial = await SharedPref.getBool("isTrial") ?? false;
         final expiryStr = await SharedPref.getString('trialExpiry');
 
         if (expiryStr != null && expiryStr.isNotEmpty) {
@@ -62,9 +63,14 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
           expiry = null;
         }
 
+        setState(() {
+
+        });
+
         debugPrint("isSubscribed: $isSubscribed");
         debugPrint("isTrialAvailed: $isTrialAvailed");
         debugPrint("Trial Expiry: $expiry");
+        debugPrint("isTrial: $isTrial");
       } catch (e) {
         debugPrint("checkStatus error: $e");
       }
@@ -153,7 +159,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    ProfileCompletionCard(),
+                    //ProfileCompletionCard(),
 
                     if (state.isCarouselLoading)
                       const FeedCarouselShimmer()
@@ -193,7 +199,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                   //           context.read<FeedBloc>().add(FeedCarouselData()),
                   // ),
                   const SizedBox(height: 10),
-                    if(!isSubscribed)
+                    if(isTrial)
                       trialStatusBanner(
                         onTap: () {
                           // 🔥 Navigate to subscription / open bottom sheet

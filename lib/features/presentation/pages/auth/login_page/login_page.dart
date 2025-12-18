@@ -16,6 +16,7 @@ import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/otp_page/otp_page.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/sign_up_page/sign_up_page.dart';
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
+import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
 import '../../../../../core/constant/app_export.dart';
 import '../../../../../core/utils/validators.dart';
 import '../forget_page/forget_pass_page.dart';
@@ -114,7 +115,12 @@ class _LoginPageState extends State<LoginPage> {
         debugPrint("isThisTrialRunning: ${loginData.data!.subscription?.isTrial}");
         debugPrint("isTrialAvailed: ${loginData.data?.trialAvailed}");
         debugPrint("Trial Expiry: ${loginData.data!.subscription?.expiryDate?.toIso8601String() ?? ' '}");
-        gotoRemoveAll(context, Dashboard());
+
+        if(loginData.data!.subscription != null && (loginData.data!.subscription!.isActive == 1)) {
+          gotoRemoveAll(context, Dashboard());
+        } else {
+          gotoRemoveAll(context, SubscriptionPage());
+        }
       }
     } catch (e) {
       CommonMethods.showSnackBar(context, e.toString());
@@ -164,11 +170,19 @@ class _LoginPageState extends State<LoginPage> {
           loginData.data!.subscription?.expiryDate?.toIso8601String() ?? '',
         );
         await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, hasPremiumAccess);
-        debugPrint("isSubscribed: ${loginData.data!.subscription?.isActive}");
-        debugPrint("isThisTrialRunning: ${loginData.data!.subscription?.isTrial}");
+        debugPrint("isSubscribed: ${ loginData.data!.subscription == null ? false : loginData.data!.subscription?.isActive == 0 ? false : true}");
+        debugPrint("isThisTrialRunning: ${loginData.data!.subscription?.isTrial == 0 ? false : true}");
         debugPrint("isTrialAvailed: ${loginData.data?.trialAvailed}");
         debugPrint("Trial Expiry: ${loginData.data!.subscription?.expiryDate?.toIso8601String() ?? ' '}");
-        gotoRemoveAll(context, Dashboard());
+        if(loginData.data!.subscription != null && (loginData.data!.subscription!.isActive == 1)) {
+          gotoRemoveAll(context, Dashboard());
+        } else {
+          if(name == "guest@tinydroplets.com"){
+            gotoRemoveAll(context, Dashboard());
+          } else {
+            gotoRemoveAll(context, SubscriptionPage());
+          }
+        }
       } else {
         setState(() => _loading3 = false);
         setState(() => _loading2 = false);

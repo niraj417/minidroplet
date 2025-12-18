@@ -9,6 +9,7 @@ import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
 import 'package:tinydroplets/features/presentation/pages/subscription/widget/quote_border_painter.dart';
 
+import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../core/constant/app_vector.dart';
 import '../../../../core/services/subscription_service.dart';
 import '../../../../core/utils/shared_pref_key.dart';
@@ -25,6 +26,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   LoadingType? _loadingType;
 
   bool _trialLoading = false;
+  bool _isActionLoading = false; // for button tap
+  bool get _purchaseEnabled => !_isSubscribed && !_isActionLoading;
+  bool get _trialEnabled => !_isSubscribed && _canStartTrial && !_isActionLoading;
 
   String? name;
   String? mobile;
@@ -206,6 +210,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
 
   Future<void> _startPaidSubscription() async {
+
+    if(SharedPref.isGuestUser()){
+      GuestRestrictionDialog.show(context);
+      return;
+    }
+
     if (_isSubscribed) return;
 
     setState(() {
@@ -224,6 +234,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           setState(() {
             _isSubscribed = true;
             _checkingTrial = false;
+            _isActionLoading = false;
           });
 
           CommonMethods.showSnackBar(context, msg);
@@ -246,6 +257,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           setState(() {
             _isSubscribed = true;
             _checkingTrial = false;
+            _isActionLoading = false;
           });
 
           CommonMethods.showSnackBar(context, msg);
@@ -257,18 +269,23 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   void _handleError(String err) {
-    setState(() => _checkingTrial = false);
+    setState(() {
+      _checkingTrial = false;
+      _isActionLoading = false;
+    });
     CommonMethods.showSnackBar(context, err);
   }
 
   void _goToDashboard() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const Dashboard()),
-    );
+    gotoRemoveAll(context, Dashboard());
   }
 
   Future<void> _startTrialOnly() async {
+
+    if(SharedPref.isGuestUser()){
+      GuestRestrictionDialog.show(context);
+      return;
+    }
     //if (!_canStartTrial || _isSubscribed) return;
 
     setState(() {
@@ -286,13 +303,18 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         setState(() {
           _canStartTrial = false;
           _checkingTrial = false;
+          _isActionLoading = false;
         });
 
         CommonMethods.showSnackBar(context, msg);
-        //_goToDashboard();
+        _goToDashboard();
       },
       onFailure: (err) {
-        setState(() => _checkingTrial = false);
+        setState(() {
+          _checkingTrial = false;
+          _isActionLoading = false;
+          _loadingType = null;
+        } );
         CommonMethods.showSnackBar(context, err);
       },
     );
@@ -304,166 +326,195 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
         statusBarColor: Color(0xFF93C5FD),
     ));
-    return Scaffold(
-      backgroundColor: const Color(0xFF295BBE),
-      body: SafeArea(
-        child: _checkingTrial ? Center(child: CircularProgressIndicator(),) : SingleChildScrollView(
-          child: Column(
-            children: [
-              /// LOGO
-              Container(
+    return WillPopScope(
+      onWillPop: () async {
+        // 🔙 Android system back button
+        gotoRemoveAll(context, Dashboard());
+        return false; // ❌ prevent default pop
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF295BBE),
+        body: SafeArea(
+          child: _checkingTrial ? Center(child: CircularProgressIndicator(),) : SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
                   height: 60,
                   width: double.infinity,
-                  color: Color(0xFF93C5FD),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  color: const Color(0xFF93C5FD),
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      Image.asset(AppVector.noBgLogo, height: 60),
-                      SizedBox(width: 10,),
+                      /// 🔙 CLOSE ICON (LEFT)
+                      Positioned(
+                        left: 12,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (_) => const Dashboard()),
+                            );
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 26,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+
+                      /// 🧸 LOGO + TITLE (CENTERED)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(AppVector.noBgLogo, height: 42),
+                          const SizedBox(width: 8),
+                          const Text(
+                            "Tiny Droplets",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontFamily: "BobbyJones",
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      //const SizedBox(height: 20),
+      
+                      const SizedBox(height: 20),
+      
+                      /// TITLE
                       Text(
-                        "Tiny Droplets",
+                        "START YOUR FREE TRIAL TODAY!",
                         style: TextStyle(
                           fontSize: 20,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white,
+                          decorationThickness: 2,
                           fontFamily: "BobbyJones",
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                    ],
-                  )
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    //const SizedBox(height: 20),
-
-                    const SizedBox(height: 20),
-
-                    /// TITLE
-                    Text(
-                      "START YOUR FREE TRIAL TODAY!",
-                      style: TextStyle(
-                        fontSize: 20,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.white,
-                        decorationThickness: 2,
-                        fontFamily: "BobbyJones",
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// THREE FEATURES
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _featureItem(AppVector.iconRecipes, "500+ Recipes" ,"Meal ideas for every stage and age"),
-                        _featureItem(AppVector.iconActivities, "Monthly meal plans","Balanced diet chart starting 6 months"),
-                        _featureItem(AppVector.iconTrackGrowth, "E-books and Guides", "Tips on weaning and beyond "),
-                      ],
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    /// CHOOSE YOUR PLAN TITLE
-                    Text(
-                      "CHOOSE YOUR PLAN",
-                      style: TextStyle(
-                        fontFamily: "BobbyJones",
-                        fontSize: 28,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.white,
-                        decorationThickness: 1.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// MONTHLY + YEARLY CARDS (NEW DESIGN)
-                    _loadingPlans ? const Center(child: CircularProgressIndicator()) :
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF93C5FD),
-                        borderRadius: BorderRadius.circular(22),
-                      ),
-                      child: Row(
+      
+                      const SizedBox(height: 20),
+      
+                      /// THREE FEATURES
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Expanded(child: _planCard(plan: monthlyPlan!, isYearly: false)),
-                          const SizedBox(width: 16),
-                          Expanded(child: _planCard(plan: yearlyPlan!, isYearly: true)),
+                          _featureItem(AppVector.iconRecipes, "500+ Recipes" ,"Meal ideas for every stage and age"),
+                          _featureItem(AppVector.iconActivities, "Monthly meal plans","Balanced diet chart starting 6 months"),
+                          _featureItem(AppVector.iconTrackGrowth, "E-books and Guides", "Tips on weaning and beyond "),
                         ],
                       ),
-                    ),
-
-
-                    const SizedBox(height: 30),
-
-                    /// PRO VS BASIC TITLE
-                    Text(
-                      "PRO PLANS VS BASIC PLANS",
-                      style: TextStyle(
-                        fontFamily: "BobbyJones",
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Colors.white,
-
+      
+                      const SizedBox(height: 30),
+      
+                      /// CHOOSE YOUR PLAN TITLE
+                      Text(
+                        "CHOOSE YOUR PLAN",
+                        style: TextStyle(
+                          fontFamily: "BobbyJones",
+                          fontSize: 28,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white,
+                          decorationThickness: 1.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Text(
-                      "Find the right plan for your baby’s nutrition and growth needs",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
+      
+                      const SizedBox(height: 20),
+      
+                      /// MONTHLY + YEARLY CARDS (NEW DESIGN)
+                      _loadingPlans ? const Center(child: CircularProgressIndicator()) :
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF93C5FD),
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(child: _planCard(plan: monthlyPlan!, isYearly: false)),
+                            const SizedBox(width: 16),
+                            Expanded(child: _planCard(plan: yearlyPlan!, isYearly: true)),
+                          ],
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// COMPARISON TABLE
-                    _comparisonTable(),
-
-                    const SizedBox(height: 20),
-
-                    /// PROMO CODE BUTTON
-                    _promoCodeButton(),
-
-                    const SizedBox(height: 20),
-
-                    /// FREE TRIAL BUTTON
-                    _actionButtons(),
-
-                    const SizedBox(height: 10),
-
-                    /// Restore purchase
-                    _restorePurchase(),
-
-                    const SizedBox(height: 8),
-
-                    /// Browse App First
-                    _browseAppFirst(),
-
-                    const SizedBox(height: 40),
-                  ],
+      
+      
+                      const SizedBox(height: 30),
+      
+                      /// PRO VS BASIC TITLE
+                      Text(
+                        "PRO PLANS VS BASIC PLANS",
+                        style: TextStyle(
+                          fontFamily: "BobbyJones",
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.white,
+      
+                        ),
+                      ),
+      
+                      const SizedBox(height: 8),
+      
+                      Text(
+                        "Find the right plan for your baby’s nutrition and growth needs",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+      
+                      const SizedBox(height: 20),
+      
+                      /// COMPARISON TABLE
+                      _comparisonTable(),
+      
+                      const SizedBox(height: 20),
+      
+                      /// PROMO CODE BUTTON
+                      _promoCodeButton(),
+      
+                      const SizedBox(height: 20),
+      
+                      /// FREE TRIAL BUTTON
+                      _actionButtons(),
+      
+                      const SizedBox(height: 10),
+      
+                      /// Restore purchase
+                      _restorePurchase(),
+      
+                      const SizedBox(height: 8),
+      
+                      /// Browse App First
+                      _browseAppFirst(),
+      
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -766,33 +817,42 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   // =============================================================
   Widget _actionButtons() {
-    final bool purchaseEnabled = !_isSubscribed;
-    final bool trialEnabled = _canStartTrial;
-
-    debugPrint("trialEnabled = $trialEnabled , isSubs = $_isSubscribed , _canStartTrial = $_canStartTrial");
-
     return Row(
       children: [
         Expanded(
           child: _pillButton(
             text: "Purchase plan",
-            enabled: purchaseEnabled,
-            isLoading: _checkingTrial && _loadingType == LoadingType.purchase,
-            onTap: _startPaidSubscription,
+            enabled: _purchaseEnabled,
+            isLoading:
+            _isActionLoading && _loadingType == LoadingType.purchase,
+            onTap: () {
+              setState(() {
+                _isActionLoading = true;
+                _loadingType = LoadingType.purchase;
+              });
+              _startPaidSubscription();
+            },
           ),
         ),
         const SizedBox(width: 14),
         Expanded(
           child: _pillButton(
             text: "7 day Trial",
-            enabled: trialEnabled,
-            isLoading: _checkingTrial,
-            onTap: _startTrialOnly,
+            enabled: _trialEnabled,
+            isLoading: _isActionLoading && _loadingType == LoadingType.trial,
+            onTap: () {
+              setState(() {
+                _isActionLoading = true;
+                _loadingType = LoadingType.trial;
+              });
+              _startTrialOnly();
+            },
           ),
         ),
       ],
     );
   }
+
 
   Widget _pillButton({
     required String text,
@@ -867,7 +927,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Widget _browseAppFirst() {
     return GestureDetector(
-      onTap: () => gotoReplacement(context, Dashboard()),
+      onTap: () => gotoRemoveAll(context, Dashboard()),
       child: Column(
         children: [
           const SizedBox(height: 10),

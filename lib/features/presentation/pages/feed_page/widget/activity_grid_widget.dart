@@ -37,7 +37,7 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
           return const Loader();
         } else if (state is FeedActivityLoaded) {
           final int itemCount = state.feedActivityDataList.length;
-          final int crossAxisCount = 3;
+          final int crossAxisCount = 4;
           final int rows = (itemCount / crossAxisCount).ceil();
 
           final double calculatedHeight = (rows * 125) + 20;
@@ -50,10 +50,10 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
               shrinkWrap: false,
               itemCount: state.feedActivityDataList.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 mainAxisSpacing: 10.0,
                 crossAxisSpacing: 8.0,
-                mainAxisExtent: 120,
+                mainAxisExtent: 130,
               ),
               itemBuilder: (context, index) {
                 final data = state.feedActivityDataList[index];
