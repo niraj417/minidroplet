@@ -29,5 +29,27 @@ class AgeGroupCubit extends Cubit<AgeGroupState> {
       emit(AgeGroupError(e.toString()));
     }
   }
+
+  Future<void> fetchAgeGroupLegacy() async {
+    emit(AgeGroupLoading());
+    try {
+      final response = await _dioClient.sendPostRequest(ApiEndpoints.legacyAgeGroup, {});
+      print("Legacy Age Group Called");
+      if (response.data['status'] == 1) {
+        List<Map<String, dynamic>> ageGroupList = [];
+        if (response.data['data'] is String) {
+          ageGroupList = List<Map<String, dynamic>>.from(jsonDecode(response.data['data']));
+        } else if (response.data['data'] is List) {
+          ageGroupList = List<Map<String, dynamic>>.from(response.data['data']);
+        }
+
+        emit(AgeGroupLoaded(ageGroupList));
+      } else {
+        emit(AgeGroupError("Failed to load age groups"));
+      }
+    } catch (e) {
+      emit(AgeGroupError(e.toString()));
+    }
+  }
 }
 

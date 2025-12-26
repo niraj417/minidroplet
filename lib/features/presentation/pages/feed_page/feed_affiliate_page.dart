@@ -42,7 +42,7 @@ class _FeedAffiliatePageState extends State<FeedAffiliatePage> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
                         onPressed: () => backTo(context),
                       ),
 
@@ -51,7 +51,7 @@ class _FeedAffiliatePageState extends State<FeedAffiliatePage> {
                         child: Text(
                           widget.name,
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -62,6 +62,7 @@ class _FeedAffiliatePageState extends State<FeedAffiliatePage> {
                 ),
                 const SizedBox(height: 20),
                 HorizontalSelector(
+                  fromLegacy: true,
                   onIndexSelected: (value) {
                     context.read<AffiliateCubit>().fetchAffiliateLinks(value);
                   },
@@ -70,7 +71,7 @@ class _FeedAffiliatePageState extends State<FeedAffiliatePage> {
               ],
             ),
           ),
-/*
+      /*
           Expanded(
             child: BlocBuilder<AffiliateCubit, AffiliateState>(
               builder: (context, state) {

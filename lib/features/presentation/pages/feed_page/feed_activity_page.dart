@@ -10,12 +10,16 @@ class FeedActivityPage extends StatefulWidget {
   final int id;
   final String name;
   final String image;
+  final bool fromLegacy;
+  final String PageName;
 
   const FeedActivityPage({
     super.key,
     required this.id,
     required this.name,
     required this.image,
+    required this.PageName,
+    this.fromLegacy = false,
   });
 
   @override
@@ -56,7 +60,7 @@ class _FeedActivityPageState extends State<FeedActivityPage> {
                         IconButton(
                           icon: const Icon(
                             Icons.arrow_back,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                           onPressed: () => backTo(context),
                         ),
@@ -65,7 +69,7 @@ class _FeedActivityPageState extends State<FeedActivityPage> {
                           child: Text(
                             widget.name,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -76,6 +80,7 @@ class _FeedActivityPageState extends State<FeedActivityPage> {
                   ),
                   const SizedBox(height: 20),
                   HorizontalSelector(
+                    fromLegacy: widget.fromLegacy,
                     onIndexSelected: (ageGroupId) {
                       setState(() {
                         _selectedAgeGroupId = ageGroupId;

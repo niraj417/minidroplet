@@ -40,7 +40,7 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
           final int crossAxisCount = 4;
           final int rows = (itemCount / crossAxisCount).ceil();
 
-          final double calculatedHeight = (rows * 125) + 20;
+          final double calculatedHeight = (rows * 100) + 20;
 
           return Container(
             height: calculatedHeight,
@@ -51,9 +51,9 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
               itemCount: state.feedActivityDataList.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                mainAxisSpacing: 10.0,
+                mainAxisSpacing: 12.0,
                 crossAxisSpacing: 8.0,
-                mainAxisExtent: 130,
+                mainAxisExtent: 100,
               ),
               itemBuilder: (context, index) {
                 final data = state.feedActivityDataList[index];
@@ -61,6 +61,17 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                   onTap: () {
                     switch (index) {
                       case 0:
+                        goto(
+                          context,
+                          FeedActivityPage(
+                            id: data.id ?? 0,
+                            name: data.name ?? '',
+                            image: data.image,
+                            fromLegacy: true,
+                            PageName: "milestone",
+                          ),
+                        );
+                        break;
                       case 1:
                         goto(
                           context,
@@ -68,6 +79,8 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                             id: data.id ?? 0,
                             name: data.name ?? '',
                             image: data.image,
+                            fromLegacy: true,
+                            PageName: "Activity",
                           ),
                         );
                         break;
@@ -78,6 +91,7 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                             id: data.id ?? 0,
                             name: data.name ?? '',
                             image: data.image,
+
                           ),
                         );
                         break;
@@ -136,8 +150,8 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
-                          height: 90,
-                          width: 90,
+                          height: 70,
+                          width: 70,
                           color: Theme.of(context).cardColor,
                           // padding: EdgeInsets.all(20.0),
                           child: CustomImage(
@@ -150,7 +164,7 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                       Expanded(
                         child: Text(
                           data.name ?? '',
-                          style: const TextStyle(fontSize: 13),
+                          style: const TextStyle(fontSize: 12),
                           textAlign: TextAlign.center,
                         ),
                       ),

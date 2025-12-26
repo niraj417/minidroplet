@@ -124,8 +124,8 @@ class SubscriptionPaymentService {
 
       // 2️⃣ Razorpay options
       final options = {
-        //'key': 'rzp_live_Rn8Kp5iMCU2xjr',
-        'key': 'rzp_test_RsFXTYqM8J4xnC',
+        'key': 'rzp_live_Rn8Kp5iMCU2xjr',
+        //'key': 'rzp_test_RsFXTYqM8J4xnC',
         'amount': (double.parse(amount!) * 100).round(),
         'name': name,
         'description': selectedPlan.name,

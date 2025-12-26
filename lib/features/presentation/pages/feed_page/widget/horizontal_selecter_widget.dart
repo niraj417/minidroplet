@@ -6,8 +6,9 @@ import 'age_circle_widget.dart';
 
 class HorizontalSelector extends StatefulWidget {
   final ValueChanged<int> onIndexSelected;
+  final bool fromLegacy;
 
-  const HorizontalSelector({super.key, required this.onIndexSelected});
+  const HorizontalSelector({super.key, required this.onIndexSelected, this.fromLegacy = false, });
 
   @override
   _HorizontalSelectorState createState() => _HorizontalSelectorState();
@@ -43,7 +44,11 @@ class _HorizontalSelectorState extends State<HorizontalSelector> {
   @override
   void initState() {
     super.initState();
-    context.read<AgeGroupCubit>().fetchAgeGroup();
+    if(widget.fromLegacy) {
+      context.read<AgeGroupCubit>().fetchAgeGroupLegacy();
+    } else {
+      context.read<AgeGroupCubit>().fetchAgeGroup();
+    }
   }
 
   @override

@@ -472,13 +472,15 @@ class _LoginPageState extends State<LoginPage> {
                                       onPressed: _handleGoogleSignIn,
                                     ),
                                     const SizedBox(height: 10),
-                                    _loading2
-                                        ? const Loader()
-                                        : _socialButton(
-                                      icon: 'assets/images/apple.png',
-                                      text: 'Continue with Apple',
-                                      onPressed: _handleAppleSignIn,
-                                    ),
+
+                                    if(Platform.isIOS)
+                                      _loading2
+                                          ? const Loader()
+                                          : _socialButton(
+                                        icon: 'assets/images/apple.png',
+                                        text: 'Continue with Apple',
+                                        onPressed: _handleAppleSignIn,
+                                      ),
                                     const SizedBox(height: 10),
 
                                     Text(
@@ -491,41 +493,42 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                     const SizedBox(height: 6),
 
-                                    _loading3
-                                        ? const Loader()
-                                        :OutlinedButton(
-                                      onPressed: () async {
-                                        setState(() => _loading3 = true);
-                                        const guestName = "Guest User";
-                                        const guestEmail = "guest@tinydroplets.com";
-                                        const guestPassword = "guest123";
-                                        const deviceName = "ios";
+                                    if(Platform.isIOS)
+                                      _loading3
+                                          ? const Loader()
+                                          : OutlinedButton(
+                                        onPressed: () async {
+                                          setState(() => _loading3 = true);
+                                          const guestName = "Guest User";
+                                          const guestEmail = "guest@tinydroplets.com";
+                                          const guestPassword = "guest123";
+                                          const deviceName = "ios";
 
-                                        await _thirdPartyAuth(
-                                          guestName,
-                                          guestEmail,
-                                          guestPassword,
-                                          "guest_token_123", // you can pass null if not needed
-                                          deviceName,
-                                        );
-                                      },
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(
-                                            color: Color(0xff295BBE)),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
+                                          await _thirdPartyAuth(
+                                            guestName,
+                                            guestEmail,
+                                            guestPassword,
+                                            "guest_token_123", // you can pass null if not needed
+                                            deviceName,
+                                          );
+                                        },
+                                        style: OutlinedButton.styleFrom(
+                                          side: const BorderSide(
+                                              color: Color(0xff295BBE)),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(30),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 5, horizontal: 24),
                                         ),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 5, horizontal: 24),
-                                      ),
-                                      child: Text(
-                                        'Continue as Guest User',
-                                        style: GoogleFonts.poppins(
-                                          color: Color(0xff295BBE),
-                                          fontWeight: FontWeight.w400,
+                                        child: Text(
+                                          'Continue as Guest User',
+                                          style: GoogleFonts.poppins(
+                                            color: Color(0xff295BBE),
+                                            fontWeight: FontWeight.w400,
+                                          ),
                                         ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),

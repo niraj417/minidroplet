@@ -245,50 +245,53 @@ class _DesiciveScreenState extends State<DesiciveScreen> {
                                   ),
                                   const SizedBox(height: 10),
 
-                                  _loading3
-                                      ? const Loader()
-                                      : _socialButton(
-                                    icon: 'assets/images/apple.png',
-                                    text: 'Continue with Apple',
-                                    onPressed: _agreeTerms ? _handleAppleSignIn : null,
-                                  ),
+                                  if(Platform.isIOS)
+                                    _loading3
+                                        ? const Loader()
+                                        : _socialButton(
+                                      icon: 'assets/images/apple.png',
+                                      text: 'Continue with Apple',
+                                      onPressed: _agreeTerms ? _handleAppleSignIn : null,
+                                    ),
 
                                   const SizedBox(height: 12),
 
-                                  Text(
-                                    "Explore without Login",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.grey,
-                                      fontSize: 12,
+                                  if(Platform.isIOS)
+                                    Text(
+                                      "Explore without Login",
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
 
                                   const SizedBox(height: 6),
 
-                                  OutlinedButton(
-                                    onPressed: () async {
-                                      setState(() => _loading4 = true);
-                                      const guestName = "Guest User";
-                                      const guestEmail = "guest@tinydroplets.com";
-                                      const guestPassword = "guest123";
-                                      const deviceName = "ios";
+                                  if(Platform.isIOS)
+                                    OutlinedButton(
+                                      onPressed: () async {
+                                        setState(() => _loading4 = true);
+                                        const guestName = "Guest User";
+                                        const guestEmail = "guest@tinydroplets.com";
+                                        const guestPassword = "guest123";
+                                        const deviceName = "ios";
 
-                                      await _thirdPartyAuth(
-                                        guestName,
-                                        guestEmail,
-                                        guestPassword,
-                                        "guest_token_123", // you can pass null if not needed
-                                        deviceName,
-                                      );
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: Color(0xFF2C68EE)),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
+                                        await _thirdPartyAuth(
+                                          guestName,
+                                          guestEmail,
+                                          guestPassword,
+                                          "guest_token_123", // you can pass null if not needed
+                                          deviceName,
+                                        );
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: Color(0xFF2C68EE)),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(30),
+                                        ),
                                       ),
+                                      child: !_loading4 ? const Text("Continue as Guest User") : Loader(),
                                     ),
-                                    child: !_loading4 ? const Text("Continue as Guest User") : Loader(),
-                                  ),
                                 ],
                               ),
                             ),
