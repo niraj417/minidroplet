@@ -378,29 +378,29 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 4),
-                        Text(
-                          "Amount: ${CommonMethods.formatRupees(amount ?? '')}",
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              CommonMethods.formatRupees(widget.mainPrice),
-                              style: TextStyle(
-                                decoration: TextDecoration.lineThrough,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              CommonMethods.formatRupees(amount ?? ''),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
-                        ),
+                        // Text(
+                        //   "Amount: ${CommonMethods.formatRupees(amount ?? '')}",
+                        // ),
+                        // SizedBox(height: 4),
+                        // Row(
+                        //   children: [
+                        //     Text(
+                        //       CommonMethods.formatRupees(widget.mainPrice),
+                        //       style: TextStyle(
+                        //         decoration: TextDecoration.lineThrough,
+                        //         color: Colors.grey,
+                        //       ),
+                        //     ),
+                        //     SizedBox(width: 8),
+                        //     Text(
+                        //       CommonMethods.formatRupees(amount ?? ''),
+                        //       style: TextStyle(
+                        //         fontWeight: FontWeight.bold,
+                        //         fontSize: 18,
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ],
@@ -620,12 +620,14 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
           text: 'Subscribe to Unlock',
           onPressed: () async {
 
-            await showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const RemoveAdsBottomSheet(),
-            );
+            goto(context, SubscriptionPage());
+
+            // await showModalBottomSheet(
+            //   context: context,
+            //   isScrollControlled: true,
+            //   backgroundColor: Colors.transparent,
+            //   builder: (context) => const RemoveAdsBottomSheet(),
+            // );
 
             // if (Platform.isIOS) {
             //   final productId = IAPUtils.getIAPProductId('video');

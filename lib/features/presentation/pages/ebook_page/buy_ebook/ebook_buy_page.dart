@@ -10,6 +10,7 @@ import 'package:tinydroplets/features/presentation/pages/pdf_viewer/pdf_viewer_s
 import '../../../../../core/constant/app_export.dart';
 import '../../feed_page/widget/expandable_text.dart';
 import '../../remove_ads/widget/remove_ads_bottom_sheet.dart';
+import '../../subscription/subscription_screen.dart';
 import '../model/all_review_model.dart';
 
 class EbookBuyDetailPage extends StatefulWidget {
@@ -372,12 +373,14 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
           text: 'Subscribe to Unlock',
           onPressed: () {
 
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const RemoveAdsBottomSheet(),
-            );
+            goto(context, SubscriptionPage());
+
+            // showModalBottomSheet(
+            //   context: context,
+            //   isScrollControlled: true,
+            //   backgroundColor: Colors.transparent,
+            //   builder: (context) => const RemoveAdsBottomSheet(),
+            // );
 
             // if (amount != null &&
             //     orderId != null &&

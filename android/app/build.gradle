@@ -62,6 +62,16 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')        }
     }
+
+    android {
+        packagingOptions {
+            jniLibs {
+                useLegacyPackaging = false
+            }
+        }
+    }
+
+
     dependencies {
 
             // ... other dependencies ...

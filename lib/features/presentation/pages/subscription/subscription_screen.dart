@@ -3,215 +3,105 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
-import 'package:tinydroplets/features/presentation/pages/subscription/widget/quote_border_painter.dart';
 
 import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../core/constant/app_vector.dart';
 import '../../../../core/services/subscription_service.dart';
+import '../../../../core/services/subscription_state_manager.dart';
 import '../../../../core/utils/shared_pref_key.dart';
 import 'model/subscription_plan_model.dart';
 
+enum LoadingType { trial, purchase }
+
 class SubscriptionPage extends StatefulWidget {
-  SubscriptionPage({super.key});
+  const SubscriptionPage({super.key});
 
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
 }
-enum LoadingType { trial, purchase }
+
 class _SubscriptionPageState extends State<SubscriptionPage> {
+  final _subscriptionService = SubscriptionPaymentService();
+
+  SubscriptionStatus? _status;
   LoadingType? _loadingType;
 
-  bool _trialLoading = false;
-  bool _isActionLoading = false; // for button tap
-  bool get _purchaseEnabled => !_isSubscribed && !_isActionLoading;
-  bool get _trialEnabled => !_isSubscribed && _canStartTrial && !_isActionLoading;
+  bool _isActionLoading = false;
+  bool _loadingPlans = true;
 
   String? name;
   String? mobile;
   String? email;
 
-  final _subscriptionService = SubscriptionPaymentService();
-
   SubscriptionPlan? monthlyPlan;
   SubscriptionPlan? yearlyPlan;
   SubscriptionPlan? selectedPlan;
 
-  bool _loadingPlans = true;
+  // --------------------------------------------------
+  // 🔹 Derived state (SINGLE SOURCE OF TRUTH)
+  // --------------------------------------------------
+  bool get _checkingTrial => _status == null;
 
-  bool _canStartTrial = false;
-  bool _isSubscribed = false;
-  bool _checkingTrial = true;
+  bool get _isSubscribed =>
+      _status == SubscriptionStatus.subscribed;
+
+  bool get _canStartTrial =>
+      _status == SubscriptionStatus.free;
+
+  bool get _purchaseEnabled =>
+      SubscriptionStateManager.canPurchase(_status!) &&
+          !_isActionLoading;
+
+  bool get _trialEnabled =>
+      SubscriptionStateManager.canStartTrial(_status!) &&
+          !_isActionLoading;
+
+  // --------------------------------------------------
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _loadTrialStatus();
+    _loadStatus();
     _loadPlans();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadStatus() async {
+    _status = await SubscriptionStateManager.resolve();
+    setState(() {});
+  }
+
+  Future<void> _loadUserInfo() async {
+    final loginData = await SharedPref.getLoginData();
+    setState(() {
+      name = loginData?.data?.name;
+      email = loginData?.data?.email;
+      mobile = loginData?.data?.mobile ?? '';
+    });
   }
 
   Future<void> _loadPlans() async {
     try {
       final plans = await _subscriptionService.fetchSubscriptionPlans();
-
-      monthlyPlan =
-          plans.firstWhere((p) => p.planType == 'monthly');
-      yearlyPlan =
-          plans.firstWhere((p) => p.planType == 'yearly');
-
-      /// Default selected = Monthly
+      monthlyPlan = plans.firstWhere((p) => p.planType == 'monthly');
+      yearlyPlan = plans.firstWhere((p) => p.planType == 'yearly');
       selectedPlan = monthlyPlan;
     } catch (e) {
       debugPrint(e.toString());
     } finally {
-      setState(() {
-        _loadingPlans = false;
-      });
+      setState(() => _loadingPlans = false);
     }
   }
 
-  Future<void> _loadTrialStatus() async {
-    final loginData = await SharedPref.getLoginData();
-
-    setState(() {
-      name = loginData?.data!.name;
-      email = loginData?.data?.email;
-      mobile = loginData?.data?.mobile ?? '';
-      _canStartTrial = (loginData?.data?.trialAvailed ?? 1) == 0;
-      _isSubscribed = (loginData?.data?.subscription?.isActive ?? 1) == 0;
-      _checkingTrial = false;
-    });
-  }
-
-  String get _buttonText {
-    if (_canStartTrial) {
-      return 'Continue booking ${selectedPlan?.name ?? "loading.."}';
-    }
-    return 'Start 7-day free trial';
-  }
-
-  Future<bool?> _showTrialChoiceSheet() {
-    String? selected;
-    return showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) {
-            return SafeArea(
-              child: Container(
-                margin: const EdgeInsets.all(12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    /// ─── HEADER ───────────────────────────
-                    Row(
-                      children: [
-                        Text(
-                          "Subscription",
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Icon(Icons.close, size: 20),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    /// ─── OPTION 1: FREE TRIAL ─────────────
-                    _subscriptionOptionCard(
-                      title: "1-week free trial",
-                      subtitle: "Try premium features free",
-                      price: "₹0 for 7 days",
-                      selected: selected == "trial",
-                      onTap: () {
-                        setSheetState(() => selected = "trial");
-                      }
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    /// ─── OPTION 2: PAID PLAN ─────────────
-                    _subscriptionOptionCard(
-                      title: "${selectedPlan!.name}",
-                      subtitle: "Full access, cancel anytime",
-                      price:
-                      "₹${selectedPlan!.price} / ${selectedPlan!.planType}",
-                      selected: selected == "paid",
-                      onTap: () =>
-                          setSheetState(() => selected = "paid"),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    /// ─── CONTINUE BUTTON ─────────────────
-                    GestureDetector(
-                      onTap: selected == null
-                          ? null
-                          : () {
-                        if(selected == "trial"){
-                          //Navigator.pop(context, true); // 👈 selected trial
-                          _startTrialOnly();
-                        } else {
-                          //Navigator.pop(context, true); // 👈 selected paid
-                          _startPaidSubscription();
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: selected == null
-                              ? Colors.grey.shade300
-                              : Colors.black,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "Continue",
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: selected == null
-                                  ? Colors.grey.shade600
-                                  : Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
+  // --------------------------------------------------
+  // 🔹 ACTIONS
+  // --------------------------------------------------
 
   Future<void> _startPaidSubscription() async {
-
-    if(SharedPref.isGuestUser()){
+    if (SharedPref.isGuestUser()) {
       GuestRestrictionDialog.show(context);
       return;
     }
@@ -219,77 +109,37 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     if (_isSubscribed) return;
 
     setState(() {
-      _checkingTrial = true;
+      _isActionLoading = true;
       _loadingType = LoadingType.purchase;
     });
 
     if (Platform.isIOS) {
       await _subscriptionService.startIosPaidSubscriptionFlow(
         selectedPlan: selectedPlan!,
-        onSuccess: (msg) async {
-          await SharedPref.setBool('isSubscribed', true);
-          await SharedPref.setBool('isTrial', false);
-          await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
-
-          setState(() {
-            _isSubscribed = true;
-            _checkingTrial = false;
-            _isActionLoading = false;
-          });
-
-          CommonMethods.showSnackBar(context, msg);
-          _goToDashboard();
-        },
+        onSuccess: _onSubscriptionSuccess,
         onFailure: _handleError,
       );
     } else {
-      _subscriptionService.startAndroidPaidSubscriptionFlow(
+      await _subscriptionService.startAndroidPaidSubscriptionFlow(
         context: context,
         selectedPlan: selectedPlan!,
         name: name!,
         contact: mobile!,
         email: email!,
-        onSuccess: (msg) async {
-          await SharedPref.setBool('isSubscribed', true);
-          await SharedPref.setBool('isTrial', false);
-          await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
-
-          setState(() {
-            _isSubscribed = true;
-            _checkingTrial = false;
-            _isActionLoading = false;
-          });
-
-          CommonMethods.showSnackBar(context, msg);
-          _goToDashboard();
-        },
+        onSuccess: _onSubscriptionSuccess,
         onFailure: _handleError,
       );
     }
   }
 
-  void _handleError(String err) {
-    setState(() {
-      _checkingTrial = false;
-      _isActionLoading = false;
-    });
-    CommonMethods.showSnackBar(context, err);
-  }
-
-  void _goToDashboard() {
-    gotoRemoveAll(context, Dashboard());
-  }
-
   Future<void> _startTrialOnly() async {
-
-    if(SharedPref.isGuestUser()){
+    if (SharedPref.isGuestUser()) {
       GuestRestrictionDialog.show(context);
       return;
     }
-    //if (!_canStartTrial || _isSubscribed) return;
 
     setState(() {
-      _checkingTrial = true;
+      _isActionLoading = true;
       _loadingType = LoadingType.trial;
     });
 
@@ -298,217 +148,94 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         await SharedPref.setBool('trialAvailed', true);
         await SharedPref.setBool('isTrial', true);
         await SharedPref.setBool('isSubscribed', false);
-        await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, true);
+        await SharedPref.setBool(
+          SharedPrefKeys.hasPremiumAccess,
+          true,
+        );
 
-        setState(() {
-          _canStartTrial = false;
-          _checkingTrial = false;
-          _isActionLoading = false;
-        });
+        _status = SubscriptionStatus.trialActive;
 
+        setState(() => _isActionLoading = false);
         CommonMethods.showSnackBar(context, msg);
         _goToDashboard();
       },
-      onFailure: (err) {
-        setState(() {
-          _checkingTrial = false;
-          _isActionLoading = false;
-          _loadingType = null;
-        } );
-        CommonMethods.showSnackBar(context, err);
-      },
+      onFailure: _handleError,
     );
   }
 
+  Future<void> _onSubscriptionSuccess(String msg) async {
+    await SharedPref.setBool('isSubscribed', true);
+    await SharedPref.setBool('isTrial', false);
+    await SharedPref.setBool(
+      SharedPrefKeys.hasPremiumAccess,
+      true,
+    );
+
+    _status = SubscriptionStatus.subscribed;
+
+    setState(() => _isActionLoading = false);
+    CommonMethods.showSnackBar(context, msg);
+    _goToDashboard();
+  }
+
+  void _handleError(String err) {
+    setState(() {
+      _isActionLoading = false;
+      _loadingType = null;
+    });
+    CommonMethods.showSnackBar(context, err);
+  }
+
+  void _goToDashboard() {
+    gotoRemoveAll(context, const Dashboard());
+  }
+
+  // --------------------------------------------------
+  // 🔹 UI
+  // --------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        statusBarColor: Color(0xFF93C5FD),
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(statusBarColor: Color(0xFF93C5FD)),
+    );
+
     return WillPopScope(
       onWillPop: () async {
-        // 🔙 Android system back button
-        gotoRemoveAll(context, Dashboard());
-        return false; // ❌ prevent default pop
+        _goToDashboard();
+        return false;
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF295BBE),
         body: SafeArea(
-          child: _checkingTrial ? Center(child: CircularProgressIndicator(),) : SingleChildScrollView(
+          child: _checkingTrial
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
             child: Column(
               children: [
-                Container(
-                  height: 60,
-                  width: double.infinity,
-                  color: const Color(0xFF93C5FD),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      /// 🔙 CLOSE ICON (LEFT)
-                      Positioned(
-                        left: 12,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const Dashboard()),
-                            );
-                          },
-                          child: const Icon(
-                            Icons.close,
-                            size: 26,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-
-                      /// 🧸 LOGO + TITLE (CENTERED)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(AppVector.noBgLogo, height: 42),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Tiny Droplets",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontFamily: "BobbyJones",
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
+                _header(),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      //const SizedBox(height: 20),
-      
                       const SizedBox(height: 20),
-      
-                      /// TITLE
-                      Text(
-                        "START YOUR FREE TRIAL TODAY!",
-                        style: TextStyle(
-                          fontSize: 20,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.white,
-                          decorationThickness: 2,
-                          fontFamily: "BobbyJones",
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-      
+                      _title(),
                       const SizedBox(height: 20),
-      
-                      /// THREE FEATURES
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _featureItem(AppVector.iconRecipes, "500+ Recipes" ,"Meal ideas for every stage and age"),
-                          _featureItem(AppVector.iconActivities, "Monthly meal plans","Balanced diet chart starting 6 months"),
-                          _featureItem(AppVector.iconTrackGrowth, "E-books and Guides", "Tips on weaning and beyond "),
-                        ],
-                      ),
-      
+                      _features(),
                       const SizedBox(height: 30),
-      
-                      /// CHOOSE YOUR PLAN TITLE
-                      Text(
-                        "CHOOSE YOUR PLAN",
-                        style: TextStyle(
-                          fontFamily: "BobbyJones",
-                          fontSize: 28,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.white,
-                          decorationThickness: 1.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-      
+                      _choosePlanTitle(),
                       const SizedBox(height: 20),
-      
-                      /// MONTHLY + YEARLY CARDS (NEW DESIGN)
-                      _loadingPlans ? const Center(child: CircularProgressIndicator()) :
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF93C5FD),
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(child: _planCard(plan: monthlyPlan!, isYearly: false)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _planCard(plan: yearlyPlan!, isYearly: true)),
-                          ],
-                        ),
-                      ),
-      
-      
+                      _plans(),
                       const SizedBox(height: 30),
-      
-                      /// PRO VS BASIC TITLE
-                      Text(
-                        "PRO PLANS VS BASIC PLANS",
-                        style: TextStyle(
-                          fontFamily: "BobbyJones",
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.white,
-      
-                        ),
-                      ),
-      
-                      const SizedBox(height: 8),
-      
-                      Text(
-                        "Find the right plan for your baby’s nutrition and growth needs",
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-      
-                      const SizedBox(height: 20),
-      
-                      /// COMPARISON TABLE
                       _comparisonTable(),
-      
                       const SizedBox(height: 20),
-      
-                      /// PROMO CODE BUTTON
                       _promoCodeButton(),
-      
                       const SizedBox(height: 20),
-      
-                      /// FREE TRIAL BUTTON
                       _actionButtons(),
-      
                       const SizedBox(height: 10),
-      
-                      /// Restore purchase
                       _restorePurchase(),
-      
                       const SizedBox(height: 8),
-      
-                      /// Browse App First
                       _browseAppFirst(),
-      
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -518,6 +245,126 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           ),
         ),
       ),
+    );
+  }
+
+  // --------------------------------------------------
+  // 🔹 SMALL UI HELPERS (UNCHANGED)
+  // --------------------------------------------------
+
+  Widget _header() {
+    return Container(
+      height: 60,
+      width: double.infinity,
+      color: const Color(0xFF93C5FD),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 12,
+            child: GestureDetector(
+              onTap: _goToDashboard,
+              child: const Icon(Icons.close, size: 26),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(AppVector.noBgLogo, height: 42),
+              const SizedBox(width: 8),
+              const Text(
+                "Tiny Droplets",
+                style: TextStyle(
+                  fontFamily: "BobbyJones",
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _title() => const Text(
+    "START YOUR FREE TRIAL TODAY!",
+    style: TextStyle(
+      fontFamily: "BobbyJones",
+      fontSize: 20,
+      decoration: TextDecoration.underline,
+      color: Colors.white,
+    ),
+  );
+
+  Widget _features() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _featureItem(AppVector.iconRecipes, "500+ Recipes",
+            "Meal ideas for every stage and age"),
+        _featureItem(AppVector.iconActivities, "Monthly meal plans",
+            "Balanced diet chart starting 6 months"),
+        _featureItem(AppVector.iconTrackGrowth, "E-books and Guides",
+            "Tips on weaning and beyond"),
+      ],
+    );
+  }
+
+  Widget _choosePlanTitle() => const Text(
+    "CHOOSE YOUR PLAN",
+    style: TextStyle(
+      fontFamily: "BobbyJones",
+      fontSize: 28,
+      decoration: TextDecoration.underline,
+      color: Colors.white,
+    ),
+  );
+
+  Widget _plans() {
+    if (_loadingPlans) {
+      return const CircularProgressIndicator();
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF93C5FD),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _planCard(plan: monthlyPlan!, isYearly: false)),
+          const SizedBox(width: 16),
+          Expanded(child: _planCard(plan: yearlyPlan!, isYearly: true)),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: _pillButton(
+            text: "Purchase plan",
+            enabled: _purchaseEnabled,
+            isLoading:
+            _isActionLoading && _loadingType == LoadingType.purchase,
+            onTap: _startPaidSubscription,
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: _pillButton(
+            text: "7 day Trial",
+            enabled: _trialEnabled,
+            isLoading:
+            _isActionLoading && _loadingType == LoadingType.trial,
+            onTap: _startTrialOnly,
+          ),
+        ),
+      ],
     );
   }
 
@@ -816,43 +663,42 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   // =============================================================
-  Widget _actionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: _pillButton(
-            text: "Purchase plan",
-            enabled: _purchaseEnabled,
-            isLoading:
-            _isActionLoading && _loadingType == LoadingType.purchase,
-            onTap: () {
-              setState(() {
-                _isActionLoading = true;
-                _loadingType = LoadingType.purchase;
-              });
-              _startPaidSubscription();
-            },
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: _pillButton(
-            text: "7 day Trial",
-            enabled: _trialEnabled,
-            isLoading: _isActionLoading && _loadingType == LoadingType.trial,
-            onTap: () {
-              setState(() {
-                _isActionLoading = true;
-                _loadingType = LoadingType.trial;
-              });
-              _startTrialOnly();
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
+  // Widget _actionButtons() {
+  //   return Row(
+  //     children: [
+  //       Expanded(
+  //         child: _pillButton(
+  //           text: "Purchase plan",
+  //           enabled: _purchaseEnabled,
+  //           isLoading:
+  //           _isActionLoading && _loadingType == LoadingType.purchase,
+  //           onTap: () {
+  //             setState(() {
+  //               _isActionLoading = true;
+  //               _loadingType = LoadingType.purchase;
+  //             });
+  //             _startPaidSubscription();
+  //           },
+  //         ),
+  //       ),
+  //       const SizedBox(width: 14),
+  //       Expanded(
+  //         child: _pillButton(
+  //           text: "7 day Trial",
+  //           enabled: _trialEnabled,
+  //           isLoading: _isActionLoading && _loadingType == LoadingType.trial,
+  //           onTap: () {
+  //             setState(() {
+  //               _isActionLoading = true;
+  //               _loadingType = LoadingType.trial;
+  //             });
+  //             _startTrialOnly();
+  //           },
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _pillButton({
     required String text,
@@ -949,88 +795,4 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       ),
     );
   }
-
-  Widget _subscriptionOptionCard({
-    required String title,
-    required String subtitle,
-    required String price,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFF0F7FF) : const Color(0xFFF3F3F3),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected ? Colors.blue : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            /// Selection indicator
-            Container(
-              height: 20,
-              width: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.blue),
-              ),
-              child: selected
-                  ? Center(
-                child: Container(
-                  height: 12,
-                  width: 12,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.blue,
-                  ),
-                ),
-              )
-                  : null,
-            ),
-
-            const SizedBox(width: 12),
-
-            /// Texts
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            /// Price
-            Text(
-              price,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
 }

@@ -221,37 +221,37 @@ class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
 
                               final prefData = await SharedPref.getLoginData();
 
-                              _subscriptionPayment.makePayment(
-                                context: context,
-                                amount: _amount!,
-                                orderId: _orderId!,
-                                planId: _planId!,
-                                name: prefData?.data?.name ?? '',
-                                contact: prefData?.data?.mobile ?? '',
-                                email: prefData?.data?.email ?? '',
-
-                                // 🔥 PAYMENT SUCCESS CALLBACK
-                                onSuccess: () async {
-                                  await SharedPref.setBool("isSubscribed", true);
-
-                                  Navigator.pop(context);
-
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (context) => const PurchaseDetailsBottomSheet(),
-                                  );
-
-                                  setState(() {}); // 🔥 refresh bottomsheet UI
-                                },
-
-                                // 🔥 PAYMENT FAILURE CALLBACK
-                                onFailure: (err) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(content: Text(err)));
-                                },
-                              );
+                              // _subscriptionPayment.makePayment(
+                              //   context: context,
+                              //   amount: _amount!,
+                              //   orderId: _orderId!,
+                              //   planId: _planId!,
+                              //   name: prefData?.data?.name ?? '',
+                              //   contact: prefData?.data?.mobile ?? '',
+                              //   email: prefData?.data?.email ?? '',
+                              //
+                              //   // 🔥 PAYMENT SUCCESS CALLBACK
+                              //   onSuccess: () async {
+                              //     await SharedPref.setBool("isSubscribed", true);
+                              //
+                              //     Navigator.pop(context);
+                              //
+                              //     showModalBottomSheet(
+                              //       context: context,
+                              //       isScrollControlled: true,
+                              //       backgroundColor: Colors.transparent,
+                              //       builder: (context) => const PurchaseDetailsBottomSheet(),
+                              //     );
+                              //
+                              //     setState(() {}); // 🔥 refresh bottomsheet UI
+                              //   },
+                              //
+                              //   // 🔥 PAYMENT FAILURE CALLBACK
+                              //   onFailure: (err) {
+                              //     ScaffoldMessenger.of(context)
+                              //         .showSnackBar(SnackBar(content: Text(err)));
+                              //   },
+                              // );
                             }
                           },
                         ),

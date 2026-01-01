@@ -14,6 +14,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/model/feed_po
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/activity_grid_widget.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/feed_carousel_shimmer.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/feed_post_shimmer.dart';
+import 'package:tinydroplets/features/presentation/pages/feed_page/widget/homepage_carousel_widget.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/post_widget.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/profile_completion/profile_completion_cubit.dart';
@@ -24,6 +25,7 @@ import '../my_account/profile_bloc/profile_cubit.dart';
 import '../my_account/profile_bloc/profile_state.dart';
 import '../my_account/profile_completion/profile_completion_widget.dart';
 import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
+import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
 
   class FeedPage extends StatefulWidget {
     const FeedPage({super.key});
@@ -38,77 +40,80 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
     TextEditingController replyController = TextEditingController();
     final DioClient dioClient = GetIt.instance<DioClient>();
 
-    bool isSubscribed = false;
-    bool isTrialAvailed = false;
-    DateTime? expiry;
-    bool isTrial = false;
+    /// 🔐 Subscription state (raw)
+    bool _isSubscribed = false;
+    bool _isTrial = false;
+    bool _trialAvailed = false;
+    DateTime? _trialExpiry;
 
     @override
     void initState() {
       // TODO: implement initState
       super.initState();
-      checkStatus();
+      _loadSubscriptionState();
     }
 
-    Future<void> checkStatus() async {
+    // =============================================================
+    // SUBSCRIPTION STATE LOADER
+    // =============================================================
+    Future<void> _loadSubscriptionState() async {
       try {
-        isTrialAvailed = await SharedPref.getBool('trialAvailed') ?? false;
-        isSubscribed = await SharedPref.getBool('isSubscribed') ?? false;
-        isTrial = await SharedPref.getBool("isTrial") ?? false;
+        _isSubscribed = await SharedPref.getBool('isSubscribed') ?? false;
+        _isTrial = await SharedPref.getBool('isTrial') ?? false;
+        _trialAvailed = await SharedPref.getBool('trialAvailed') ?? false;
+
         final expiryStr = await SharedPref.getString('trialExpiry');
+        _trialExpiry =
+        expiryStr != null && expiryStr.isNotEmpty
+            ? DateTime.tryParse(expiryStr)
+            : null;
 
-        if (expiryStr != null && expiryStr.isNotEmpty) {
-          expiry = DateTime.tryParse(expiryStr);
-        } else {
-          expiry = null;
-        }
-
-        setState(() {
-
-        });
-
-        debugPrint("isSubscribed: $isSubscribed");
-        debugPrint("isTrialAvailed: $isTrialAvailed");
-        debugPrint("Trial Expiry: $expiry");
-        debugPrint("isTrial: $isTrial");
+        setState(() {});
       } catch (e) {
-        debugPrint("checkStatus error: $e");
+        debugPrint('FeedPage subscription load error: $e');
       }
     }
 
+    // =============================================================
+    // DERIVED STATE (SINGLE SOURCE OF TRUTH)
+    // =============================================================
+    bool get hasActiveSubscription => _isSubscribed;
+
+    bool get hasActiveTrial {
+      if (!_isTrial || _trialExpiry == null) return false;
+      return _trialExpiry!.isAfter(DateTime.now());
+    }
+
+    bool get shouldShowTrialBanner => !hasActiveSubscription;
+
+    int get remainingTrialDays {
+      if (_trialExpiry == null) return 0;
+      final diff = _trialExpiry!.difference(DateTime.now()).inDays;
+      return diff < 0 ? 0 : diff;
+    }
+
+    // =============================================================
+    // TRIAL BANNER TEXT
+    // =============================================================
     String getTrialBannerTitle() {
-      if (expiry == null) return "Free Trial";
+      if (!hasActiveTrial) return "Free Trial";
 
-      final daysLeft = getRemainingTrialDays();
-
-      if (daysLeft == 0) {
+      if (remainingTrialDays == 0) {
         return "Free Trial has ended!";
-      } else if (daysLeft == 1) {
+      } else if (remainingTrialDays == 1) {
         return "Trial ends tomorrow!";
       } else {
-        return "Trial ends in $daysLeft days";
+        return "Trial ends in $remainingTrialDays days";
       }
     }
 
     String getTrialBannerSubtitle() {
-      final daysLeft = getRemainingTrialDays();
-
-      if (daysLeft == 0) {
+      if (!hasActiveTrial) {
         return "Click to unlock 2000+ recipes & expert meal plans.";
-      } else {
-        return "Enjoy premium access before your trial expires.";
       }
+      return "Enjoy premium access before your trial expires.";
     }
 
-
-    int getRemainingTrialDays() {
-      if (expiry == null) return 0;
-
-      final now = DateTime.now();
-      final diff = expiry!.difference(now).inDays;
-
-      return diff < 0 ? 0 : diff;
-    }
 
 
     @override
@@ -155,6 +160,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                 context.read<FeedBloc>().refreshFeed();
                 context.read<FeedActivityCubit>().fetchFeedActivityData();
                 context.read<ProfileCompletionCubit>().getProfileCompletion();
+                context.read<HomepageCarouselCubit>().fetchHomepageCarousels();
               },
               child: SingleChildScrollView(
                 child: Column(
@@ -199,7 +205,7 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                   //           context.read<FeedBloc>().add(FeedCarouselData()),
                   // ),
                   const SizedBox(height: 10),
-                    if(isTrial)
+                    if(shouldShowTrialBanner)
                       trialStatusBanner(
                         onTap: () {
                           // 🔥 Navigate to subscription / open bottom sheet
@@ -228,6 +234,13 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
                       ],
                     ),
                   ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: BlocProvider(
+                        create: (_) => HomepageCarouselCubit()..fetchHomepageCarousels(),
+                        child: HomepageCarouselWidget(),
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: Column(
@@ -875,5 +888,4 @@ import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
         ),
       );
     }
-
   }

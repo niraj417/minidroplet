@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -74,249 +75,257 @@ class _DesiciveScreenState extends State<DesiciveScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF2C68EE),
-      body: SafeArea(
-        child: Column(
-          children: [
-            /// TOP SECTION
-            Expanded(
-              flex: 6,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Lets\nget started",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Text(
-                          "Already have an account? ",
-                          style: GoogleFonts.poppins(color: Colors.white),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.white, // Color for this specific screen
+        //systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.white,
+        statusBarColor: const Color(0xFF2C68EE),
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF2C68EE),
+        body: SafeArea(
+          child: Column(
+            children: [
+              /// TOP SECTION
+              Expanded(
+                flex: 6,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Lets\nget started",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
                         ),
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const LoginPage()),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Text(
+                            "Already have an account? ",
+                            style: GoogleFonts.poppins(color: Colors.white),
                           ),
-                          child: Text(
-                            "Sign in",
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFFFFB300),
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
+                          GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginPage()),
+                            ),
+                            child: Text(
+                              "Sign in",
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFFFFB300),
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
                           ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              /// WHITE SECTION WITH FLOATING BABY IMAGE
+              Expanded(
+                flex: 7,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      //padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight, // 👈 THIS IS THE KEY
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
+                                child: Column(
+                                  children: [
+                                    //const SizedBox(height: 80), // space for floating baby
+                                    Row(
+                                      children: [
+                                        Checkbox(
+                                          value: _agreeTerms,
+                                          activeColor: const Color(0xFF2C68EE),
+                                          onChanged: (val) {
+                                            setState(() {
+                                              _agreeTerms = val ?? false;
+                                            });
+                                          },
+                                        ),
+                                        Expanded(
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                color: Colors.black,
+                                              ),
+                                              children: [
+                                                const TextSpan(text: "I agree to Tinydroplets "),
+                                                TextSpan(
+                                                  text: "Terms & Conditions",
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF2C68EE),
+                                                    decoration: TextDecoration.underline,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  recognizer: TapGestureRecognizer()
+                                                    ..onTap = () {
+                                                      UrlOpener.launchURL(
+                                                        "https://tinydroplets.com/terms-conditions",
+                                                      );
+                                                    },
+                                                ),
+                                                const TextSpan(text: " and acknowledge the "),
+                                                TextSpan(
+                                                  text: "Privacy Policy",
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF2C68EE),
+                                                    decoration: TextDecoration.underline,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  recognizer: TapGestureRecognizer()
+                                                    ..onTap = () {
+                                                      UrlOpener.launchURL(
+                                                        "https://tinydroplets.com/privacy-policy-2",
+                                                      );
+                                                    },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+
+                                    const SizedBox(height: 15),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF2C68EE),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(30),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(vertical: 14),
+                                        ),
+                                        onPressed: _agreeTerms
+                                            ? () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (_) => const SignUpPage()),
+                                          );
+                                        }
+                                            : null,
+                                        child: Text(
+                                          "Create account",
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    _loading2
+                                        ? const Loader()
+                                        : _socialButton(
+                                      icon: 'assets/images/google.png',
+                                      text: 'Continue with Google',
+                                      onPressed: _agreeTerms ? _handleGoogleSignIn : null,
+                                    ),
+                                    const SizedBox(height: 10),
+
+                                    if(Platform.isIOS)
+                                      _loading3
+                                          ? const Loader()
+                                          : _socialButton(
+                                        icon: 'assets/images/apple.png',
+                                        text: 'Continue with Apple',
+                                        onPressed: _agreeTerms ? _handleAppleSignIn : null,
+                                      ),
+
+                                    const SizedBox(height: 12),
+
+                                    if(Platform.isIOS)
+                                      Text(
+                                        "Explore without Login",
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+
+                                    const SizedBox(height: 6),
+
+                                    if(Platform.isIOS)
+                                      OutlinedButton(
+                                        onPressed: () async {
+                                          setState(() => _loading4 = true);
+                                          const guestName = "Guest User";
+                                          const guestEmail = "guest@tinydroplets.com";
+                                          const guestPassword = "guest123";
+                                          const deviceName = "ios";
+
+                                          await _thirdPartyAuth(
+                                            guestName,
+                                            guestEmail,
+                                            guestPassword,
+                                            "guest_token_123", // you can pass null if not needed
+                                            deviceName,
+                                          );
+                                        },
+                                        style: OutlinedButton.styleFrom(
+                                          side: const BorderSide(color: Color(0xFF2C68EE)),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(30),
+                                          ),
+                                        ),
+                                        child: !_loading4 ? const Text("Continue as Guest User") : Loader(),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      ),
+                    ),
+
+                    /// ✅ FLOATING BABY IMAGE
+                    Positioned(
+                      top: -145,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Image.asset(
+                          AppVector.babyImage7,
+                          height: 160,
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-            /// WHITE SECTION WITH FLOATING BABY IMAGE
-            Expanded(
-              flex: 7,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    //padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                    ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight, // 👈 THIS IS THE KEY
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
-                              child: Column(
-                                children: [
-                                  //const SizedBox(height: 80), // space for floating baby
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        value: _agreeTerms,
-                                        activeColor: const Color(0xFF2C68EE),
-                                        onChanged: (val) {
-                                          setState(() {
-                                            _agreeTerms = val ?? false;
-                                          });
-                                        },
-                                      ),
-                                      Expanded(
-                                        child: RichText(
-                                          text: TextSpan(
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              color: Colors.black,
-                                            ),
-                                            children: [
-                                              const TextSpan(text: "I agree to Tinydroplets "),
-                                              TextSpan(
-                                                text: "Terms & Conditions",
-                                                style: const TextStyle(
-                                                  color: Color(0xFF2C68EE),
-                                                  decoration: TextDecoration.underline,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                                recognizer: TapGestureRecognizer()
-                                                  ..onTap = () {
-                                                    UrlOpener.launchURL(
-                                                      "https://tinydroplets.com/terms-conditions",
-                                                    );
-                                                  },
-                                              ),
-                                              const TextSpan(text: " and acknowledge the "),
-                                              TextSpan(
-                                                text: "Privacy Policy",
-                                                style: const TextStyle(
-                                                  color: Color(0xFF2C68EE),
-                                                  decoration: TextDecoration.underline,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                                recognizer: TapGestureRecognizer()
-                                                  ..onTap = () {
-                                                    UrlOpener.launchURL(
-                                                      "https://tinydroplets.com/privacy-policy-2",
-                                                    );
-                                                  },
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 15),
-
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF2C68EE),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(vertical: 14),
-                                      ),
-                                      onPressed: _agreeTerms
-                                          ? () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const SignUpPage()),
-                                        );
-                                      }
-                                          : null,
-                                      child: Text(
-                                        "Create account",
-                                        style: GoogleFonts.poppins(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 16),
-
-                                  _loading2
-                                      ? const Loader()
-                                      : _socialButton(
-                                    icon: 'assets/images/google.png',
-                                    text: 'Continue with Google',
-                                    onPressed: _agreeTerms ? _handleGoogleSignIn : null,
-                                  ),
-                                  const SizedBox(height: 10),
-
-                                  if(Platform.isIOS)
-                                    _loading3
-                                        ? const Loader()
-                                        : _socialButton(
-                                      icon: 'assets/images/apple.png',
-                                      text: 'Continue with Apple',
-                                      onPressed: _agreeTerms ? _handleAppleSignIn : null,
-                                    ),
-
-                                  const SizedBox(height: 12),
-
-                                  if(Platform.isIOS)
-                                    Text(
-                                      "Explore without Login",
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.grey,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-
-                                  const SizedBox(height: 6),
-
-                                  if(Platform.isIOS)
-                                    OutlinedButton(
-                                      onPressed: () async {
-                                        setState(() => _loading4 = true);
-                                        const guestName = "Guest User";
-                                        const guestEmail = "guest@tinydroplets.com";
-                                        const guestPassword = "guest123";
-                                        const deviceName = "ios";
-
-                                        await _thirdPartyAuth(
-                                          guestName,
-                                          guestEmail,
-                                          guestPassword,
-                                          "guest_token_123", // you can pass null if not needed
-                                          deviceName,
-                                        );
-                                      },
-                                      style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Color(0xFF2C68EE)),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(30),
-                                        ),
-                                      ),
-                                      child: !_loading4 ? const Text("Continue as Guest User") : Loader(),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-                    ),
-                  ),
-
-                  /// ✅ FLOATING BABY IMAGE
-                  Positioned(
-                    top: -145,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Image.asset(
-                        AppVector.babyImage7,
-                        height: 160,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
