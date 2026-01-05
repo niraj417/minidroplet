@@ -141,27 +141,75 @@ class _VideoPageContent extends StatelessWidget {
         }
 
         if (state is AgeGroupLoaded && state.ageGroupList.isNotEmpty) {
-          return IngredientCategory.horizontalList(
-            title: 'Age Group',
-            onCategoryTap: (category) {
-              final id = category['id']?.toString();
-              final name = category['age_group']?.toString()
-                  ?? category['name']?.toString();
-
-              if (id == null || name == null || id.isEmpty) {
-                debugPrint('⚠️ Invalid age group data: $category');
-                return;
-              }
-
-              goto(
-                context,
-                RecipeCategoryVideoPage(
-                  id: id,
-                  categoryName: name,
-                  ageGroup: id,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Text(
+                  'Age Group',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 18,
+                  ),
                 ),
-              );
-            },
+              ),
+              SizedBox(
+                height: 60,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: state.ageGroupList.length,
+                  itemBuilder: (context, index) {
+                    final item = state.ageGroupList[index];
+
+                    final String id = item['id']?.toString() ?? '';
+                    final String label =
+                        item['age_group']?.toString() ??
+                            item['name']?.toString() ??
+                            '';
+
+                    if (id.isEmpty || label.isEmpty) {
+                      debugPrint('⚠️ Invalid age group data: $item');
+                      return const SizedBox.shrink();
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: GestureDetector(
+                        onTap: () {
+                          goto(
+                            context,
+                            RecipeCategoryVideoPage(
+                              id: id,
+                              categoryName: label,
+                              ageGroup: id,
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Theme.of(context).brightness ==
+                                Brightness.dark
+                                ? Colors.grey[900]
+                                : Colors.grey[200],
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            label,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         }
 
@@ -169,6 +217,7 @@ class _VideoPageContent extends StatelessWidget {
       },
     );
   }
+
 
   // ================= VIDEO CATEGORY =================
   Widget _buildVideoCategory(VideoPageState state, BuildContext context) {

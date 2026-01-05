@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe_all_playlist_model.dart';
+
 import '../../../../../core/constant/app_export.dart';
 
 class AllPlaylistCard extends StatelessWidget {
@@ -11,6 +14,15 @@ class AllPlaylistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasSubscription =
+        SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
+
+    /// 🔐 Show LOCKED only if:
+    /// - playlist is paid
+    /// - user does NOT have subscription
+    final bool showLocked =
+        recipe.priceType == 'paid' && !hasSubscription;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -28,6 +40,7 @@ class AllPlaylistCard extends StatelessWidget {
                 imageUrl: recipe.thumbnail,
               ),
             ),
+
             Container(
               height: 210,
               width: 155,
@@ -37,17 +50,22 @@ class AllPlaylistCard extends StatelessWidget {
               ),
               clipBehavior: Clip.hardEdge,
             ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                ),
-                child: Center(
-                  child: Text(
-                    recipe.isBuy == '0' ? 'Paid' : '',
+
+            /// 🔒 LOCKED BADGE (subscription-based)
+            if (showLocked)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                  ),
+                  child: const Text(
+                    'Locked',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 12,
@@ -56,8 +74,8 @@ class AllPlaylistCard extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-            Positioned(
+
+            const Positioned(
               top: 0,
               bottom: 0,
               left: 0,
@@ -71,11 +89,15 @@ class AllPlaylistCard extends StatelessWidget {
           ],
         ),
 
-        const SizedBox(height: 5), // Spacing
+        const SizedBox(height: 5),
+
         Expanded(
           child: Text(
             recipe.name,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
             softWrap: true,
             overflow: TextOverflow.ellipsis,

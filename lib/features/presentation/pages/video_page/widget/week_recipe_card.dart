@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/all_recipe_video_model.dart';
 
 import '../../../../../core/constant/app_export.dart';
@@ -12,6 +14,15 @@ class WeekRecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasSubscription =
+        SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
+
+    /// 🔐 Locked only if:
+    /// - content is paid
+    /// - user has NO subscription
+    final bool showLocked =
+        recipe.priceType == 'paid' && !hasSubscription;
+
     return GestureDetector(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,6 +41,7 @@ class WeekRecipeCard extends StatelessWidget {
                   imageUrl: recipe.thumbnail,
                 ),
               ),
+
               Container(
                 height: 140,
                 width: 260,
@@ -39,7 +51,8 @@ class WeekRecipeCard extends StatelessWidget {
                 ),
                 clipBehavior: Clip.hardEdge,
               ),
-              Positioned(
+
+              const Positioned(
                 top: 0,
                 bottom: 0,
                 left: 0,
@@ -50,20 +63,20 @@ class WeekRecipeCard extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  // padding: EdgeInsets.symmetric(horizontal: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                  ),
-                  child: Center(
-                    child: Text(
-                      recipe.isBuy ==
-                          '0'
-                          ? 'Paid'
-                          : '',
+
+              /// 🔒 LOCKED BADGE (subscription-based)
+              if (showLocked)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                    ),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: const Text(
+                      'Locked',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 12,
@@ -72,14 +85,18 @@ class WeekRecipeCard extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
             ],
           ),
+
           const SizedBox(height: 5),
+
           Expanded(
             child: Text(
               recipe.title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
               softWrap: true,
               overflow: TextOverflow.ellipsis,

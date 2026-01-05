@@ -83,11 +83,11 @@ class IAPurchaseService {
   }
 
   Future<bool> purchaseProduct(
-    String productId, {
-    Function(PurchaseDetails)? onSuccess,
-    Function(String)? onError,
-    Function(String)? onPending,
-  }) async {
+      String productId, {
+        Function(PurchaseDetails)? onSuccess,
+        Function(String)? onError,
+        Function(String)? onPending,
+      }) async {
     if (!_isInitialized) {
       onError?.call('In-app purchase not initialized');
       return false;
@@ -99,7 +99,7 @@ class IAPurchaseService {
 
     try {
       final product = products.value.firstWhere(
-        (p) => p.id == productId,
+            (p) => p.id == productId,
         orElse: () => throw Exception('Product not found: $productId'),
       );
 
@@ -107,14 +107,17 @@ class IAPurchaseService {
 
       debugPrint('🛒 Initiating purchase: ${product.id}');
 
-      if (product.id.contains("consumable")) {
-        return await _iap.buyConsumable(purchaseParam: param);
-      } else {
+      if (product.id == monthlySubProductId ||
+          product.id == yearlySubProductId) {
+        _onPurchasePending?.call('Processing subscription...');
         return await _iap.buyNonConsumable(purchaseParam: param);
       }
+
+      throw Exception('Unsupported product type: $productId');
+
     } catch (e) {
       debugPrint('❌ Purchase failed: $e');
-      onError?.call(e.toString());
+      onError?.call(e.toString().replaceAll('Exception:', ''));
       return false;
     }
   }

@@ -213,7 +213,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               : SingleChildScrollView(
             child: Column(
               children: [
-                _header(),
+                //_header(),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -300,6 +300,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   Widget _features() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _featureItem(AppVector.iconRecipes, "500+ Recipes",
             "Meal ideas for every stage and age"),
@@ -370,37 +371,32 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Widget _featureItem(String icon, String title, String text) {
     return SizedBox(
-      width: 90, // <-- IMPORTANT: gives text a boundary to wrap inside
+      width: 90,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Image.asset(icon, height: 50),
           const SizedBox(height: 6),
 
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            softWrap: true,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-
-          const SizedBox(height: 2),
-
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            softWrap: true,
-            style: GoogleFonts.poppins(
-              fontSize: 10,
-              fontWeight: FontWeight.w400,
+          /// 🔹 Fixed height title box
+          SizedBox(
+            height: 32, // SAME height for all titles
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
 
   Widget _planCard({
     required SubscriptionPlan plan,
@@ -413,7 +409,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         setState(() => selectedPlan = plan);
       },
       child: AspectRatio( // 👈 makes both cards equal size
-        aspectRatio: 1.25,
+        aspectRatio: 1.35,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -464,7 +460,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     ],
                   ),
 
-                  const Spacer(),
+                  //const Spacer(),
+                  SizedBox(height: 5,),
 
                   /// PRICE
                   Text(
