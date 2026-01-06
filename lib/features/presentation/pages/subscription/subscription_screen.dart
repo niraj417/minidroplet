@@ -219,7 +219,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      _title(),
+                      _title(context),
                       const SizedBox(height: 20),
                       _features(),
                       const SizedBox(height: 30),
@@ -287,15 +287,44 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     );
   }
 
-  Widget _title() => const Text(
-    "START YOUR FREE TRIAL TODAY!",
-    style: TextStyle(
-      fontFamily: "BobbyJones",
-      fontSize: 20,
-      decoration: TextDecoration.underline,
-      color: Colors.white,
-    ),
-  );
+  Widget _title(BuildContext context) {
+    return SizedBox(
+      height: 48, // keeps layout stable
+      width: double.infinity,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // ✅ Centered title (never moves)
+          const Text(
+            "START YOUR FREE TRIAL TODAY!",
+            style: TextStyle(
+              fontFamily: "BobbyJones",
+              fontSize: 20,
+              decoration: TextDecoration.underline,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          // ❌ Close button on the right
+          Positioned(
+            right: -18,
+            child: IconButton(
+              icon: const Icon(
+                Icons.close,
+                color: Colors.white,
+                size: 22,
+              ),
+              onPressed: () {
+                Navigator.pop(context); // or your custom navigation
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _features() {
     return Row(

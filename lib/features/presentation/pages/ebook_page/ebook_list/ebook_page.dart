@@ -36,6 +36,7 @@ class _EbookPageState extends State<EbookPage> {
     super.initState();
     isSubscribed =
         SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
+    ebookCarouselItems = [];
   }
 
   Future<void> _handleRefresh(BuildContext context) async {
@@ -95,6 +96,8 @@ class _EbookPageState extends State<EbookPage> {
     }
   }
 
+  late List<EbookSliderDataModel> ebookCarouselItems;
+
   /// Ads only for free + non-premium users
   bool _shouldShowAd(String priceType) {
     return priceType == 'free' && !isSubscribed;
@@ -102,11 +105,15 @@ class _EbookPageState extends State<EbookPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: CustomAppBar(title: 'Guide'),
       body: BlocBuilder<EbookBloc, EbookState>(
         builder: (context, state) {
+          ebookCarouselItems = state.ebookItems
+              .where((e) => e.image != null && e.image.isNotEmpty)
+              .toList();
           return RefreshIndicator(
             backgroundColor: Color(AppColor.primaryColor),
             color: Colors.white,
@@ -131,26 +138,21 @@ class _EbookPageState extends State<EbookPage> {
                       const SizedBox(height: 10),
 
                       /// Slider
-                      if (state.ebookItems.isNotEmpty)
+                      if (!state.isCarouselLoading && ebookCarouselItems.isNotEmpty)
                         CustomCarousel<EbookSliderDataModel>(
-                          items: state.ebookItems,
+                          items: ebookCarouselItems,
                           itemBuilder: (context, item, index) {
-                            if (item.openId == null) return const SizedBox();
-                            final id = int.parse(item.openId!);
-
                             return GestureDetector(
                               onTap: () {
-                                if (isSubscribed) {
-                                  goto(
-                                    context,
-                                    PurchasedEbookBuyDetailPage(
-                                        ebookId: id),
-                                  );
+                                if (item.openId != null) {
+                                  final id = int.parse(item.openId!);
+                                  if (isSubscribed) {
+                                    goto(context, PurchasedEbookBuyDetailPage(ebookId: id));
+                                  } else {
+                                    goto(context, EbookBuyDetailPage(ebookId: id));
+                                  }
                                 } else {
-                                  goto(
-                                    context,
-                                    EbookBuyDetailPage(ebookId: id),
-                                  );
+                                  debugPrint('⚠️ Ebook tapped without openId');
                                 }
                               },
                               child: Padding(
