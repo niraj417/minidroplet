@@ -79,7 +79,7 @@ class HomepageCarouselWidget extends StatelessWidget {
               Text(
                 carousel.carouselTitle,
                 style: const TextStyle(
-                  fontSize: 23,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),

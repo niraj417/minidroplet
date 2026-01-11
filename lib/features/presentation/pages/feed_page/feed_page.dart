@@ -15,6 +15,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/widget/activi
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/feed_carousel_shimmer.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/feed_post_shimmer.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/homepage_carousel_widget.dart';
+import 'package:tinydroplets/features/presentation/pages/feed_page/widget/homepage_recipe_category.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/post_widget.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/profile_completion/profile_completion_cubit.dart';
@@ -24,8 +25,11 @@ import '../../../../core/services/subscription_service.dart';
 import '../my_account/profile_bloc/profile_cubit.dart';
 import '../my_account/profile_bloc/profile_state.dart';
 import '../my_account/profile_completion/profile_completion_widget.dart';
+import '../video_page/recipe_category_videos_page.dart';
+import '../video_page/widget/ingredient_category.dart';
 import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
 import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
+import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
 
   class FeedPage extends StatefulWidget {
     const FeedPage({super.key});
@@ -205,15 +209,28 @@ import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
                   //           context.read<FeedBloc>().add(FeedCarouselData()),
                   // ),
                   const SizedBox(height: 10),
-                    if(shouldShowTrialBanner)
-                      trialStatusBanner(
-                        onTap: () {
-                          // 🔥 Navigate to subscription / open bottom sheet
-                          //_openSubscriptionPage();
-                          goto(context, SubscriptionPage());
+                    BlocProvider(
+                      create: (_) =>
+                          HomepageRecipeSliderCubit(dioClient),
+                      child: HomepageRecipeCategory(
+                        onCategoryTap: (category) {
+                          goto(
+                            context,
+                            RecipeCategoryVideoPage(
+                              id: category['video_cat_id'].toString(),
+                              categoryName: category['name'],
+                            ),
+                          );
                         },
                       ),
-                  const SizedBox(height: 10),
+                    ),
+                    const SizedBox(height: 10,),
+                    exploreEbookBanner(
+                        onTap: () {
+
+                        }
+                    ),
+                    const SizedBox(height: 10,),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 5.0),
                     child: Column(
@@ -225,7 +242,7 @@ import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
                             'For Your Baby',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 23,
+                              fontSize: 20,
                             ),
                           ),
                         ),
@@ -234,6 +251,15 @@ import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
                       ],
                     ),
                   ),
+                    if(shouldShowTrialBanner)
+                      trialStatusBanner(
+                        onTap: () {
+                          // 🔥 Navigate to subscription / open bottom sheet
+                          //_openSubscriptionPage();
+                          goto(context, SubscriptionPage());
+                        },
+                      ),
+                    const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2.0),
                       child: BlocProvider(
@@ -256,7 +282,7 @@ import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
                                     'Feed',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 23,
+                                      fontSize: 20,
                                     ),
                                   ),
                                   SizedBox(height: 10),
@@ -869,6 +895,64 @@ import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
                   ],
                 ),
               ),
+
+              Container(
+                height: 32,
+                width: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFD54F),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget exploreEbookBanner({
+      required VoidCallback onTap,
+    }) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFB3E5FC),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                height: 42,
+                width: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6E7EB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.chrome_reader_mode_sharp,
+                  color: Color(0xFF6C6C6C),
+                  size: 22,
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Text(
+                "Explore Our Ebook Collection",
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(width: 8,),
 
               Container(
                 height: 32,
