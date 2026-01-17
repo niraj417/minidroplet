@@ -4,6 +4,7 @@ part of 'feed_bloc.dart';
 sealed class FeedState {
   final List<FeedSliderDataModel>? carouselData;
   final List<FeedPostDataModel>? postData;
+  final List<RecipeAllPlaylistDataModel>? playlistData;
   final bool isCarouselLoading;
   final bool isPostLoading;
   final bool isLikeLoading;
@@ -14,6 +15,7 @@ sealed class FeedState {
   const FeedState({
     this.carouselData,
     this.postData,
+    this.playlistData,
     this.isCarouselLoading = false,
     this.isPostLoading = false,
     this.isLikeLoading = false,
@@ -26,6 +28,7 @@ sealed class FeedState {
   FeedState copyWith({
     List<FeedSliderDataModel>? carouselData,
     List<FeedPostDataModel>? postData,
+    List<RecipeAllPlaylistDataModel>? playlistData,
     bool? isCarouselLoading,
     bool? isPostLoading,
     bool? isLikeLoading,
@@ -37,6 +40,7 @@ sealed class FeedState {
       return FeedLoaded(
         carouselData: carouselData ?? this.carouselData!,
         postData: postData ?? this.postData!,
+        playlistData: playlistData ?? this.playlistData,
         localComments: localComments ?? this.localComments,
         localReplies: localReplies ?? this.localReplies,
       );
@@ -45,6 +49,7 @@ sealed class FeedState {
     return FeedLoading(
       carouselData: carouselData ?? this.carouselData,
       postData: postData ?? this.postData,
+      playlistData: playlistData ?? this.playlistData,
       isCarouselLoading: isCarouselLoading ?? this.isCarouselLoading,
       isPostLoading: isPostLoading ?? this.isPostLoading,
       isLikeLoading: isLikeLoading ?? this.isLikeLoading,
@@ -63,6 +68,7 @@ class FeedLoading extends FeedState {
   const FeedLoading({
     super.carouselData,
     super.postData,
+    super.playlistData,
     super.isCarouselLoading,
     super.isPostLoading,
     super.isLikeLoading,
@@ -75,6 +81,7 @@ class FeedLoaded extends FeedState {
   const FeedLoaded({
     required List<FeedSliderDataModel> carouselData,
     required List<FeedPostDataModel> postData,
+    super.playlistData,
     super.localComments,
     super.localReplies,
   }) : super(

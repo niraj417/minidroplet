@@ -57,18 +57,18 @@ class _CustomCarouselState<T> extends State<CustomCarousel<T>> {
             disableCenter: true,
           ),
         ),
-        const SizedBox(height: 9),
-        Align(
-          alignment: Alignment.center,
-          child: CarouselIndicator(
-            count: widget.items.length,
-            index: _currentIndex,
-            color: Colors.grey,
-            activeColor: Color(AppColor.primaryColor),
-            height: 10,
-            width: 10,
-          ),
-        ),
+        //const SizedBox(height: 9),
+        // Align(
+        //   alignment: Alignment.center,
+        //   child: CarouselIndicator(
+        //     count: widget.items.length,
+        //     index: _currentIndex,
+        //     color: Colors.grey,
+        //     activeColor: Color(AppColor.primaryColor),
+        //     height: 10,
+        //     width: 10,
+        //   ),
+        // ),
       ],
     );
   }

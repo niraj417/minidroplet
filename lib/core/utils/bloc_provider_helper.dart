@@ -37,7 +37,8 @@ class BlocProviderHelper extends StatelessWidget {
               (context) =>
                   FeedBloc()
                     ..add(FeedCarouselData())
-                    ..add(FeedPostData()),
+                    ..add(FeedPostData())
+                    ..add(FeedPlaylistData()),
         ),
         BlocProvider(
           create:

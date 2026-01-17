@@ -7,6 +7,8 @@ class FeedCarouselData extends FeedEvent {}
 
 class FeedPostData extends FeedEvent {}
 
+class FeedPlaylistData extends FeedEvent {}
+
 class FeedLikeData extends FeedEvent {
   final int postId;
 

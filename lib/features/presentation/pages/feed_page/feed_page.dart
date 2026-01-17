@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
+import 'package:tinydroplets/core/constant/app_vector.dart';
 import 'package:tinydroplets/core/services/ad_service/ad_view.dart';
 import 'package:tinydroplets/core/services/ad_service/banner_ad/banner_ad_widget.dart';
 import 'package:tinydroplets/core/services/sharing_handler.dart';
@@ -22,9 +23,14 @@ import 'package:tinydroplets/features/presentation/pages/my_account/profile_comp
 import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
 import '../../../../common/widgets/custom_caraousel.dart';
 import '../../../../core/services/subscription_service.dart';
+import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
+import '../ebook_page/ebook_list/bloc/ebook_state.dart';
+import '../ebook_page/ebook_list/ebook_all_page.dart';
 import '../my_account/profile_bloc/profile_cubit.dart';
 import '../my_account/profile_bloc/profile_state.dart';
 import '../my_account/profile_completion/profile_completion_widget.dart';
+import '../video_page/model/recipe_all_playlist_model.dart';
+import '../video_page/recipe_all_playlist_page.dart';
 import '../video_page/recipe_category_videos_page.dart';
 import '../video_page/widget/ingredient_category.dart';
 import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
@@ -208,7 +214,32 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                   //       () =>
                   //           context.read<FeedBloc>().add(FeedCarouselData()),
                   // ),
-                  const SizedBox(height: 10),
+                  //const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: AlignmentDirectional.topStart,
+                            child: Text(
+                              'For Your Baby',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                          //BannerAdWidget(),
+                          ActivityGridWidget(),
+                        ],
+                      ),
+                    ),
+                    if (state.playlistData != null && state.playlistData!.isNotEmpty)
+                      premiumPlaylistBanner(
+                        context,
+                        state.playlistData!,
+                      ),
                     BlocProvider(
                       create: (_) =>
                           HomepageRecipeSliderCubit(dioClient),
@@ -226,31 +257,28 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                     ),
                     const SizedBox(height: 10,),
                     exploreEbookBanner(
-                        onTap: () {
+                      onTap: () {
+                        final ebookState = context.read<EbookBloc>().state;
 
+                        if (ebookState.allEbookItems.isEmpty) {
+                          context.read<EbookBloc>().add(FetchAllEbookData());
                         }
+
+                        goto(
+                          context,
+                          EbookAllPage(allEbookData: ebookState.allEbookItems),
+                        );
+                      },
                     ),
+
                     const SizedBox(height: 10,),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Align(
-                          alignment: AlignmentDirectional.topStart,
-                          child: Text(
-                            'For Your Baby',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                        //BannerAdWidget(),
-                        ActivityGridWidget(),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: BlocProvider(
+                        create: (_) => HomepageCarouselCubit()..fetchHomepageCarousels(),
+                        child: HomepageCarouselWidget(),
+                      ),
                     ),
-                  ),
                     if(shouldShowTrialBanner)
                       trialStatusBanner(
                         onTap: () {
@@ -260,13 +288,6 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                         },
                       ),
                     const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: BlocProvider(
-                        create: (_) => HomepageCarouselCubit()..fetchHomepageCarousels(),
-                        child: HomepageCarouselWidget(),
-                      ),
-                    ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: Column(
@@ -968,6 +989,35 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                 ),
               ),
             ],
+          ),
+        ),
+      );
+    }
+    Widget premiumPlaylistBanner(
+        BuildContext context,
+        List<RecipeAllPlaylistDataModel> playlists,
+        ) {
+      return InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          goto(
+            context,
+            RecipeAllPlaylistPage(
+              recipeAllPlaylistList: playlists,
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          height: 150,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              AppVector.homepageBanner,
+              fit: BoxFit.contain, // ✅ NO CROPPING, NO STRETCHING
+              width: double.infinity,
+              height: double.infinity,
+            ),
           ),
         ),
       );

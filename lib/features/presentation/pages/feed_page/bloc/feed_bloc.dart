@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../../core/constant/app_export.dart';
+import '../../video_page/model/recipe_all_playlist_model.dart';
 import '../model/feed_post_model.dart';
 import '../model/feed_slider_model.dart';
 part 'feed_event.dart';
@@ -13,6 +14,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   FeedBloc() : super(const FeedInitial()) {
     on<FeedCarouselData>(_onFeedCarouselData);
     on<FeedPostData>(_onFeedPostData);
+    on<FeedPlaylistData>(_onFeedPlaylistData);
     on<FeedLikeData>(_onFeedLikeData);
     on<FeedPostCommentData>(_onFeedAddComment);
     on<FeedPostReplyCommentData>(_onFeedAddReplyComment);
@@ -36,6 +38,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         emit(FeedLoading(
           carouselData: data.data,
           postData: state.postData ?? [],
+          playlistData: state.playlistData ?? [],
         ));
       } else {
         emit(FeedError(error: response.data['message']));
@@ -78,6 +81,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           emit(FeedLoaded(
             carouselData: state.carouselData ?? [],
             postData: data.data,
+            playlistData: state.playlistData,
           ));
         } catch (parseError) {
           print('❌ FeedBloc: Parsing error: $parseError');
@@ -94,6 +98,34 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       emit(FeedError(error: e.toString()));
     }
   }
+
+  Future<void> _onFeedPlaylistData(
+      FeedPlaylistData event,
+      Emitter<FeedState> emit,
+      ) async {
+    try {
+      debugPrint('📥 Fetching playlists from ${ApiEndpoints.recipeAllPlaylist}');
+
+      final response =
+      await dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist);
+
+      if (response.data['status'] == 1) {
+        final model = RecipeAllPlaylistModel.fromJson(response.data);
+
+        emit(FeedLoaded(
+          carouselData: state.carouselData ?? [],
+          postData: state.postData ?? [],
+          playlistData: model.data,
+        ));
+      } else {
+        emit(FeedError(error: response.data['message']));
+      }
+    } catch (e) {
+      debugPrint('❌ Playlist fetch error: $e');
+      emit(FeedError(error: e.toString()));
+    }
+  }
+
 
   Future<void> _onFeedLikeData(
       FeedLikeData event, Emitter<FeedState> emit) async {
@@ -123,6 +155,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         emit(FeedLoaded(
           carouselData: state.carouselData ?? [],
           postData: updatedPostData ?? [],
+          playlistData: state.playlistData ?? [],
         ));
       } else {
         emit(FeedError(error: response.data['message']));
@@ -160,6 +193,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             event.postId: [...(currentState.localComments?[event.postId] ?? []), event.localComment!],
           },
           localReplies: currentState.localReplies,
+          playlistData: state.playlistData ?? [],
         ));
       }
 
@@ -212,6 +246,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           postData: updatedPostData ?? [],
           localComments: updatedLocalComments,
           localReplies: latestState.localReplies,
+          playlistData: state.playlistData ?? [],
         ));
       } else {
         // If API fails, revert the comment count and remove local comment
@@ -242,6 +277,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           postData: revertedPostData ?? [],
           localComments: updatedLocalComments,
           localReplies: latestState.localReplies,
+          playlistData: state.playlistData ?? [],
         ));
         emit(FeedError(error: response.data['message']));
       }
@@ -274,6 +310,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         postData: revertedPostData ?? [],
         localComments: updatedLocalComments,
         localReplies: latestState.localReplies,
+        playlistData: state.playlistData ?? [],
       ));
       emit(FeedError(error: e.toString()));
     }
@@ -315,6 +352,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
             ...currentState.localReplies ?? {},
             event.commentId: [...(currentState.localReplies?[event.commentId] ?? []), event.localComment!],
           },
+          playlistData: state.playlistData ?? [],
         ));
       }
 
@@ -367,6 +405,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           postData: updatedPostData ?? [],
           localComments: latestState.localComments,
           localReplies: updatedLocalReplies,
+          playlistData: state.playlistData ?? [],
         ));
       } else {
         // Handle API failure - revert optimistic update
@@ -402,6 +441,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           postData: revertedPostData ?? [],
           localComments: latestState.localComments,
           localReplies: updatedLocalReplies,
+          playlistData: state.playlistData ?? [],
         ));
         emit(FeedError(error: response.data['message']));
       }
@@ -439,6 +479,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         postData: revertedPostData ?? [],
         localComments: latestState.localComments,
         localReplies: updatedLocalReplies,
+        playlistData: state.playlistData ?? [],
       ));
       emit(FeedError(error: e.toString()));
     }
@@ -446,6 +487,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
 void refreshFeed() {
     add(FeedPostData());
+    add(FeedPlaylistData());
     add(FeedCarouselData());
   }
 }

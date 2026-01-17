@@ -15,6 +15,7 @@ class AppVector {
   static const String shuffle = '${base}shuffle.png';
   static const String logo = '${base}logo.png';
   static const String noBgLogo = '${base}no_bg_logo.png';
+  static const String homepageBanner = '${base}homepage_banner.jpeg';
 
   static const String base1 = 'assets/vectors/';
 

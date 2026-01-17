@@ -6,6 +6,9 @@ import 'package:tinydroplets/features/presentation/pages/video_page/recipe_categ
 import 'package:tinydroplets/features/presentation/pages/video_page/recipe_playlist_screen.dart';
 import '../../../../../core/constant/app_export.dart';
 import '../../ebook_page/buy_ebook/ebook_buy_page.dart';
+import '../../ebook_page/ebook_list/bloc/ebook_bloc.dart';
+import '../../ebook_page/ebook_list/bloc/ebook_state.dart';
+import '../../ebook_page/ebook_list/ebook_all_page.dart';
 import '../../ebook_page/purchased_ebook/purchased_ebook_detail_page.dart';
 import '../bloc/feed_activity_bloc/feed_activity_cubit.dart';
 import '../bloc/feed_activity_bloc/feed_activity_state.dart';
@@ -96,26 +99,36 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                         );
                         break;
                       case 3:
-                        if (data.isBuy == '1') {
-                          if (data.dataId != null ||
-                              data.dataId.toString().isNotEmpty) {
-                            CommonMethods.devLog(logName: 'Ebook id in activity', message: data.id);
-                            goto(
-                              context,
-                              PurchasedEbookBuyDetailPage(
-                                ebookId: int.parse(data.dataId ?? ''),
-                              ),
-                            );
-                          }
-                        } else {
-                          if (data.dataId != null ||
-                              data.dataId.toString().isNotEmpty) {
-                            goto(
-                              context,
-                              EbookBuyDetailPage(ebookId: int.parse(data.dataId ?? '')),
-                            );
-                          }
+                        final ebookState = context.read<EbookBloc>().state;
+
+                        if (ebookState.allEbookItems.isEmpty) {
+                          context.read<EbookBloc>().add(FetchAllEbookData());
                         }
+
+                        goto(
+                          context,
+                          EbookAllPage(allEbookData: ebookState.allEbookItems),
+                        );
+                        // if (data.isBuy == '1') {
+                        //   if (data.dataId != null ||
+                        //       data.dataId.toString().isNotEmpty) {
+                        //     CommonMethods.devLog(logName: 'Ebook id in activity', message: data.id);
+                        //     goto(
+                        //       context,
+                        //       PurchasedEbookBuyDetailPage(
+                        //         ebookId: int.parse(data.dataId ?? ''),
+                        //       ),
+                        //     );
+                        //   }
+                        // } else {
+                        //   if (data.dataId != null ||
+                        //       data.dataId.toString().isNotEmpty) {
+                        //     goto(
+                        //       context,
+                        //       EbookBuyDetailPage(ebookId: int.parse(data.dataId ?? '')),
+                        //     );
+                        //   }
+                        // }
 
                         break;
                       case 4:

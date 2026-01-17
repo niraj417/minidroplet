@@ -63,7 +63,7 @@ class CarouselVideoCard extends StatelessWidget {
               _buildThumbnail(context, hasAccess),
               const SizedBox(height: 5),
               SizedBox(
-                width: 260,
+                width: 180,
                 child: Text(
                   video.title,
                   maxLines: 1,
@@ -103,7 +103,7 @@ class CarouselVideoCard extends StatelessWidget {
         // image
         Container(
           height: 140,
-          width: 260,
+          width: 180,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             color: Theme.of(context).cardColor,
@@ -118,7 +118,7 @@ class CarouselVideoCard extends StatelessWidget {
         // dark overlay
         Container(
           height: 140,
-          width: 260,
+          width: 180,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             color: Colors.black.withOpacity(0.25),
