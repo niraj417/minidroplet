@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
 import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/ebook_filter/ebook_search_filter_page.dart';
@@ -14,8 +15,10 @@ import 'package:tinydroplets/features/presentation/pages/ebook_page/widget/trend
 import '../../../../../common/widgets/custom_caraousel.dart';
 import '../../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../../common/widgets/search_text_card.dart';
+import '../../../../../core/constant/app_vector.dart';
 import '../../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import '../model/recently_viewed_ebook_model.dart';
+import '../widget/ebook_page_carousel_section.dart';
 import 'bloc/ebook_bloc.dart';
 import 'bloc/ebook_event.dart';
 import 'bloc/ebook_state.dart';
@@ -127,15 +130,13 @@ class _EbookPageState extends State<EbookPage> {
                     children: [
                       /// Search
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 2,vertical: 0),
                         child: SearchTextCard(
                           text: 'Search Guides and Meal Plans',
                           onTap: () =>
                               goto(context, EbookSearchFilterScreen()),
                         ),
                       ),
-
-                      const SizedBox(height: 10),
 
                       /// Slider
                       if (!state.isCarouselLoading && ebookCarouselItems.isNotEmpty)
@@ -156,7 +157,7 @@ class _EbookPageState extends State<EbookPage> {
                                 }
                               },
                               child: Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: CustomImage(
@@ -194,6 +195,30 @@ class _EbookPageState extends State<EbookPage> {
 
                       /// Trending
                       _trendingSection(state),
+                      /// Dynamic Carousel Sections
+                      if (!state.isPageCarouselsLoading && state.ebookPageCarousels.isNotEmpty)
+                        ...state.ebookPageCarousels.map((carousel) {
+                          return EbookPageCarouselSection(
+                            carouselData: carousel,
+                            onEbookTap: (ebook) => _openEbook(context, ebook),
+                            isSubscribed: isSubscribed,
+                            showAdForFreeBooks: true, // Set based on your logic
+                          );
+                        }).toList(),
+
+                      premiumPlaylistBanner(
+                        context: context,
+                          onTap: () {
+                            goto(
+                              context,
+                              EbookAllPage(
+                                allEbookData: state.allEbookItems,
+                              ),
+                            );
+                          }
+                      ),
+
+                      SizedBox(height: 120,),
                     ],
                   ),
                 ),
@@ -201,6 +226,36 @@ class _EbookPageState extends State<EbookPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget premiumPlaylistBanner({
+    required BuildContext context,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        height: 150,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          //color: const Color(0xFFE6F59D), // fallback color
+        ),
+        clipBehavior: Clip.antiAlias, // ✅ ensures rounded corners
+        child: Stack(
+          children: [
+            /// 🔹 Background Image (left aligned, no cropping)
+            Positioned.fill(
+              child: Image.asset(
+                AppVector.ebookBanner, // your asset
+                fit: BoxFit.cover, // ✅ no height/width crop
+                alignment: Alignment.centerLeft,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -319,7 +374,6 @@ class _EbookPageState extends State<EbookPage> {
               },
             ),
           ),
-          const SizedBox(height: 120),
         ],
       ),
     );

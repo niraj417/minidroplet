@@ -70,7 +70,7 @@ class _VideoPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Recipe Hub'),
+      appBar: CustomAppBar(title: 'Recipe Hub',subtitle: 'Age-appropriate, parent-approved recipes',),
       body: BlocBuilder<VideoPageCubit, VideoPageState>(
         builder: (context, state) {
           final hasPremium = isSubscribed || state.subscribed;
@@ -95,7 +95,7 @@ class _VideoPageContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   _buildCarousel(state, context, hasPremium),
-                  const SizedBox(height: 10),
+                  ///const SizedBox(height: 10),
                   _ageGroup(context),
                   _ingredientCategory(context),
                   const SizedBox(height: 10),
@@ -144,16 +144,16 @@ class _VideoPageContent extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                child: Text(
-                  'Age-appropriate, parent-approved recipes',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
+              // const Padding(
+              //   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              //   child: Text(
+              //     'Age-appropriate, parent-approved recipes',
+              //     style: TextStyle(
+              //       fontWeight: FontWeight.w500,
+              //       fontSize: 16,
+              //     ),
+              //   ),
+              // ),
               SizedBox(
                 height: 60,
                 child: ListView.builder(

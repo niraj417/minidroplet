@@ -10,19 +10,40 @@ import '../../../features/presentation/pages/my_account/profile_bloc/profile_sta
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  String? subtitle;
 
-  const CustomAppBar({super.key, required this.title});
+  CustomAppBar({super.key, required this.title,this.subtitle});
 
   @override
   Widget build(BuildContext context) {
 
     return AppBar(
-      title: Text(
+      title: subtitle == null ?
+        Text(
         title,
         style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
+      ) : Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            subtitle!,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.normal,
+            ),
+          )
+        ],
       ),
       actions: [
         IconButton(

@@ -170,7 +170,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                 context.read<FeedBloc>().refreshFeed();
                 context.read<FeedActivityCubit>().fetchFeedActivityData();
                 context.read<ProfileCompletionCubit>().getProfileCompletion();
-                context.read<HomepageCarouselCubit>().fetchHomepageCarousels();
+                //context.read<HomepageCarouselCubit>().fetchHomepageCarousels();
               },
               child: SingleChildScrollView(
                 child: Column(
@@ -193,7 +193,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                             // }
                           },
                           child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: CustomImage(
@@ -220,16 +220,16 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Align(
-                            alignment: AlignmentDirectional.topStart,
-                            child: Text(
-                              'For Your Baby',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
+                          // Align(
+                          //   alignment: AlignmentDirectional.topStart,
+                          //   child: Text(
+                          //     'For Your Baby',
+                          //     style: TextStyle(
+                          //       fontWeight: FontWeight.bold,
+                          //       fontSize: 20,
+                          //     ),
+                          //   ),
+                          // ),
                           //BannerAdWidget(),
                           ActivityGridWidget(),
                         ],
@@ -237,8 +237,14 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                     ),
                     if (state.playlistData != null && state.playlistData!.isNotEmpty)
                       premiumPlaylistBanner(
-                        context,
-                        state.playlistData!,
+                        onTap: () {
+                          goto(
+                            context,
+                            RecipeAllPlaylistPage(
+                              recipeAllPlaylistList: state.playlistData!,
+                            ),
+                          );
+                        }, context: context,
                       ),
                     BlocProvider(
                       create: (_) =>
@@ -274,11 +280,13 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                     const SizedBox(height: 10,),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: BlocProvider(
-                        create: (_) => HomepageCarouselCubit()..fetchHomepageCarousels(),
-                        child: HomepageCarouselWidget(),
+                      child:  HomepageCarouselWidget(
+                        carousels: state.homepageCarousels ?? [],
+                        isLoading: state.isHomepageCarouselLoading,
+                        error: state.error,
                       ),
                     ),
+
                     if(shouldShowTrialBanner)
                       trialStatusBanner(
                         onTap: () {
@@ -993,32 +1001,102 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
         ),
       );
     }
-    Widget premiumPlaylistBanner(
-        BuildContext context,
-        List<RecipeAllPlaylistDataModel> playlists,
-        ) {
-      return InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          goto(
-            context,
-            RecipeAllPlaylistPage(
-              recipeAllPlaylistList: playlists,
+    Widget premiumPlaylistBanner({
+      required BuildContext context,
+      required VoidCallback onTap,
+    }) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        height: 170,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          //color: const Color(0xFFE6F59D), // fallback color
+        ),
+        clipBehavior: Clip.antiAlias, // ✅ ensures rounded corners
+        child: Stack(
+          children: [
+            /// 🔹 Background Image (left aligned, no cropping)
+            Positioned.fill(
+              child: Image.asset(
+                AppVector.homepageBanner, // your asset
+                fit: BoxFit.cover, // ✅ no height/width crop
+                alignment: Alignment.centerLeft,
+              ),
             ),
-          );
-        },
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          height: 150,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.asset(
-              AppVector.homepageBanner,
-              fit: BoxFit.contain, // ✅ NO CROPPING, NO STRETCHING
-              width: double.infinity,
-              height: double.infinity,
+
+            /// 🔹 Text + Button Overlay
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(150, 20, 10, 0),
+                  child: Text(
+                    'Grow Healthy, Grow Smart\nwith Premium Super Foods',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(161, 0, 6,0),
+                  child: Text(
+                    'Nourish your little ones with our premium super food recipes designed for optimal growth and health.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 9,
+                      color: Colors.black87,
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                /// 🔘 Button
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(220, 0, 10, 0),
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7A7F23),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Discover',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
+          ],
         ),
       );
     }

@@ -6,12 +6,15 @@ import '../../../../../../core/services/payment_service.dart';
 import '../../../../../../core/utils/common_methods.dart';
 import '../../model/all_ebook_model.dart';
 import '../../model/ebook_slider_model.dart';
+import '../../model/ebook_page_carousel_model.dart'; // ADD THIS IMPORT
 import 'ebook_event.dart';
 import 'ebook_state.dart';
+
 class EbookBloc extends Bloc<EbookEvent, EbookState> {
   EbookBloc() : super(EbookInitial()) {
     on<FetchEbookCarouselData>(_onFetchEbookCarouselData);
     on<FetchAllEbookData>(_onFetchAllEbookData);
+    on<FetchEbookPageCarouselsData>(_onFetchEbookPageCarouselsData);
     on<FetchRecentlyViewedEbookData>(_onFetchRecentlyEbook);
     on<RefreshEbookData>(_onRefreshEbookData);
   }
@@ -31,24 +34,68 @@ class EbookBloc extends Bloc<EbookEvent, EbookState> {
           ebookItems: data.data,
           allEbookItems: state.allEbookItems,
           recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: state.ebookPageCarousels, // ADD THIS
           isCarouselLoading: false,
           isAllEbookLoading: state.isAllEbookLoading,
           recentlyViewedItemLoading: state.recentlyViewedItemLoading,
+          isPageCarouselsLoading: state.isPageCarouselsLoading, // ADD THIS
         ));
       } else {
         emit(EbookLoaded(
           ebookItems: state.ebookItems,
           allEbookItems: state.allEbookItems,
           recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: state.ebookPageCarousels, // ADD THIS
           isCarouselLoading: false,
           isAllEbookLoading: state.isAllEbookLoading,
           recentlyViewedItemLoading: state.recentlyViewedItemLoading,
+          isPageCarouselsLoading: state.isPageCarouselsLoading, // ADD THIS
         ));
         print('Failed to load carousel data: ${response.data['message']}');
       }
     } catch (e) {
       emit(state);
       print('Error fetching carousel data: $e');
+    }
+  }
+
+  Future<void> _onFetchEbookPageCarouselsData(
+      FetchEbookPageCarouselsData event,
+      Emitter<EbookState> emit,
+      ) async {
+    try {
+      final response = await dioClient.sendGetRequest(ApiEndpoints.ebookPageCarousels);
+
+      if (response.data['status'] == 1) {
+        final data = EbookPageCarouselModel.fromJson(response.data);
+        CommonMethods.devLog(logName: 'Ebook Page Carousels', message: data.data);
+
+        emit(EbookLoaded(
+          ebookItems: state.ebookItems,
+          allEbookItems: state.allEbookItems,
+          recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: data.data,
+          isCarouselLoading: state.isCarouselLoading,
+          isAllEbookLoading: state.isAllEbookLoading,
+          recentlyViewedItemLoading: state.recentlyViewedItemLoading,
+          isPageCarouselsLoading: false,
+        ));
+      } else {
+        emit(EbookLoaded(
+          ebookItems: state.ebookItems,
+          allEbookItems: state.allEbookItems,
+          recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: state.ebookPageCarousels,
+          isCarouselLoading: state.isCarouselLoading,
+          isAllEbookLoading: state.isAllEbookLoading,
+          recentlyViewedItemLoading: state.recentlyViewedItemLoading,
+          isPageCarouselsLoading: false,
+        ));
+        print('Failed to load page carousels: ${response.data['message']}');
+      }
+    } catch (e) {
+      emit(state);
+      print('Error fetching page carousels: $e');
     }
   }
 
@@ -67,18 +114,22 @@ class EbookBloc extends Bloc<EbookEvent, EbookState> {
           ebookItems: state.ebookItems,
           allEbookItems: data.data,
           recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: state.ebookPageCarousels, // ADD THIS
           isCarouselLoading: state.isCarouselLoading,
           isAllEbookLoading: false,
           recentlyViewedItemLoading: state.recentlyViewedItemLoading,
+          isPageCarouselsLoading: state.isPageCarouselsLoading, // ADD THIS
         ));
       } else {
         emit(EbookLoaded(
           ebookItems: state.ebookItems,
           allEbookItems: state.allEbookItems,
           recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: state.ebookPageCarousels, // ADD THIS
           isCarouselLoading: state.isCarouselLoading,
           isAllEbookLoading: false,
           recentlyViewedItemLoading: state.recentlyViewedItemLoading,
+          isPageCarouselsLoading: state.isPageCarouselsLoading, // ADD THIS
         ));
         print('Failed to load all ebooks: ${response.data['message']}');
       }
@@ -103,18 +154,22 @@ class EbookBloc extends Bloc<EbookEvent, EbookState> {
           ebookItems: state.ebookItems,
           allEbookItems: state.allEbookItems,
           recentlyViewedItem: data.data,
+          ebookPageCarousels: state.ebookPageCarousels, // ADD THIS
           isCarouselLoading: state.isCarouselLoading,
           isAllEbookLoading: state.isAllEbookLoading,
           recentlyViewedItemLoading: false,
+          isPageCarouselsLoading: state.isPageCarouselsLoading, // ADD THIS
         ));
       } else {
         emit(EbookLoaded(
           ebookItems: state.ebookItems,
           allEbookItems: state.allEbookItems,
           recentlyViewedItem: state.recentlyViewedItem,
+          ebookPageCarousels: state.ebookPageCarousels, // ADD THIS
           isCarouselLoading: state.isCarouselLoading,
           isAllEbookLoading: state.isAllEbookLoading,
           recentlyViewedItemLoading: false,
+          isPageCarouselsLoading: state.isPageCarouselsLoading, // ADD THIS
         ));
         print('Failed to load recent ebooks: ${response.data['message']}');
       }
@@ -131,5 +186,6 @@ class EbookBloc extends Bloc<EbookEvent, EbookState> {
     add(FetchEbookCarouselData());
     add(FetchAllEbookData());
     add(FetchRecentlyViewedEbookData());
+    add(FetchEbookPageCarouselsData());
   }
 }

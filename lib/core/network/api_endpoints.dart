@@ -148,6 +148,8 @@ class ApiEndpoints {
         static const String reportContentUrl =
       '${ApiEndpoints.serverURL}/report_content';
 
+  static const String ebookPageCarousels = "${ApiEndpoints.serverURL}/ebook-page-carousels";
+
   static const String removeAdsPrice = '$serverURL/remove_ads_price';
   static const String removeAdsPayment = '$serverURL/remove_ads_payment';
   static const String checkUserRemovedAds = '$serverURL/check_user_removed_ads';

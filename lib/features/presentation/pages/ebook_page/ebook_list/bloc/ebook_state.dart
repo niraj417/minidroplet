@@ -7,3 +7,5 @@ class FetchAllEbookData extends EbookEvent {}
 class FetchRecentlyViewedEbookData extends EbookEvent {}
 
 class RefreshEbookData extends EbookEvent {}
+
+class FetchEbookPageCarouselsData extends EbookEvent {}

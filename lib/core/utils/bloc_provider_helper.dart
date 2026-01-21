@@ -38,7 +38,8 @@ class BlocProviderHelper extends StatelessWidget {
                   FeedBloc()
                     ..add(FeedCarouselData())
                     ..add(FeedPostData())
-                    ..add(FeedPlaylistData()),
+                    ..add(FeedPlaylistData())
+                    ..add(FeedHomepageCarouselData()),
         ),
         BlocProvider(
           create:
@@ -46,7 +47,8 @@ class BlocProviderHelper extends StatelessWidget {
                   EbookBloc()
                     ..add(FetchEbookCarouselData())
                     ..add(FetchAllEbookData())
-                    ..add(FetchRecentlyViewedEbookData()),
+                    ..add(FetchRecentlyViewedEbookData())
+                    ..add(FetchEbookPageCarouselsData()),
         ),
         BlocProvider(create: (context) => SearchEbookBloc()),
 

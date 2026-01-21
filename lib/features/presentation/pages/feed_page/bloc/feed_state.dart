@@ -5,6 +5,8 @@ sealed class FeedState {
   final List<FeedSliderDataModel>? carouselData;
   final List<FeedPostDataModel>? postData;
   final List<RecipeAllPlaylistDataModel>? playlistData;
+  final List<HomepageCarouselDataModel>? homepageCarousels;
+  final bool isHomepageCarouselLoading;
   final bool isCarouselLoading;
   final bool isPostLoading;
   final bool isLikeLoading;
@@ -16,6 +18,8 @@ sealed class FeedState {
     this.carouselData,
     this.postData,
     this.playlistData,
+    this.homepageCarousels,
+    this.isHomepageCarouselLoading = false,
     this.isCarouselLoading = false,
     this.isPostLoading = false,
     this.isLikeLoading = false,
@@ -29,6 +33,8 @@ sealed class FeedState {
     List<FeedSliderDataModel>? carouselData,
     List<FeedPostDataModel>? postData,
     List<RecipeAllPlaylistDataModel>? playlistData,
+    List<HomepageCarouselDataModel>? homepageCarousels,
+    bool? isHomepageCarouselLoading,
     bool? isCarouselLoading,
     bool? isPostLoading,
     bool? isLikeLoading,
@@ -41,6 +47,7 @@ sealed class FeedState {
         carouselData: carouselData ?? this.carouselData!,
         postData: postData ?? this.postData!,
         playlistData: playlistData ?? this.playlistData,
+        homepageCarousels: homepageCarousels ?? this.homepageCarousels,
         localComments: localComments ?? this.localComments,
         localReplies: localReplies ?? this.localReplies,
       );
@@ -50,6 +57,9 @@ sealed class FeedState {
       carouselData: carouselData ?? this.carouselData,
       postData: postData ?? this.postData,
       playlistData: playlistData ?? this.playlistData,
+      homepageCarousels: homepageCarousels ?? this.homepageCarousels,
+      isHomepageCarouselLoading:
+      isHomepageCarouselLoading ?? this.isHomepageCarouselLoading,
       isCarouselLoading: isCarouselLoading ?? this.isCarouselLoading,
       isPostLoading: isPostLoading ?? this.isPostLoading,
       isLikeLoading: isLikeLoading ?? this.isLikeLoading,
@@ -69,6 +79,8 @@ class FeedLoading extends FeedState {
     super.carouselData,
     super.postData,
     super.playlistData,
+    super.homepageCarousels,
+    super.isHomepageCarouselLoading,
     super.isCarouselLoading,
     super.isPostLoading,
     super.isLikeLoading,
@@ -77,11 +89,13 @@ class FeedLoading extends FeedState {
   });
 }
 
+
 class FeedLoaded extends FeedState {
   const FeedLoaded({
     required List<FeedSliderDataModel> carouselData,
     required List<FeedPostDataModel> postData,
     super.playlistData,
+    super.homepageCarousels,
     super.localComments,
     super.localReplies,
   }) : super(

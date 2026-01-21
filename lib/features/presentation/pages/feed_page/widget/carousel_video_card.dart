@@ -137,7 +137,7 @@ class CarouselVideoCard extends StatelessWidget {
         ),
 
         /// 🔒 LOCKED tag (paid + no access)
-        if (video.priceType != 'free' && !hasAccess)
+        if (hasAccess)
           Positioned(
             top: 8,
             right: 8,

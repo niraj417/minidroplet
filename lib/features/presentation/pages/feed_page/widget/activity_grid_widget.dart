@@ -43,18 +43,18 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
           final int crossAxisCount = 4;
           final int rows = (itemCount / crossAxisCount).ceil();
 
-          final double calculatedHeight = (rows * 100) + 20;
+          final double calculatedHeight = (rows * 100) + 10;
 
           return Container(
             height: calculatedHeight,
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: false,
               itemCount: state.feedActivityDataList.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                mainAxisSpacing: 12.0,
+                mainAxisSpacing: 8.0,
                 crossAxisSpacing: 8.0,
                 mainAxisExtent: 100,
               ),

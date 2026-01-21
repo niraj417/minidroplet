@@ -1,60 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_color.dart';
 import '../bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
 import 'carousel_video_card.dart';
 
 class HomepageCarouselWidget extends StatelessWidget {
-  const HomepageCarouselWidget({super.key});
+  final List<HomepageCarouselDataModel> carousels;
+  final bool isLoading;
+  final String? error;
+
+  const HomepageCarouselWidget({
+    super.key,
+    required this.carousels,
+    this.isLoading = false,
+    this.error,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomepageCarouselCubit, HomepageCarouselState>(
-      builder: (context, state) {
-        // --------------------
-        // LOADING STATE
-        // --------------------
-        if (state is HomepageCarouselLoading) {
-          return _buildLoadingShimmer();
-        }
+    // --------------------
+    // LOADING STATE
+    // --------------------
+    if (isLoading) {
+      return _buildLoadingShimmer();
+    }
 
-        // --------------------
-        // ERROR STATE
-        // --------------------
-        if (state is HomepageCarouselError) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Center(
-              child: Text(
-                "Failed to load carousels",
-                style: TextStyle(color: Colors.grey.shade600),
-              ),
-            ),
-          );
-        }
+    // --------------------
+    // ERROR STATE
+    // --------------------
+    if (error != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Text(
+            "Failed to load carousels",
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+        ),
+      );
+    }
 
-        // --------------------
-        // SUCCESS STATE
-        // --------------------
-        if (state is HomepageCarouselLoaded) {
-          if (state.carousels.isEmpty) {
-            return const SizedBox.shrink();
-          }
+    // --------------------
+    // EMPTY STATE
+    // --------------------
+    if (carousels.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-          return Column(
-            children: List.generate(
-              state.carousels.length,
-                  (i) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: _buildSingleCarousel(context, state.carousels[i]),
-              ),
-            ),
-          );
-        }
-
-        // Fallback UI
-        return const SizedBox.shrink();
-      },
+    // --------------------
+    // SUCCESS STATE
+    // --------------------
+    return Column(
+      children: List.generate(
+        carousels.length,
+            (index) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: _buildSingleCarousel(
+            context,
+            carousels[index],
+          ),
+        ),
+      ),
     );
   }
 
@@ -102,7 +107,7 @@ class HomepageCarouselWidget extends StatelessWidget {
         SizedBox(
           height: 170,
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             scrollDirection: Axis.horizontal,
             itemCount: carousel.videos.length,
             itemBuilder: (context, index) {
@@ -138,6 +143,7 @@ class HomepageCarouselWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
+
               const SizedBox(height: 10),
 
               SizedBox(

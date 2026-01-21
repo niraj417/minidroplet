@@ -5,6 +5,7 @@ import '../../../../../core/constant/app_export.dart';
 import '../../video_page/model/recipe_all_playlist_model.dart';
 import '../model/feed_post_model.dart';
 import '../model/feed_slider_model.dart';
+import 'homepage_carousel_bloc/homepage_carousel_bloc.dart';
 part 'feed_event.dart';
 part 'feed_state.dart';
 
@@ -15,6 +16,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<FeedCarouselData>(_onFeedCarouselData);
     on<FeedPostData>(_onFeedPostData);
     on<FeedPlaylistData>(_onFeedPlaylistData);
+    on<FeedHomepageCarouselData>(_onFeedHomepageCarouselData);
     on<FeedLikeData>(_onFeedLikeData);
     on<FeedPostCommentData>(_onFeedAddComment);
     on<FeedPostReplyCommentData>(_onFeedAddReplyComment);
@@ -126,6 +128,38 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     }
   }
 
+  Future<void> _onFeedHomepageCarouselData(
+      FeedHomepageCarouselData event,
+      Emitter<FeedState> emit,
+      ) async {
+    emit(state.copyWith(
+      isHomepageCarouselLoading: true,
+    ));
+
+    try {
+      final response =
+      await dioClient.sendGetRequest(ApiEndpoints.homepageCarousels);
+
+      if (response.data['status'] == 1) {
+        final model = HomepageCarouselModel.fromJson(response.data);
+
+        emit(state.copyWith(
+          homepageCarousels: model.data,
+          isHomepageCarouselLoading: false,
+        ));
+      } else {
+        emit(state.copyWith(
+          isHomepageCarouselLoading: false,
+          error: 'Invalid homepage carousel response',
+        ));
+      }
+    } catch (e) {
+      emit(state.copyWith(
+        isHomepageCarouselLoading: false,
+        error: e.toString(),
+      ));
+    }
+  }
 
   Future<void> _onFeedLikeData(
       FeedLikeData event, Emitter<FeedState> emit) async {
@@ -489,6 +523,7 @@ void refreshFeed() {
     add(FeedPostData());
     add(FeedPlaylistData());
     add(FeedCarouselData());
+    add(FeedHomepageCarouselData());
   }
 }
 
