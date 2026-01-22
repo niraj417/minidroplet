@@ -188,10 +188,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               darkTheme: ThemeManager.darkTheme.copyWith(
                 primaryColor: Color(AppColor.primaryColor),
               ),
-              home: const Scaffold(
-                // body: ForgetPassPage(),
-                body: LauncherPage(),
-              ),
+              home: LauncherPage(),
               // home: NewOnboardingPage(),
               // home: SizedBox.shrink(),
               // home: LetsGetStartedPage(),

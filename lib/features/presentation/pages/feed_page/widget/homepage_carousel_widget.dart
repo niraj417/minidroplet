@@ -40,9 +40,16 @@ class HomepageCarouselWidget extends StatelessWidget {
     }
 
     // --------------------
+    // FILTER EMPTY CAROUSELS
+    // --------------------
+    final visibleCarousels = carousels
+        .where((carousel) => carousel.videos.isNotEmpty)
+        .toList();
+
+    // --------------------
     // EMPTY STATE
     // --------------------
-    if (carousels.isEmpty) {
+    if (visibleCarousels.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -51,12 +58,12 @@ class HomepageCarouselWidget extends StatelessWidget {
     // --------------------
     return Column(
       children: List.generate(
-        carousels.length,
+        visibleCarousels.length,
             (index) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: _buildSingleCarousel(
             context,
-            carousels[index],
+            visibleCarousels[index],
           ),
         ),
       ),

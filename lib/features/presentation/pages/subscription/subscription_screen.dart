@@ -17,7 +17,8 @@ import 'model/subscription_plan_model.dart';
 enum LoadingType { trial, purchase }
 
 class SubscriptionPage extends StatefulWidget {
-  const SubscriptionPage({super.key});
+  final bool fromLogin;
+  SubscriptionPage({super.key, this.fromLogin = false});
 
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
@@ -187,7 +188,18 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   void _goToDashboard() {
-    gotoRemoveAll(context, const Dashboard());
+    final navigator = Navigator.of(context);
+
+    if (navigator.canPop()) {
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const Dashboard()),
+            (_) => false,
+      );
+    } else {
+      navigator.pushReplacement(
+        MaterialPageRoute(builder: (_) => const Dashboard()),
+      );
+    }
   }
 
   // --------------------------------------------------
@@ -316,7 +328,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 size: 22,
               ),
               onPressed: () {
-                Navigator.pop(context); // or your custom navigation
+                _goToDashboard(); // or your custom navigation
               },
             ),
           ),

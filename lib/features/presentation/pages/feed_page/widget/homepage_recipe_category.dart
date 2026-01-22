@@ -83,7 +83,7 @@ class _HomepageRecipeCategoryState
                       padding: EdgeInsets.only(
                         right: index <
                             state.categories.length - 1
-                            ? 16
+                            ? 8
                             : 0,
                       ),
                       child: Column(

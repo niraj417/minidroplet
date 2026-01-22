@@ -10,6 +10,8 @@ import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../core/constant/app_export.dart';
 import '../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import '../../../../core/services/sharing_handler.dart';
+import '../../../../core/utils/shared_pref.dart';
+import '../../../../core/services/subscription_service.dart';
 import 'bloc/recipe_playlist_bloc/recipe_playlist_bloc.dart';
 import 'bloc/recipe_playlist_bloc/recipe_playlist_state.dart';
 
@@ -23,22 +25,35 @@ class RecipePlaylistScreen extends StatefulWidget {
 
 class _RecipePlaylistScreenState extends State<RecipePlaylistScreen> {
   final DioClient _dioClient = DioClient();
+
   String? _isSaved;
   String? title;
   String? description;
 
+  // ---------------------------------------------------------
+  // PREMIUM ACCESS (subscription OR trial)
+  // ---------------------------------------------------------
+  Future<bool> _hasPremiumAccess() async {
+    final loginData = SharedPref.getLoginData();
+    if (loginData?.data?.subscription == null) return false;
+
+    final sub = loginData!.data!.subscription!;
+    print(" Video Access ${sub.isActive}, ${sub.isTrial}");
+    return sub.isActive == 1 || sub.isTrial == 1;
+  }
+
+  // ---------------------------------------------------------
+  // SAVE PLAYLIST
+  // ---------------------------------------------------------
   Future<void> _savePlaylist() async {
     try {
       final response = await _dioClient.sendPostRequest(
         ApiEndpoints.savePlaylist,
         {"playlist_id": widget.playlistId},
       );
-      if (response.data['status'] == 1) {
-        debugPrint('Playlist res $response');
 
-        setState(() {
-          _isSaved = '1';
-        });
+      if (response.data['status'] == 1) {
+        setState(() => _isSaved = '1');
         if (mounted) {
           CommonMethods.showSnackBar(context, 'Playlist saved');
         }
@@ -46,27 +61,24 @@ class _RecipePlaylistScreenState extends State<RecipePlaylistScreen> {
         if (mounted) {
           CommonMethods.showSnackBar(context, 'Failed to save playlist');
         }
-        debugPrint('Failed to load data: ${response.data['message']}');
       }
     } catch (e) {
       if (mounted) {
         CommonMethods.showSnackBar(context, e.toString());
       }
-      debugPrint('Error fetching ebook review: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (context) =>
-              RecipePlaylistCubit(DioClient())..loadPlaylist(widget.playlistId),
+      create: (_) =>
+      RecipePlaylistCubit(DioClient())..loadPlaylist(widget.playlistId),
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: true,
-          surfaceTintColor: Colors.transparent,
           backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           actions: [
             IconButton(
               icon: const Icon(CupertinoIcons.share_up),
@@ -89,9 +101,7 @@ class _RecipePlaylistScreenState extends State<RecipePlaylistScreen> {
                 if (_isSaved == '0') {
                   await _savePlaylist();
                 } else {
-                  if (mounted) {
-                    CommonMethods.showSnackBar(context, 'Already saved');
-                  }
+                  CommonMethods.showSnackBar(context, 'Already saved');
                 }
               },
             ),
@@ -110,63 +120,76 @@ class _RecipePlaylistScreenState extends State<RecipePlaylistScreen> {
             if (state is RecipePlaylistLoaded) {
               title = state.title ?? '';
               description = state.description ?? '';
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    PlaylistPaletteCard(
-                      imagePath: state.thumbnail,
-                      onPressed: () {},
-                      title: state.title,
-                      description: state.description,
-                      totalVideos: '${state.playlistVideos.length}',
-                      totalLength: '1200',
-                    ),
-                    const SizedBox(height: 15),
-                    ListView.builder(
-                      itemCount: state.playlistVideos.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        final video = state.playlistVideos[index];
-                        final isFree = video.priceType == 'free';
 
-                        final childWidget = Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: RecipePlaylistCard(playlistVideo: video),
-                        );
+              return FutureBuilder<bool>(
+                future: _hasPremiumAccess(),
+                builder: (context, snapshot) {
+                  final bool hasPremium = snapshot.data ?? false;
 
-                        return isFree
-                            ? InterstitialAdWidget(
-                              onAdClosed: () {
-                                if(SharedPref.isGuestUser()){
-                                  GuestRestrictionDialog.show(context);
-                                  return;
-                                }
-                                // _navigateToPlaylistVideoDestination(context, video);
-                                goto(
-                                  context,
-                                  RecipeDetailScreen(
-                                    videoId: video.id.toString() ?? '',
-                                  ),
-                                );
-                              },
-                              child: childWidget,
-                            )
-                            : InkWell(
-                              onTap: () {
-                                _navigateToPlaylistVideoDestination(
-                                  context,
-                                  video,
-                                );
-                              },
-                              child: childWidget,
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        PlaylistPaletteCard(
+                          imagePath: state.thumbnail,
+                          onPressed: () {},
+                          title: state.title,
+                          description: state.description,
+                          totalVideos: '${state.playlistVideos.length}',
+                          totalLength: '1200',
+                        ),
+                        const SizedBox(height: 15),
+
+                        ListView.builder(
+                          itemCount: state.playlistVideos.length,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final video = state.playlistVideos[index];
+                            final bool isFree = video.priceType == 'free';
+
+                            final Widget card = Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: RecipePlaylistCard(
+                                playlistVideo: video,
+                              ),
                             );
-                      },
+
+                            // 🔕 Ads only for free videos & no premium
+                            if (isFree && !hasPremium) {
+                              return InterstitialAdWidget(
+                                onAdClosed: () {
+                                  if (SharedPref.isGuestUser()) {
+                                    GuestRestrictionDialog.show(context);
+                                    return;
+                                  }
+                                  goto(
+                                    context,
+                                    RecipeDetailScreen(
+                                      videoId: video.id.toString(),
+                                    ),
+                                  );
+                                },
+                                child: card,
+                              );
+                            }
+
+                            return InkWell(
+                              onTap: () => _navigate(
+                                context,
+                                video,
+                                hasPremium,
+                              ),
+                              child: card,
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               );
             }
+
             return const SizedBox.shrink();
           },
         ),
@@ -174,12 +197,14 @@ class _RecipePlaylistScreenState extends State<RecipePlaylistScreen> {
     );
   }
 
-  void _navigateToPlaylistVideoDestination(
-    BuildContext context,
-    dynamic video,
-  ) {
-    if (video.isBuy == '0') {
-      debugPrint('Navigating to VideoCheckoutPage');
+  // ---------------------------------------------------------
+  // NAVIGATION DECISION (CORRECT & CONSISTENT)
+  // ---------------------------------------------------------
+  void _navigate(BuildContext context, dynamic video, bool hasPremium) {
+    final bool isPaid = video.priceType != 'free';
+
+    // ❌ Paid + no access → checkout
+    if (isPaid && !hasPremium) {
       goto(
         context,
         VideoCheckoutPage(
@@ -190,9 +215,15 @@ class _RecipePlaylistScreenState extends State<RecipePlaylistScreen> {
           mainPrice: video.mainPrice ?? '',
         ),
       );
-    } else {
-      debugPrint('Navigating to RecipeDetailScreen');
-      goto(context, RecipeDetailScreen(videoId: video.id?.toString() ?? ''));
+      return;
     }
+
+    // ✅ Free OR premium OR purchased
+    goto(
+      context,
+      RecipeDetailScreen(
+        videoId: video.id.toString(),
+      ),
+    );
   }
 }

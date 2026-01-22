@@ -175,7 +175,7 @@ class _EbookPageState extends State<EbookPage> {
                       if (state.recentlyViewedItem.isEmpty)
                         Padding(
                           padding:
-                          const EdgeInsets.symmetric(vertical: 18),
+                          const EdgeInsets.symmetric(vertical: 10),
                           child: AppButton(
                             onPressed: () {
                               goto(
@@ -389,7 +389,7 @@ class _EbookPageState extends State<EbookPage> {
         Text(
           title,
           style:
-          const TextStyle(fontWeight: FontWeight.w400, fontSize: 17),
+          const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
         TextButton(
           onPressed: onViewAll,

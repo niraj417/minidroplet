@@ -120,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
         if(loginData.data!.subscription != null && (loginData.data!.subscription!.isActive == 1)) {
           gotoRemoveAll(context, Dashboard());
         } else {
-          gotoRemoveAll(context, SubscriptionPage());
+          gotoRemoveAll(context, SubscriptionPage(fromLogin: true,));
         }
       }
     } catch (e) {
@@ -181,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
           if(name == "guest@tinydroplets.com"){
             gotoRemoveAll(context, Dashboard());
           } else {
-            gotoRemoveAll(context, SubscriptionPage());
+            gotoRemoveAll(context, SubscriptionPage(fromLogin: true,));
           }
         }
       } else {

@@ -54,6 +54,7 @@ class CarouselVideoCard extends StatelessWidget {
       future: _hasPremiumAccess(),
       builder: (context, snapshot) {
         final bool hasAccess = snapshot.data ?? false;
+        print("has Access ${hasAccess}");
 
         final Widget card = GestureDetector(
           onTap: () => _onTap(context, hasAccess),
@@ -137,7 +138,7 @@ class CarouselVideoCard extends StatelessWidget {
         ),
 
         /// 🔒 LOCKED tag (paid + no access)
-        if (hasAccess)
+        if (!hasAccess)
           Positioned(
             top: 8,
             right: 8,
@@ -169,7 +170,7 @@ class CarouselVideoCard extends StatelessWidget {
     final bool isPaid = video.priceType != 'free';
 
     /// ❌ Paid video + no access → checkout ONLY
-    if (isPaid && !hasAccess) {
+    if (!hasAccess) {
       goto(
         context,
         VideoCheckoutPage(

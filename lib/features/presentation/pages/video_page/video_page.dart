@@ -37,14 +37,29 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
-  bool isSubscribed = false;
 
   @override
   void initState() {
     super.initState();
     context.read<AgeGroupCubit>().fetchAgeGroup();
-    isSubscribed =
+  }
+
+  /// 🔐 SINGLE SOURCE OF TRUTH
+  bool _hasPremiumAccess(VideoPageState state) {
+    final loginData = SharedPref.getLoginData();
+    final subscription = loginData?.data?.subscription;
+
+    final bool isSubscribed =
         SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
+
+    final bool hasActiveSub = subscription?.isActive == 1;
+    final bool hasTrial = subscription?.isTrial == 1;
+
+    return isSubscribed || state.subscribed || hasActiveSub || hasTrial;
+  }
+
+  bool _shouldShowAd(String priceType, bool hasPremium) {
+    return priceType == 'free' && !hasPremium;
   }
 
   @override
@@ -54,69 +69,57 @@ class _VideoPageState extends State<VideoPage> {
         BlocProvider(create: (_) => VideoPageCubit()),
         BlocProvider(create: (_) => IngredientCategoryCubit(dioClient)),
       ],
-      child: _VideoPageContent(isSubscribed),
-    );
-  }
-}
+      child: Scaffold(
+        appBar: CustomAppBar(
+          title: 'Recipe Hub',
+          subtitle: 'Age-appropriate, parent-approved recipes',
+        ),
+        body: BlocBuilder<VideoPageCubit, VideoPageState>(
+          builder: (context, state) {
+            final bool hasPremium = _hasPremiumAccess(state);
 
-class _VideoPageContent extends StatelessWidget {
-  final bool isSubscribed;
-  const _VideoPageContent(this.isSubscribed);
-
-  bool _shouldShowAd(String priceType) {
-    return priceType == 'free' && !isSubscribed;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: 'Recipe Hub',subtitle: 'Age-appropriate, parent-approved recipes',),
-      body: BlocBuilder<VideoPageCubit, VideoPageState>(
-        builder: (context, state) {
-          final hasPremium = isSubscribed || state.subscribed;
-
-          return RefreshIndicator(
-            backgroundColor: Color(AppColor.primaryColor),
-            color: Colors.white,
-            onRefresh: () async {
-              await context.read<AgeGroupCubit>().fetchAgeGroup();
-              await context.read<VideoPageCubit>().refreshData();
-            },
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: SearchTextCard(
-                      text: 'Search, Favorite Recipe',
-                      onTap: () =>
-                          goto(context, const RecipeSearchFilterScreen()),
+            return RefreshIndicator(
+              backgroundColor: Color(AppColor.primaryColor),
+              color: Colors.white,
+              onRefresh: () async {
+                await context.read<AgeGroupCubit>().fetchAgeGroup();
+                await context.read<VideoPageCubit>().refreshData();
+              },
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: SearchTextCard(
+                        text: 'Search, Favorite Recipe',
+                        onTap: () =>
+                            goto(context, const RecipeSearchFilterScreen()),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildCarousel(state, context, hasPremium),
-                  ///const SizedBox(height: 10),
-                  _ageGroup(context),
-                  _ingredientCategory(context),
-                  const SizedBox(height: 10),
-                  _buildRecipePlaylist(state, context, hasPremium),
-                  const SizedBox(height: 10),
-                  _buildVideoCategory(state, context),
-                  const SizedBox(height: 10),
-                  _buildRecommendation(state, context, hasPremium),
-                  const SizedBox(height: 10),
-                  _buildRecipeOfTheWeek(state, context, hasPremium),
-                  const SizedBox(height: 120),
-                ],
+                    const SizedBox(height: 20),
+                    _buildCarousel(state, context, hasPremium),
+                    _ageGroup(context),
+                    _ingredientCategory(context),
+                    const SizedBox(height: 10),
+                    _buildRecipePlaylist(state, context, hasPremium),
+                    const SizedBox(height: 10),
+                    _buildVideoCategory(state, context),
+                    const SizedBox(height: 10),
+                    _buildRecommendation(state, context, hasPremium),
+                    const SizedBox(height: 10),
+                    _buildRecipeOfTheWeek(state, context, hasPremium),
+                    const SizedBox(height: 120),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
-  // ================= INGREDIENT CATEGORY (FIXED) =================
+  // ================= INGREDIENT CATEGORY =================
   Widget _ingredientCategory(BuildContext context) {
     return IngredientCategory.horizontalList(
       title: 'Starting solid',
@@ -136,88 +139,93 @@ class _VideoPageContent extends StatelessWidget {
   Widget _ageGroup(BuildContext context) {
     return BlocBuilder<AgeGroupCubit, AgeGroupState>(
       builder: (context, state) {
-        if (state is AgeGroupLoading) {
-          return Loader();
+        if (state is AgeGroupLoading) return Loader();
+        if (state is! AgeGroupLoaded || state.ageGroupList.isEmpty) {
+          return const SizedBox.shrink();
         }
 
-        if (state is AgeGroupLoaded && state.ageGroupList.isNotEmpty) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // const Padding(
-              //   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              //   child: Text(
-              //     'Age-appropriate, parent-approved recipes',
-              //     style: TextStyle(
-              //       fontWeight: FontWeight.w500,
-              //       fontSize: 16,
-              //     ),
-              //   ),
-              // ),
-              SizedBox(
-                height: 60,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: state.ageGroupList.length,
-                  itemBuilder: (context, index) {
-                    final item = state.ageGroupList[index];
+        return SizedBox(
+          height: 60,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: state.ageGroupList.length,
+            itemBuilder: (context, index) {
+              final item = state.ageGroupList[index];
+              final id = item['id']?.toString() ?? '';
+              final label =
+                  item['age_group']?.toString() ??
+                      item['name']?.toString() ??
+                      '';
 
-                    final String id = item['id']?.toString() ?? '';
-                    final String label =
-                        item['age_group']?.toString() ??
-                            item['name']?.toString() ??
-                            '';
+              if (id.isEmpty || label.isEmpty) return const SizedBox.shrink();
 
-                    if (id.isEmpty || label.isEmpty) {
-                      debugPrint('⚠️ Invalid age group data: $item');
-                      return const SizedBox.shrink();
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: GestureDetector(
-                        onTap: () {
-                          goto(
-                            context,
-                            RecipeCategoryVideoPage(
-                              id: id,
-                              categoryName: label,
-                              ageGroup: id,
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Theme.of(context).brightness ==
-                                Brightness.dark
-                                ? Colors.grey[900]
-                                : Colors.grey[200],
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            label,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: GestureDetector(
+                  onTap: () => goto(
+                    context,
+                    RecipeCategoryVideoPage(
+                      id: id,
+                      categoryName: label,
+                      ageGroup: id,
+                    ),
+                  ),
+                  child: Container(
+                    padding:
+                    const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[900]
+                          : Colors.grey[200],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(label, style: const TextStyle(fontSize: 16)),
+                  ),
                 ),
-              ),
-            ],
-          );
-        }
-
-        return const SizedBox.shrink();
+              );
+            },
+          ),
+        );
       },
     );
   }
 
+  // ================= CAROUSEL =================
+  Widget _buildCarousel(
+      VideoPageState state, BuildContext context, bool hasPremium) {
+    if (state.recipeCarouselList.isEmpty) return const SizedBox.shrink();
+
+    return CustomCarousel(
+      items: state.recipeCarouselList,
+      itemBuilder: (context, item, _) => GestureDetector(
+        onTap: () => hasPremium
+            ? goto(context, RecipeDetailScreen(videoId: item.id.toString()))
+            : goto(
+          context,
+          VideoCheckoutPage(
+            id: item.id,
+            title: item.title ?? '',
+            thumbnail: item.thumbnail ?? '',
+            amount: item.price ?? '',
+            mainPrice: item.mainPrice ?? '',
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: CustomImage(
+              imageUrl: item.image,
+              fit: BoxFit.contain,
+              width: 300,
+              height: 200,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   // ================= VIDEO CATEGORY =================
   Widget _buildVideoCategory(VideoPageState state, BuildContext context) {
@@ -274,7 +282,7 @@ class _VideoPageContent extends StatelessWidget {
     );
   }
 
-  // ================= SECTION HEADER =================
+  // ================= HEADER =================
   Widget _sectionHeader(String title, VoidCallback onViewAll) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -288,54 +296,11 @@ class _VideoPageContent extends StatelessWidget {
             'View all',
             style: TextStyle(
               color: Color(AppColor.primaryColor),
-              fontWeight: FontWeight.w400,
               fontSize: 14,
             ),
           ),
         ),
       ],
-    );
-  }
-  // =============================================================
-  Widget _buildCarousel(
-      VideoPageState state, BuildContext context, bool hasPremium) {
-    if (state.recipeCarouselList.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return CustomCarousel(
-      items: state.recipeCarouselList,
-      itemBuilder: (context, item, _) => GestureDetector(
-        onTap: () {
-          if (hasPremium) {
-            goto(context,
-                RecipeDetailScreen(videoId: item.id.toString()));
-          } else {
-            goto(
-              context,
-              VideoCheckoutPage(
-                id: item.id,
-                title: item.title ?? '',
-                thumbnail: item.thumbnail ?? '',
-                amount: item.price ?? '',
-                mainPrice: item.mainPrice ?? '',
-              ),
-            );
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CustomImage(
-              imageUrl: item.image,
-              fit: BoxFit.contain,
-              width: 300,
-              height: 200,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -378,7 +343,7 @@ class _VideoPageContent extends StatelessWidget {
                   child: RecipeCard(recipe: item),
                 );
 
-                if (_shouldShowAd(item.priceType)) {
+                if (_shouldShowAd(item.priceType,hasPremium)) {
                   return InterstitialAdWidget(
                     onAdClosed: () =>
                         _openRecommendation(context, item, hasPremium),
@@ -467,6 +432,7 @@ class _VideoPageContent extends StatelessWidget {
               state.recipeAllPlaylistList.length.clamp(0, 5),
               itemBuilder: (context, index) {
                 final item = state.recipeAllPlaylistList[index];
+                print("Has Preiumn bhelu : ${hasPremium}");
                 return Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: GestureDetector(
@@ -535,7 +501,7 @@ class _VideoPageContent extends StatelessWidget {
                   child: WeekRecipeCard(recipe: item),
                 );
 
-                if (_shouldShowAd(item.priceType)) {
+                if (_shouldShowAd(item.priceType,hasPremium)) {
                   return InterstitialAdWidget(
                     onAdClosed: () => hasPremium
                         ? goto(

@@ -13,9 +13,11 @@ import 'package:tinydroplets/features/presentation/pages/auth/sign_up_page/sign_
 import 'package:flutter/gestures.dart';
 
 import '../../../../common/widgets/loader.dart';
+import '../../../../core/utils/shared_pref_key.dart';
 import '../../../../core/utils/url_opener.dart';
 import '../auth/login_page/model/login_data_model.dart';
 import '../dashboard/dashboard.dart';
+import '../subscription/subscription_screen.dart';
 
 class DesiciveScreen extends StatefulWidget { const DesiciveScreen({super.key}); @override State<DesiciveScreen> createState() => _DesiciveScreenState(); }
 
@@ -45,8 +47,39 @@ class _DesiciveScreenState extends State<DesiciveScreen> {
       if (response.data['status'] == 1) {
         //CommonMethods.showSnackBar(context, response.data['message']);
         final loginData = LoginDataModel.fromJson(response.data);
+        final subscription = loginData.data?.subscription;
+
+        final bool hasPremiumAccess =
+            subscription != null &&
+                (
+                    subscription.isTrial == 1 ||
+                        (
+                            subscription.isActive == 1 &&
+                                subscription.expiryDate != null &&
+                                subscription.expiryDate!.isAfter(DateTime.now())
+                        )
+                );
         await SharedPref.saveLoginData(loginData);
         await SharedPref.setKeepLoggedIn(_isChecked);
+        // ✅ persist locally for instant UI
+        await SharedPref.setBool('isSubscribed', loginData.data!.subscription == null ? false : loginData.data!.subscription?.isActive == 0 ? false : true );
+        await SharedPref.setBool('isTrial', loginData.data!.subscription?.isTrial == 0 ? false : true);
+        await SharedPref.setBool('trialAvailed', loginData.data?.trialAvailed != null ? loginData.data?.trialAvailed == 0 ? false : true : false);
+        await SharedPref.setString(
+          'trialExpiry',
+          loginData.data!.subscription?.expiryDate?.toIso8601String() ?? '',
+        );
+        await SharedPref.setBool(SharedPrefKeys.hasPremiumAccess, hasPremiumAccess);
+        debugPrint("isSubscribed: ${loginData.data!.subscription?.isActive}");
+        debugPrint("isThisTrialRunning: ${loginData.data!.subscription?.isTrial}");
+        debugPrint("isTrialAvailed: ${loginData.data?.trialAvailed}");
+        debugPrint("Trial Expiry: ${loginData.data!.subscription?.expiryDate?.toIso8601String() ?? ' '}");
+
+        if(loginData.data!.subscription != null && (loginData.data!.subscription!.isActive == 1)) {
+          gotoRemoveAll(context, Dashboard());
+        } else {
+          gotoRemoveAll(context, SubscriptionPage(fromLogin: true,));
+        }
         gotoRemoveAll(context, Dashboard());
       } else {
         setState(() => _loading3 = false);

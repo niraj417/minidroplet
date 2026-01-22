@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 
 import '../../features/presentation/pages/auth/login_page/model/login_data_model.dart';
 import '../../injections/dependency_injection.dart';
@@ -102,6 +103,8 @@ class SharedPref {
     final isDarkTheme = getTheme();
     final onboardingViewed = getOnboardingViewed();
 
+    await _prefs.remove(SharedPrefKeys.hasPremiumAccess);
+    await _prefs.remove(SharedPrefKeys.isGuestUser);
     // Clear all data
     await _prefs.clear();
 

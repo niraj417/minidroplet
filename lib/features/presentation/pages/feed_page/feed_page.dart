@@ -246,6 +246,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                           );
                         }, context: context,
                       ),
+                    SizedBox(height: 5,),
                     BlocProvider(
                       create: (_) =>
                           HomepageRecipeSliderCubit(dioClient),
@@ -1006,95 +1007,103 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
       required VoidCallback onTap,
     }) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         height: 170,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          //color: const Color(0xFFE6F59D), // fallback color
         ),
-        clipBehavior: Clip.antiAlias, // ✅ ensures rounded corners
+        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            /// 🔹 Background Image (left aligned, no cropping)
+            /// 🔹 Background Image
             Positioned.fill(
               child: Image.asset(
-                AppVector.homepageBanner, // your asset
-                fit: BoxFit.cover, // ✅ no height/width crop
+                AppVector.homepageBanner,
+                fit: BoxFit.cover,
                 alignment: Alignment.centerLeft,
               ),
             ),
 
-            /// 🔹 Text + Button Overlay
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(150, 20, 10, 0),
-                  child: Text(
-                    'Grow Healthy, Grow Smart\nwith Premium Super Foods',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
+            /// 🔹 Content Overlay (Responsive)
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  /// LEFT SPACE (image focus area)
+                  const Expanded(flex: 4, child: SizedBox()),
 
-                const SizedBox(height: 8),
+                  /// RIGHT CONTENT
+                  Expanded(
+                    flex: 5,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Grow Healthy, Grow Smart\nwith Premium Super Foods',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
 
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(161, 0, 6,0),
-                  child: Text(
-                    'Nourish your little ones with our premium super food recipes designed for optimal growth and health.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 9,
-                      color: Colors.black87,
-                      height: 1.3,
-                    ),
-                  ),
-                ),
+                        const SizedBox(height: 6),
 
-                const SizedBox(height: 4),
+                        Text(
+                          'Nourish your little ones with our premium super food recipes designed for optimal growth and health.',
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            color: Colors.black87,
+                            height: 1.3,
+                          ),
+                        ),
 
-                /// 🔘 Button
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(220, 0, 10, 0),
-                  child: InkWell(
-                    onTap: onTap,
-                    borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF7A7F23),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Discover',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                        const SizedBox(height: 10),
+
+                        /// 🔘 Button
+                        InkWell(
+                          onTap: onTap,
+                          borderRadius: BorderRadius.circular(24),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF7A7F23),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Discover',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
