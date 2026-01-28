@@ -157,4 +157,56 @@ class SharedPref {
     }
     return false;
   }
+
+  static Future<void> updateLoginDataForTrial() async {
+    final loginData = SharedPref.getLoginData();
+    if (loginData == null || loginData.data == null) return;
+
+    final updatedSubscription = SubscriptionInfo(
+      isActive: 0,
+      isTrial: 1,
+      expiryDate: DateTime.now().add(const Duration(days: 7)), // or backend value
+      planId: 0,
+    );
+
+    final updatedData = loginData.data!.copyWith(
+      subscription: updatedSubscription,
+      trialAvailed: 1,
+    );
+
+    final updatedLoginData = LoginDataModel(
+      status: loginData.status,
+      message: loginData.message,
+      data: updatedData,
+    );
+
+    await SharedPref.saveLoginData(updatedLoginData);
+  }
+
+  static Future<void> updateLoginDataForSubscription({
+    required DateTime expiryDate,
+    required int planId,
+  }) async {
+    final loginData = SharedPref.getLoginData();
+    if (loginData == null || loginData.data == null) return;
+
+    final updatedSubscription = SubscriptionInfo(
+      isActive: 1,
+      isTrial: 1,
+      expiryDate: expiryDate,
+      planId: planId,
+    );
+
+    final updatedData = loginData.data!.copyWith(
+      subscription: updatedSubscription,
+    );
+
+    final updatedLoginData = LoginDataModel(
+      status: loginData.status,
+      message: loginData.message,
+      data: updatedData,
+    );
+
+    await SharedPref.saveLoginData(updatedLoginData);
+  }
 }

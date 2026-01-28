@@ -7,6 +7,7 @@ import 'package:sizer/sizer.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/dashboard/dashboard.dart';
 
+import '../../../../app_restart_widget.dart';
 import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../core/constant/app_vector.dart';
 import '../../../../core/services/subscription_service.dart';
@@ -114,7 +115,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       _loadingType = LoadingType.purchase;
     });
 
-    if (Platform.isIOS) {
+    if (!Platform.isIOS) {
       await _subscriptionService.startIosPaidSubscriptionFlow(
         selectedPlan: selectedPlan!,
         onSuccess: _onSubscriptionSuccess,
@@ -158,7 +159,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
         setState(() => _isActionLoading = false);
         CommonMethods.showSnackBar(context, msg);
-        _goToDashboard();
+        await Future.delayed(const Duration(seconds: 2));
+        //_goToDashboard();
+        AppRestartWidget.restartApp(context);
       },
       onFailure: _handleError,
     );
@@ -176,7 +179,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
     setState(() => _isActionLoading = false);
     CommonMethods.showSnackBar(context, msg);
-    _goToDashboard();
+    await Future.delayed(const Duration(seconds: 2));
+    //_goToDashboard();
+    AppRestartWidget.restartApp(context);
   }
 
   void _handleError(String err) {

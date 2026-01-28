@@ -265,16 +265,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                     const SizedBox(height: 10,),
                     exploreEbookBanner(
                       onTap: () {
-                        final ebookState = context.read<EbookBloc>().state;
-
-                        if (ebookState.allEbookItems.isEmpty) {
-                          context.read<EbookBloc>().add(FetchAllEbookData());
-                        }
-
-                        goto(
-                          context,
-                          EbookAllPage(allEbookData: ebookState.allEbookItems),
-                        );
+                        UrlOpener.launchURL("https://tinydroplets.myinstamojo.com");
                       },
                     ),
 
@@ -976,13 +967,13 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
               const SizedBox(width: 12),
 
               Text(
-                "Explore Our Ebook Collection",
+                "Access Worksheet Library",
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(width: 8,),
+              SizedBox(width: 30,),
 
               Container(
                 height: 32,

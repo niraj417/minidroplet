@@ -473,59 +473,59 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
                         ),
                     ],
                   ),
-                  Divider(height: 32, thickness: 1),
-                  _allCouponLoading
-                      ? Loader()
-                      : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Apply Coupon', style: TextStyle(fontSize: 19)),
-                          SizedBox(height: 10),
-                          SizedBox(
-                            height: 40,
-                            width: double.infinity,
-                            child: ListView.builder(
-                              itemCount: _allCouponList.length,
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: InkWell(
-                                    onTap: () async {
-                                      if (_allCouponList[index].name.isNotEmpty) {
-                                        _appliedCoupon =
-                                            _allCouponList[index].name;
-                                        await _applyCouponCode(
-                                          _appliedCoupon ?? '',
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 3,
-                                      ),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8),
-                                        color: Theme.of(context).cardColor,
-                                      ),
-                                      child: Text(
-                                        _allCouponList[index].name,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          Divider(height: 32, thickness: 1),
-                        ],
-                      ),
+                  // Divider(height: 32, thickness: 1),
+                  // _allCouponLoading
+                  //     ? Loader()
+                  //     : Column(
+                  //       crossAxisAlignment: CrossAxisAlignment.start,
+                  //       children: [
+                  //         Text('Apply Coupon', style: TextStyle(fontSize: 19)),
+                  //         SizedBox(height: 10),
+                  //         SizedBox(
+                  //           height: 40,
+                  //           width: double.infinity,
+                  //           child: ListView.builder(
+                  //             itemCount: _allCouponList.length,
+                  //             scrollDirection: Axis.horizontal,
+                  //             itemBuilder: (context, index) {
+                  //               return Padding(
+                  //                 padding: const EdgeInsets.only(right: 8.0),
+                  //                 child: InkWell(
+                  //                   onTap: () async {
+                  //                     if (_allCouponList[index].name.isNotEmpty) {
+                  //                       _appliedCoupon =
+                  //                           _allCouponList[index].name;
+                  //                       await _applyCouponCode(
+                  //                         _appliedCoupon ?? '',
+                  //                       );
+                  //                     }
+                  //                   },
+                  //                   child: Container(
+                  //                     padding: EdgeInsets.symmetric(
+                  //                       horizontal: 10,
+                  //                       vertical: 3,
+                  //                     ),
+                  //                     alignment: Alignment.center,
+                  //                     decoration: BoxDecoration(
+                  //                       borderRadius: BorderRadius.circular(8),
+                  //                       color: Theme.of(context).cardColor,
+                  //                     ),
+                  //                     child: Text(
+                  //                       _allCouponList[index].name,
+                  //                       style: TextStyle(
+                  //                         fontSize: 14,
+                  //                         fontStyle: FontStyle.italic,
+                  //                       ),
+                  //                     ),
+                  //                   ),
+                  //                 ),
+                  //               );
+                  //             },
+                  //           ),
+                  //         ),
+                  //         Divider(height: 32, thickness: 1),
+                  //       ],
+                  //     ),
             
                   // _recipeCouponList.isNotEmpty
                   //     ? Column(

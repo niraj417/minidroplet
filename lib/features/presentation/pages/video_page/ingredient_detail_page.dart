@@ -8,6 +8,7 @@ import 'package:tinydroplets/features/presentation/pages/video_page/widget/week_
 import '../../../../common/navigation/navigation_service.dart';
 import '../../../../common/widgets/custom_image.dart';
 import '../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
+import '../../../../core/services/subscription_state_manager.dart';
 import 'bloc/ingredient_detail_bloc/ingredient_detail_cubit.dart';
 import 'model/all_recipe_video_model.dart';
 import 'model/ingredient_detail_model.dart';
@@ -27,11 +28,28 @@ class IngredientDetailPage extends StatefulWidget {
 }
 
 class _IngredientDetailPageState extends State<IngredientDetailPage> {
+
+  SubscriptionStatus _subscriptionStatus = SubscriptionStatus.free;
+
+  bool get _hasPremiumAccess =>
+      SubscriptionStateManager.hasPremiumAccess(_subscriptionStatus);
+
+
   @override
   void initState() {
     super.initState();
     context.read<IngredientDetailCubit>().fetchAll(widget.ingredientId);
+    _resolveSubscription();
     // context.read<IngredientDetailCubit>().fetchAll(widget.ingredientId);
+  }
+
+  Future<void> _resolveSubscription() async {
+    final status = await SubscriptionStateManager.resolve();
+    if (mounted) {
+      setState(() {
+        _subscriptionStatus = status;
+      });
+    }
   }
 
   @override
@@ -321,49 +339,63 @@ class _IngredientDetailPageState extends State<IngredientDetailPage> {
   }
 
   Widget _buildWeekRecipeCard(
-    BuildContext context,
-    AllRecipeVideoDataModel item,
-  ) {
+      BuildContext context,
+      AllRecipeVideoDataModel item,
+      ) {
     debugPrint("🏗️ Building card for: ${item.title} (ID: ${item.id})");
 
-    final isFree = item.priceType == 'free';
-    debugPrint("💰 Price type: ${item.priceType}, isFree: $isFree");
+    final bool isUnlocked =
+        item.priceType == 'free' || _hasPremiumAccess;
+
+    debugPrint(
+      "🔐 isUnlocked: $isUnlocked | priceType: ${item.priceType} | subscription: $_subscriptionStatus",
+    );
 
     final childCard = Container(
-      width: 150, // Add explicit width
+      width: 150,
       margin: const EdgeInsets.only(right: 16.0),
-      decoration: BoxDecoration(
-        // border: Border.all(color: Colors.grey.withOpacity(0.3)), // Debug border
-      ),
       child: WeekRecipeCard(recipe: item),
     );
 
-    return isFree
-        ? InterstitialAdWidget(
-          onAdClosed: () {
-            debugPrint('🎯 Ad closed for week recipe item ${item.id}');
-            _navigateToWeekRecipeDestination(context, item);
-          },
-          child: childCard,
-        )
-        : GestureDetector(
-          onTap: () {
-            debugPrint('👆 Tapped for week recipe item ${item.id}');
-            _navigateToWeekRecipeDestination(context, item);
-          },
-          child: childCard,
-        );
+    // Keep ads ONLY for free content
+    if (item.priceType == 'free') {
+      return InterstitialAdWidget(
+        onAdClosed: () {
+          debugPrint('🎯 Ad closed for item ${item.id}');
+          _navigateToWeekRecipeDestination(context, item);
+        },
+        child: childCard,
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        debugPrint('👆 Tapped week recipe ${item.id}');
+        _navigateToWeekRecipeDestination(context, item);
+      },
+      child: childCard,
+    );
   }
 
-  void _navigateToWeekRecipeDestination(
-    BuildContext context,
-    AllRecipeVideoDataModel item,
-  ) {
-    debugPrint('Navigating for week recipe item: ${item.toString()}');
-    debugPrint('isBuy value: ${item.isBuy}');
 
-    if (item.isBuy == '0') {
-      debugPrint('Navigating to VideoCheckoutPage');
+  void _navigateToWeekRecipeDestination(
+      BuildContext context,
+      AllRecipeVideoDataModel item,
+      ) {
+    debugPrint('➡️ Navigating item ${item.id}');
+    debugPrint('🔐 Subscription status: $_subscriptionStatus');
+
+    final bool canWatch =
+        item.priceType == 'free' || _hasPremiumAccess;
+
+    if (canWatch) {
+      debugPrint('▶️ Navigating to RecipeDetailScreen');
+      goto(
+        context,
+        RecipeDetailScreen(videoId: item.id.toString()),
+      );
+    } else {
+      debugPrint('💳 Navigating to VideoCheckoutPage');
       goto(
         context,
         VideoCheckoutPage(
@@ -374,9 +406,6 @@ class _IngredientDetailPageState extends State<IngredientDetailPage> {
           mainPrice: item.mainPrice,
         ),
       );
-    } else {
-      debugPrint('Navigating to RecipeDetailScreen');
-      goto(context, RecipeDetailScreen(videoId: item.id.toString()));
     }
   }
 }

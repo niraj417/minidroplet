@@ -141,31 +141,37 @@ class IAPurchaseService {
   }
 
   Future<void> _handlePurchaseUpdates(
-    List<PurchaseDetails> purchaseDetailsList,
-  ) async {
-    for (final purchase in purchaseDetailsList) {
-      purchases.value = [...purchases.value, purchase];
+      List<PurchaseDetails> purchases,
+      ) async {
+    for (final purchase in purchases) {
       debugPrint(
         '📦 Purchase update: ${purchase.status} - ${purchase.productID}',
       );
 
       switch (purchase.status) {
         case PurchaseStatus.pending:
-          _onPurchasePending?.call('Pending...');
+          _onPurchasePending?.call('Payment pending...');
           break;
+
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
+        // ✅ ONLY here treat as success
           await _verifyAndDeliver(purchase);
           _onPurchaseSuccess?.call(purchase);
           break;
+
         case PurchaseStatus.error:
-          _onPurchaseError?.call(purchase.error?.message ?? 'Error occurred');
+          _onPurchaseError?.call(
+            purchase.error?.message ?? 'Purchase failed',
+          );
           break;
+
         case PurchaseStatus.canceled:
-          _onPurchaseError?.call('Purchase canceled');
+          _onPurchaseError?.call('Purchase cancelled');
           break;
       }
 
+      // ✅ REQUIRED by Apple / Google
       if (purchase.pendingCompletePurchase) {
         await _iap.completePurchase(purchase);
       }

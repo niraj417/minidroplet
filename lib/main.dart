@@ -9,6 +9,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:sizer/sizer.dart';
+import 'package:tinydroplets/app_restart_widget.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/core/theme/theme_manager.dart';
 import 'package:tinydroplets/core/utils/bloc_provider_helper.dart';
@@ -55,7 +56,7 @@ void main() async {
     }
   }
 
-  runApp(BlocProviderHelper(child: MyApp()));
+  runApp(AppRestartWidget(child: BlocProviderHelper(child: MyApp())));
 }
 
 Future<void> applyNativeSecurity() async {

@@ -11,6 +11,7 @@ import '../../../../common/widgets/loader.dart';
 import '../../../../common/widgets/no_data_widget.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/services/payment_service.dart';
+import '../../../../core/services/subscription_state_manager.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/utils/common_methods.dart';
 
@@ -24,25 +25,43 @@ class RecipeSearchFilterScreen extends StatefulWidget {
 
 class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
   final TextEditingController _searchController = TextEditingController();
+
   List<Map<String, dynamic>> _recipes = [];
   bool _isLoading = false;
+
+  SubscriptionStatus _subscriptionStatus = SubscriptionStatus.free;
+
   Map<String, List<String>> selectedFilters = {
     'category': [],
     'sub_category': [],
     'age_group': [],
     'ingredient': [],
   };
+
   double _minPrice = 0;
   double _maxPrice = 20000;
+
+  bool get _hasPremiumAccess =>
+      SubscriptionStateManager.hasPremiumAccess(_subscriptionStatus);
 
   @override
   void initState() {
     super.initState();
-    _fetchRecipes().then((value) {
+    _resolveSubscription();
+    _fetchRecipes().then((_) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showFilterBottomSheet(context);
       });
     });
+  }
+
+  Future<void> _resolveSubscription() async {
+    final status = await SubscriptionStateManager.resolve();
+    if (mounted) {
+      setState(() {
+        _subscriptionStatus = status;
+      });
+    }
   }
 
   Future<void> _fetchRecipes() async {
@@ -70,20 +89,21 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
         queryParameters,
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data['status'] == 1) {
-          setState(() {
-            _recipes = List<Map<String, dynamic>>.from(data['data']);
-          });
-        }
+      if (response.statusCode == 200 &&
+          response.data['status'] == 1 &&
+          mounted) {
+        setState(() {
+          _recipes = List<Map<String, dynamic>>.from(response.data['data']);
+        });
       }
     } catch (e) {
       debugPrint('Error fetching recipes: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -97,21 +117,12 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
         ),
         title: TextField(
           controller: _searchController,
-          maxLines: 1,
-          keyboardType: TextInputType.text,
           autofocus: true,
           decoration: const InputDecoration(
-            contentPadding: EdgeInsets.symmetric(
-              vertical: 5.0,
-              horizontal: 20.0,
-            ),
             hintText: 'Search Recipes',
-            hintStyle: TextStyle(color: Colors.grey),
             border: InputBorder.none,
           ),
-          onChanged: (value) {
-            _fetchRecipes();
-          },
+          onChanged: (_) => _fetchRecipes(),
         ),
         actions: [
           IconButton(
@@ -120,188 +131,109 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
           ),
         ],
       ),
-      body:
-          _isLoading
-              ? const Center(child: Loader())
-              : _recipes.isEmpty
-              ? NoDataWidget(onPressed: _fetchRecipes)
-              : Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10.0,
-                  horizontal: 5,
+      body: _isLoading
+          ? const Center(child: Loader())
+          : _recipes.isEmpty
+          ? NoDataWidget(onPressed: _fetchRecipes)
+          : ListView.builder(
+        itemCount: _recipes.length,
+        itemBuilder: (context, index) {
+          final recipe = _recipes[index];
+
+          return Padding(
+            padding: const EdgeInsets.all(8),
+            child: GestureDetector(
+              onTap: () {
+                if (_hasPremiumAccess) {
+                  goto(
+                    context,
+                    RecipeDetailScreen(
+                      videoId: recipe['id'].toString(),
+                    ),
+                  );
+                } else {
+                  goto(
+                    context,
+                    VideoCheckoutPage(
+                      id: recipe['id'],
+                      title: recipe['title'],
+                      thumbnail: recipe['cover_image'],
+                      amount: recipe['price'],
+                      mainPrice: recipe['main_price'],
+                    ),
+                  );
+                }
+              },
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: ListView.builder(
-                  itemCount: _recipes.length,
-                  shrinkWrap: true,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final recipe = _recipes[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (recipe['is_buy'] == '0') {
-                            goto(
-                              context,
-                              VideoCheckoutPage(
-                                id: recipe['id'],
-                                title: recipe['title'],
-                                thumbnail: recipe['cover_image'],
-                                amount: recipe['price'],
-                                mainPrice: recipe['main_price'],
-                              ),
-                            );
-                          } else {
-                            goto(
-                              context,
-                              RecipeDetailScreen(
-                                videoId: recipe['id'].toString(),
-                              ),
-                            );
-                          }
-                        },
-                        child: Card(
-                          color: Theme.of(context).cardColor,
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Thumbnail
-                                Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: CustomImage(
-                                        imageUrl:
-                                            recipe['cover_image'].toString(),
-                                        height: 180,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Icon(
-                                        Icons.play_circle_fill_outlined,
-                                        size: 40,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    if (recipe['is_buy'] == '0')
-                                      Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              recipe['is_buy'] == '0'
-                                                  ? 'Paid'
-                                                  : '',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-
-                                if (recipe['price_type'] == 'paid')
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          recipe['title'],
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Text(
-                                        CommonMethods.formatRupees(
-                                          recipe['price'],
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                Text(
-                                  recipe['title'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 23,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                Text(
-                                  recipe['description'] ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                ),
-
-                                // _buildCategoryWidget('Age Group',
-                                //     recipe['age_group'] ?? 'Not Available'),
-                                // _buildCategoryWidget(
-                                //     'Ingredients',
-                                //     recipe['ingrediant_names'] ??
-                                //         'Not Available'),
-                                // _buildCategoryWidget(
-                                //     'Subcategory',
-                                //     recipe['subcat_names'] ??
-                                //         'Not Available'),
-                              ],
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CustomImage(
+                              imageUrl: recipe['cover_image'],
+                              height: 180,
+                              width: MediaQuery.of(context).size.width,
+                              fit: BoxFit.cover,
                             ),
                           ),
+                          const Positioned.fill(
+                            child: Icon(
+                              Icons.play_circle_fill_outlined,
+                              size: 42,
+                              color: Colors.white,
+                            ),
+                          ),
+                          if (!_hasPremiumAccess)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:
+                                  BorderRadius.circular(6),
+                                ),
+                                child: const Icon(
+                                  Icons.lock,
+                                  size: 16,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        recipe['title'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 4),
+                      Text(
+                        recipe['description'] ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-    );
-  }
-
-  Row _buildCategoryWidget(String name, String text) {
-    return Row(
-      children: [
-        Text(
-          "$name: ",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-          ),
-        ),
-      ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -309,27 +241,19 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      builder: (_) => FilterBottomSheet(
+        onApplyFilter: (filters, min, max) {
+          setState(() {
+            selectedFilters = filters;
+            _minPrice = min;
+            _maxPrice = max;
+          });
+          _fetchRecipes();
+        },
+        initialFilters: selectedFilters,
+        initialMinPrice: _minPrice,
+        initialMaxPrice: _maxPrice,
       ),
-      builder:
-          (context) => FilterBottomSheet(
-            onApplyFilter: (
-              Map<String, List<String>> filters,
-              double minPrice,
-              double maxPrice,
-            ) {
-              setState(() {
-                selectedFilters = filters;
-                _minPrice = minPrice;
-                _maxPrice = maxPrice;
-              });
-              _fetchRecipes();
-            },
-            initialFilters: selectedFilters,
-            initialMinPrice: _minPrice,
-            initialMaxPrice: _maxPrice,
-          ),
     );
   }
 }
@@ -339,7 +263,6 @@ class FilterBottomSheet extends StatefulWidget {
   final Map<String, List<String>> initialFilters;
   final double initialMinPrice;
   final double initialMaxPrice;
-
   const FilterBottomSheet({
     super.key,
     required this.onApplyFilter,
@@ -347,7 +270,6 @@ class FilterBottomSheet extends StatefulWidget {
     required this.initialMinPrice,
     required this.initialMaxPrice,
   });
-
   @override
   State<FilterBottomSheet> createState() => _FilterBottomSheetState();
 }
@@ -357,13 +279,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late double _currentMinPrice;
   late double _currentMaxPrice;
   String _selectedSection = 'Category';
-
   List<Category> categories = [];
   List<SubCategory> subCategories = [];
   List<Category> ingredients = [];
   List<AgeGroup> ageGroups = [];
   bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
@@ -377,7 +297,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final response = await dioClient.sendGetRequest(
         ApiEndpoints.recipeFilter,
@@ -410,24 +329,23 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child:
-          _isLoading
-              ? const Loader()
-              : Column(
-                children: [
-                  _buildHeader(),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        _buildLeftPanel(),
-                        const VerticalDivider(thickness: 1),
-                        _buildRightPanel(),
-                      ],
-                    ),
-                  ),
-                  _buildBottomButtons(),
-                ],
-              ),
+      child: _isLoading
+          ? const Loader()
+          : Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: Row(
+              children: [
+                _buildLeftPanel(),
+                const VerticalDivider(thickness: 1),
+                _buildRightPanel(),
+              ],
+            ),
+          ),
+          _buildBottomButtons(),
+        ],
+      ),
     );
   }
 
@@ -497,7 +415,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           final item = items[index];
           final id = getId(item);
           final isSelected = selectedFilters[filterKey]!.contains(id);
-
           return ListTile(
             title: itemBuilder(item),
             trailing: Switch(
@@ -583,16 +500,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color:
-              _selectedSection == title
-                  ? Colors.purple.withOpacity(0.1)
-                  : Colors.transparent,
+          color: _selectedSection == title
+              ? Colors.purple.withOpacity(0.1)
+              : Colors.transparent,
           border: Border(
             left: BorderSide(
-              color:
-                  _selectedSection == title
-                      ? Color(AppColor.primaryColor)
-                      : Colors.transparent,
+              color: _selectedSection == title
+                  ? Color(AppColor.primaryColor)
+                  : Colors.transparent,
               width: 4,
             ),
           ),
@@ -601,9 +516,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           title,
           style: TextStyle(
             color:
-                _selectedSection == title ? Color(AppColor.primaryColor) : null,
+            _selectedSection == title ? Color(AppColor.primaryColor) : null,
             fontWeight:
-                _selectedSection == title ? FontWeight.bold : FontWeight.normal,
+            _selectedSection == title ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),

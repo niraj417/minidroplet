@@ -188,6 +188,49 @@ class Data {
   String toString() {
     return "$id, $name, $email, $location, $idLink, $aboutUs, $profile, $emailVerifiedAt, $otpVerify, $mobile, $online, $dob, $gender, $country, $state, $city, $district, $pincode, $hometown, $address, $parentsGender, $parentName, $babyBorned, $babyAge, $otp, $loginStatus, $apiToken, $createdAt, $deviceName, $deviceToken, $updatedAt, $deleatedAt $profileCompletion";
   }
+
+  Data copyWith({
+    SubscriptionInfo? subscription,
+    int? trialAvailed,
+  }) {
+    return Data(
+      id: id,
+      name: name,
+      email: email,
+      location: location,
+      idLink: idLink,
+      aboutUs: aboutUs,
+      profile: profile,
+      emailVerifiedAt: emailVerifiedAt,
+      otpVerify: otpVerify,
+      mobile: mobile,
+      online: online,
+      dob: dob,
+      gender: gender,
+      country: country,
+      state: state,
+      city: city,
+      district: district,
+      pincode: pincode,
+      hometown: hometown,
+      address: address,
+      parentsGender: parentsGender,
+      parentName: parentName,
+      babyBorned: babyBorned,
+      babyAge: babyAge,
+      otp: otp,
+      loginStatus: loginStatus,
+      apiToken: apiToken,
+      createdAt: createdAt,
+      deviceName: deviceName,
+      deviceToken: deviceToken,
+      updatedAt: updatedAt,
+      deleatedAt: deleatedAt,
+      profileCompletion: profileCompletion,
+      trialAvailed: trialAvailed ?? this.trialAvailed,
+      subscription: subscription ?? this.subscription,
+    );
+  }
 }
 
 class SubscriptionInfo {
@@ -221,4 +264,3 @@ class SubscriptionInfo {
     'plan_id': planId,
   };
 }
-

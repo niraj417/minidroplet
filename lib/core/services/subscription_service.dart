@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/core/network/api_controller.dart';
@@ -17,6 +18,7 @@ class SubscriptionPaymentService {
   String? orderId;
   int? planId;
   String? amount;
+  String? planName;
   BuildContext? context;
 
   VoidCallback? _onSuccessCallback;
@@ -56,7 +58,29 @@ class SubscriptionPaymentService {
       await _iap.purchaseProduct(
         productId,
         onSuccess: (purchase) async {
+          // ✅ STEP 1: Check purchase status
+          if (purchase.status != PurchaseStatus.purchased &&
+              purchase.status != PurchaseStatus.restored) {
+
+            onFailure('Purchase not completed');
+            return; // 🚨 STOP HERE
+          }
+
+          // ✅ STEP 2: Handle pending explicitly
+          // if (purchase.pendingCompletePurchase) {
+          //   await _iap.completePurchase(purchase);
+          // }
+
+          // ✅ STEP 3: Only NOW continue
+          await SharedPref.updateLoginDataForSubscription(
+            expiryDate: DateTime.now().add(
+              Duration(days: selectedPlan.planType == "monthly" ? 30 : 365),
+            ),
+            planId: selectedPlan.id,
+          );
+
           await _confirmSubscription(purchase.purchaseID ?? '');
+
           onSuccess('Subscription activated successfully');
         },
         onError: onFailure,
@@ -75,6 +99,8 @@ class SubscriptionPaymentService {
   }) async {
     try {
       final expiry = await startFreeTrial();
+
+      await SharedPref.updateLoginDataForTrial();
 
       onSuccess(
         'Trial active till '
@@ -116,6 +142,10 @@ class SubscriptionPaymentService {
           'email': email,
         },
       };
+
+      planId = selectedPlan.id;
+      planName = selectedPlan.name;
+
 
       _razorpay.open(options);
     } catch (e) {
@@ -177,6 +207,7 @@ class SubscriptionPaymentService {
   // =============================================================
   void _handleSuccess(PaymentSuccessResponse response) async {
     await _confirmSubscription(response.paymentId!);
+    await SharedPref.updateLoginDataForSubscription(expiryDate: DateTime.now().add(Duration(days: planName == "monthly" ? 30 : 365)), planId: planId!);
     _onSuccessCallback?.call();
   }
 
