@@ -115,7 +115,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       _loadingType = LoadingType.purchase;
     });
 
-    if (!Platform.isIOS) {
+    if (Platform.isIOS) {
       await _subscriptionService.startIosPaidSubscriptionFlow(
         selectedPlan: selectedPlan!,
         onSuccess: _onSubscriptionSuccess,
