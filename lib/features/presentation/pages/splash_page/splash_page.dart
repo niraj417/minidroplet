@@ -63,7 +63,7 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> navigateToNextScreen() async {
     _isOnboardingViewed = SharedPref.getOnboardingViewed();
-    final keepLoggedIn = await SharedPref.getKeepLoggedIn();
+    final keepLoggedIn = SharedPref.getKeepLoggedIn();
     final loginData = SharedPref.getLoginData();
 
     await Future.delayed(Duration(seconds: 1));

@@ -489,15 +489,17 @@ class _LoginPageState extends State<LoginPage> {
                                           onPressed: _handleAppleSignIn,
                                         ),
                                       const SizedBox(height: 10),
-          
-                                      Text(
-                                        'Explore without Login',
-                                        style: GoogleFonts.poppins(
-                                          color: AppColor.grey,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w300,
+
+                                      if(Platform.isIOS)
+                                        Text(
+                                          'Explore without Login',
+                                          style: GoogleFonts.poppins(
+                                            color: AppColor.grey,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w300,
+                                          ),
                                         ),
-                                      ),
+
                                       const SizedBox(height: 6),
           
                                       if(Platform.isIOS)

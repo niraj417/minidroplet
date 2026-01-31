@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -247,6 +248,13 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                         }, context: context,
                       ),
                     SizedBox(height: 5,),
+                    exploreEbookBanner(
+                      onTap: () {
+                        UrlOpener.launchURL("https://tinydroplets.myinstamojo.com");
+                      },
+                    ),
+
+                    const SizedBox(height: 10,),
                     BlocProvider(
                       create: (_) =>
                           HomepageRecipeSliderCubit(dioClient),
@@ -262,13 +270,6 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                         },
                       ),
                     ),
-                    const SizedBox(height: 10,),
-                    exploreEbookBanner(
-                      onTap: () {
-                        UrlOpener.launchURL("https://tinydroplets.myinstamojo.com");
-                      },
-                    ),
-
                     const SizedBox(height: 10,),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2.0),
@@ -949,31 +950,36 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                height: 42,
-                width: 42,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE6E7EB),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.chrome_reader_mode_sharp,
-                  color: Color(0xFF6C6C6C),
-                  size: 22,
-                ),
-              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 42,
+                    width: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6E7EB),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.chrome_reader_mode_sharp,
+                      color: Color(0xFF6C6C6C),
+                      size: 22,
+                    ),
+                  ),
 
-              const SizedBox(width: 12),
+                  const SizedBox(width: 12),
 
-              Text(
-                "Access Worksheet Library",
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+                  Text(
+                    "Access Worksheet Library",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: 30,),
 
               Container(
                 height: 32,
@@ -999,7 +1005,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
     }) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        height: 170,
+        height: Platform.isIOS ? 180 : 170,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
         ),

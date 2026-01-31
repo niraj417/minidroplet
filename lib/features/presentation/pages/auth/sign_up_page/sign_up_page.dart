@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,6 +34,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _showPass = true;
   bool _loading = false;
   bool _isChecked = false;
+  AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
 
   CmsModel? cmsModel;
 
@@ -40,22 +42,40 @@ class _SignUpPageState extends State<SignUpPage> {
   void initState() {
     super.initState();
     _getCms();
+    _pass.addListener(_onPasswordChanged);
+    _confPass.addListener(_onConfirmPasswordChanged);
+  }
+
+  @override
+  void dispose() {
+    _pass.removeListener(_onPasswordChanged);
+    _confPass.removeListener(_onConfirmPasswordChanged);
+    _email.dispose();
+    _confPass.dispose();
+    _name.dispose();
+    _pass.dispose();
+    super.dispose();
+  }
+
+  void _onPasswordChanged() {
+    // Revalidate confirm password only if it has text
+    if (_confPass.text.isNotEmpty && _pass.text.isNotEmpty) {
+      _formKey.currentState?.validate();
+    }
+    setState(() {});
+  }
+
+  void _onConfirmPasswordChanged() {
+    // Only validate when password is not empty
+    if (_pass.text.isNotEmpty) {
+      _formKey.currentState?.validate();
+    }
   }
 
   void _showPassword() {
     setState(() {
       _showPass = !_showPass;
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-
-    _email.dispose();
-    _confPass.dispose();
-    _name.dispose();
-    _pass.dispose();
   }
 
   Future<void> _getCms() async {
@@ -98,7 +118,14 @@ class _SignUpPageState extends State<SignUpPage> {
         setState(() {
           _loading = false;
         });
-        goto(context, OtpPage(otp: otp ?? '0', id: id ?? '0', email: _email.text,));
+        goto(
+          context,
+          OtpPage(
+            otp: otp ?? '0',
+            id: id ?? '0',
+            email: _email.text,
+          ),
+        );
       } else {
         CommonMethods.showSnackBar(context, response.data['message']);
         setState(() {
@@ -126,10 +153,9 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.white, // Color for this specific screen
-        //systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
         systemNavigationBarDividerColor: Colors.white,
-        statusBarColor: const Color(0xFF2C68EE),
+        statusBarColor: Color(0xFF2C68EE),
       ),
       child: SafeArea(
         child: Scaffold(
@@ -159,9 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
-        
-                      //const SizedBox(height: 5),
-        
+
                       /// Title
                       Text(
                         "Create\nAccount",
@@ -176,8 +200,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
               ),
-        
-        
+
               Expanded(
                 flex: 7,
                 child: Stack(
@@ -196,12 +219,14 @@ class _SignUpPageState extends State<SignUpPage> {
                           return SingleChildScrollView(
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
-                                minHeight: constraints.maxHeight, // 👈 THIS IS THE KEY
+                                minHeight: constraints.maxHeight,
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 20),
                                 child: Form(
                                   key: _formKey,
+                                  autovalidateMode: _autoValidateMode,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
@@ -209,18 +234,20 @@ class _SignUpPageState extends State<SignUpPage> {
                                         controller: _name,
                                         hint: "Full Name",
                                         icon: Icons.person_outline,
-                                        validator: (v) => Validator.validateName(v ?? ''),
+                                        validator: (v) =>
+                                            Validator.validateName(v ?? ''),
                                       ),
                                       const SizedBox(height: 14),
-        
+
                                       _buildInput(
                                         controller: _email,
                                         hint: "Email address",
                                         icon: Icons.email_outlined,
-                                        validator: (v) => Validator.validateEmail(v ?? ''),
+                                        validator: (v) =>
+                                            Validator.validateEmail(v ?? ''),
                                       ),
                                       const SizedBox(height: 14),
-        
+
                                       _buildInput(
                                         controller: _pass,
                                         hint: "Password",
@@ -228,23 +255,27 @@ class _SignUpPageState extends State<SignUpPage> {
                                         obscure: _showPass,
                                         suffix: IconButton(
                                           icon: Icon(
-                                            _showPass ? Icons.visibility_off : Icons.visibility,
+                                            _showPass
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
                                             color: const Color(0xFF2C68EE),
                                           ),
-                                          onPressed: () {
-                                            setState(() => _showPass = !_showPass);
-                                          },
+                                          onPressed: _showPassword,
                                         ),
-                                        validator: (v) => Validator.validatePassword(v ?? ''),
+                                        validator: (v) =>
+                                            Validator.validatePassword(v ?? ''),
                                       ),
                                       const SizedBox(height: 14),
-        
+
                                       _buildInput(
                                         controller: _confPass,
                                         hint: "Confirm password",
                                         icon: Icons.lock_outline,
                                         obscure: _showPass,
                                         validator: (v) {
+                                          // Don't validate if password is empty
+                                          if (_pass.text.isEmpty) return null;
+
                                           if (v == null || v.isEmpty) {
                                             return "Confirm password required";
                                           }
@@ -254,16 +285,18 @@ class _SignUpPageState extends State<SignUpPage> {
                                           return null;
                                         },
                                       ),
-        
+
                                       const SizedBox(height: 12),
-        
+
                                       Row(
                                         children: [
                                           Checkbox(
                                             value: _isChecked,
-                                            activeColor: const Color(0xFF2C68EE),
+                                            activeColor:
+                                            const Color(0xFF2C68EE),
                                             onChanged: (val) {
-                                              setState(() => _isChecked = val ?? false);
+                                              setState(
+                                                      () => _isChecked = val ?? false);
                                             },
                                           ),
                                           Expanded(
@@ -274,28 +307,38 @@ class _SignUpPageState extends State<SignUpPage> {
                                                   color: Colors.black,
                                                 ),
                                                 children: [
-                                                  const TextSpan(text: "I agree to Tinydroplets "),
+                                                  const TextSpan(
+                                                      text:
+                                                      "I agree to Tinydroplets "),
                                                   TextSpan(
                                                     text: "Terms & Conditions",
                                                     style: const TextStyle(
                                                       color: Color(0xFF2C68EE),
-                                                      decoration: TextDecoration.underline,
+                                                      decoration:
+                                                      TextDecoration
+                                                          .underline,
                                                     ),
-                                                    recognizer: TapGestureRecognizer()
+                                                    recognizer:
+                                                    TapGestureRecognizer()
                                                       ..onTap = () {
                                                         UrlOpener.launchURL(
                                                           "https://tinydroplets.com/terms-conditions",
                                                         );
                                                       },
                                                   ),
-                                                  const TextSpan(text: " and acknowledge the "),
+                                                  const TextSpan(
+                                                      text:
+                                                      " and acknowledge the "),
                                                   TextSpan(
                                                     text: "Privacy Policy",
                                                     style: const TextStyle(
                                                       color: Color(0xFF2C68EE),
-                                                      decoration: TextDecoration.underline,
+                                                      decoration:
+                                                      TextDecoration
+                                                          .underline,
                                                     ),
-                                                    recognizer: TapGestureRecognizer()
+                                                    recognizer:
+                                                    TapGestureRecognizer()
                                                       ..onTap = () {
                                                         UrlOpener.launchURL(
                                                           "https://tinydroplets.com/privacy-policy",
@@ -308,9 +351,9 @@ class _SignUpPageState extends State<SignUpPage> {
                                           ),
                                         ],
                                       ),
-        
+
                                       const SizedBox(height: 16),
-        
+
                                       _loading
                                           ? const Loader()
                                           : AppButton(
@@ -320,11 +363,18 @@ class _SignUpPageState extends State<SignUpPage> {
                                         onPressed: () async {
                                           if (!_isChecked) {
                                             CommonMethods.showSnackBar(
-                                                context, "Please accept Terms & Conditions");
+                                                context,
+                                                "Please accept Terms & Conditions");
                                             return;
                                           }
-        
-                                          if (_formKey.currentState!.validate()) {
+
+                                          setState(() {
+                                            _autoValidateMode =
+                                                AutovalidateMode.always;
+                                          });
+
+                                          if (_formKey.currentState!
+                                              .validate()) {
                                             await _signUp(
                                               _name.text,
                                               _email.text,
@@ -342,7 +392,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         },
                       ),
                     ),
-        
+
                     /// 👶 FLOATING BABY IMAGE
                     Positioned(
                       top: -140,
@@ -385,7 +435,8 @@ class _SignUpPageState extends State<SignUpPage> {
           color: const Color(0xFF2C68EE),
           fontSize: 14,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding:
+        const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -398,13 +449,26 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF2C68EE), width: 2),
+          borderSide:
+          const BorderSide(color: Color(0xFF2C68EE), width: 2),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide:
+          const BorderSide(color: Colors.red, width: 2),
+        ),
+        errorStyle: const TextStyle(
+          fontSize: 12,
+          height: 1.2,
+        ),
+        errorMaxLines: 3,
       ),
     );
   }
-
-
 
   /// Shared input decoration same as Login Page
   InputDecoration _inputDecoration(String label) {
@@ -419,7 +483,8 @@ class _SignUpPageState extends State<SignUpPage> {
         color: Color(0xFF2C68EE),
         fontWeight: FontWeight.w600,
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0xFF2C68EE)),
@@ -430,13 +495,13 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2C68EE), width: 2),
+        borderSide:
+        const BorderSide(color: Color(0xFF2C68EE), width: 2),
       ),
       filled: true,
       fillColor: Colors.grey.shade100,
     );
   }
-
 
   void _showSnack() {
     CommonMethods.showSnackBar(context, 'Not available');

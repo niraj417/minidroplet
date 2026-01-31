@@ -15,8 +15,8 @@ import '../core/services/payment_service/payment_bloc.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> setupLocator() async {
-  final sharedPrefs = await SharedPreferences.getInstance();
-  sl.registerSingleton<SharedPreferences>(sharedPrefs);
+  //final sharedPrefs = await SharedPreferences.getInstance();
+  //sl.registerSingleton<SharedPreferences>(sharedPrefs);
 
   await Firebase.initializeApp();
 

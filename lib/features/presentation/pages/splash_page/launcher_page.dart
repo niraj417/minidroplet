@@ -21,7 +21,7 @@ class _LauncherPageState extends State<LauncherPage> {
 
   Future<void> navigateToNextScreen() async {
     final isOnboardingViewed = SharedPref.getOnboardingViewed();
-    final keepLoggedIn = await SharedPref.getKeepLoggedIn();
+    final keepLoggedIn = SharedPref.getKeepLoggedIn(); // Changed - no async needed
     final loginData = SharedPref.getLoginData();
 
     await Future.delayed(const Duration(milliseconds: 500));
@@ -29,21 +29,22 @@ class _LauncherPageState extends State<LauncherPage> {
     if (!mounted) return;
 
     if (isOnboardingViewed) {
-      if (keepLoggedIn && loginData?.data?.apiToken != null) {
+      // Double-check that login data is valid
+      if (keepLoggedIn && loginData?.data?.apiToken != null && loginData?.data?.apiToken?.isNotEmpty == true) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => Dashboard()),
-          (route) => false,
+              (route) => false,
         );
       } else {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => LoginPage()),
-          (route) => false,
+              (route) => false,
         );
       }
     } else {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => LetsGetStartedPage()),
-        (route) => false,
+            (route) => false,
       );
     }
   }

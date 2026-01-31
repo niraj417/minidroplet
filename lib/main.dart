@@ -22,6 +22,10 @@ import 'injections/dependency_injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SharedPref FIRST
+  await SharedPref.init();
+
   await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -38,11 +42,7 @@ void main() async {
   }
 
   await setupLocator();
-  // final paymentService = PaymentService();
-  // await paymentService.initialize();
-  //
-  // print("Live mode: ${paymentService.isLiveMode}");
-  // print("Test mode: ${paymentService.isTestMode}");
+
   if (Platform.isAndroid) {
     try {
       await JustAudioBackground.init(

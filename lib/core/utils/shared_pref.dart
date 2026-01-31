@@ -7,115 +7,127 @@ import '../../features/presentation/pages/auth/login_page/model/login_data_model
 import '../../injections/dependency_injection.dart';
 
 class SharedPref {
-  static SharedPreferences get _prefs => sl<SharedPreferences>();
+  // Use static instance to ensure consistency
+  static SharedPreferences? _prefs;
+
+  // Initialize SharedPreferences once
+  static Future<void> init() async {
+    if (_prefs == null) {
+      _prefs = await SharedPreferences.getInstance();
+    }
+  }
+
+  // Getter that ensures prefs is initialized
+  static SharedPreferences get prefs {
+    if (_prefs == null) {
+      throw Exception('SharedPreferences not initialized. Call SharedPref.init() first.');
+    }
+    return _prefs!;
+  }
 
   static Future<bool> setString(String key, String value) async {
-    return await _prefs.setString(key, value);
+    await init(); // Ensure initialization
+    return await prefs.setString(key, value);
   }
 
   static Future<bool> setBool(String key, bool value) async {
-    return await _prefs.setBool(key, value);
+    await init(); // Ensure initialization
+    return await prefs.setBool(key, value);
   }
 
   static bool? getBool(String key) {
-    return _prefs.getBool(key);
+    return prefs.getBool(key);
   }
 
   static Future<bool> setInt(String key, int value) async {
-    return await _prefs.setInt(key, value);
+    await init(); // Ensure initialization
+    return await prefs.setInt(key, value);
   }
 
   static String? getString(String key) {
-    return _prefs.getString(key);
+    return prefs.getString(key);
   }
 
   static int? getInt(String key) {
-    return _prefs.getInt(key);
+    return prefs.getInt(key);
   }
 
   static Future<bool> remove(String key) async {
-    return await _prefs.remove(key);
+    await init(); // Ensure initialization
+    return await prefs.remove(key);
   }
 
   static Future<void> clear() async {
-    await _prefs.clear();
+    await init(); // Ensure initialization
+    await prefs.clear();
   }
 
   static Future<void> setTheme(bool isDark) async {
-    await _prefs.setBool('isDarkTheme', isDark);
+    await setBool('isDarkTheme', isDark);
   }
 
   static bool getTheme() {
-    return _prefs.getBool('isDarkTheme') ?? false;
+    return getBool('isDarkTheme') ?? false;
   }
 
   static Future<void> setOnboardingViewed(bool value) async {
-    await _prefs.setBool('onboardingViewed', value);
+    await setBool('onboardingViewed', value);
   }
 
   static bool getOnboardingViewed() {
-    return _prefs.getBool('onboardingViewed') ?? false;
+    return getBool('onboardingViewed') ?? false;
   }
 
+  // FIXED: Use the same prefs instance
   static Future<void> setKeepLoggedIn(bool isChecked) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('keepLoggedIn', isChecked);
+    await setBool('keepLoggedIn', isChecked);
   }
 
-  static Future<bool> getKeepLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('keepLoggedIn') ?? false;
+  static bool getKeepLoggedIn() {
+    return getBool('keepLoggedIn') ?? false;
   }
 
   static Future<bool> saveLoginData(dynamic data) async {
     final jsonString = jsonEncode(data.toJson());
-    return await _prefs.setString('loginData', jsonString);
+    return await setString('loginData', jsonString);
   }
 
   static LoginDataModel? getLoginData() {
-    final jsonString = _prefs.getString('loginData');
+    final jsonString = getString('loginData');
     if (jsonString != null) {
       return LoginDataModel.fromJson(jsonDecode(jsonString));
     }
     return null;
   }
 
-  // static Future<bool> removeLoginData() async {
-  //   return await _prefs.remove('loginData');
-  // }
-
-  static Future<void> resetAllData() async {
-    await _prefs.clear();
-  }
-
   static Future<bool> removeLoginData() async {
-    // First check if login data exists
-    final exists = _prefs.containsKey('loginData');
+    final exists = prefs.containsKey('loginData');
     if (exists) {
-      final result = await _prefs.remove('loginData');
-      return result;
+      return await remove('loginData');
     }
-    return false; // Return false if login data doesn't exist
+    return false;
   }
 
   static Future<void> resetAllDataExceptSettings() async {
-    // Get values you want to preserve
+    await init(); // Ensure initialization
     final isDarkTheme = getTheme();
     final onboardingViewed = getOnboardingViewed();
 
-    await _prefs.remove(SharedPrefKeys.hasPremiumAccess);
-    await _prefs.remove(SharedPrefKeys.isGuestUser);
-    // Clear all data
-    await _prefs.clear();
+    await remove(SharedPrefKeys.hasPremiumAccess);
+    await remove(SharedPrefKeys.isGuestUser);
 
-    // Restore preserved settings
+    await clear();
+
     if (onboardingViewed) {
       await setOnboardingViewed(true);
     }
     await setTheme(isDarkTheme);
   }
 
-  // Add these methods to your existing SharedPref class
+  // Add this method to ensure initialization at app start
+  static Future<void> initializeApp() async {
+    await init();
+  }
 
   // Razorpay Keys Management
   static Future<bool> setRazorpayPublicKey(String key) async {
@@ -134,12 +146,6 @@ class SharedPref {
     return getString('razorpay_private_key');
   }
 
-  static Future<bool> removeRazorpayKeys() async {
-    final publicKeyRemoved = await remove('razorpay_public_key');
-    final privateKeyRemoved = await remove('razorpay_private_key');
-    return publicKeyRemoved && privateKeyRemoved;
-  }
-
   static bool hasRazorpayKeys() {
     final publicKey = getRazorpayPublicKey();
     final privateKey = getRazorpayPrivateKey();
@@ -150,7 +156,7 @@ class SharedPref {
   }
 
   static bool isGuestUser() {
-    final jsonString = _prefs.getString('loginData');
+    final jsonString = getString('loginData');
     if(jsonString!=null){
       final user = LoginDataModel.fromJson(jsonDecode(jsonString));
       return user.data?.email == "guest@tinydroplets.com" || user.data?.id == 599;
@@ -165,7 +171,7 @@ class SharedPref {
     final updatedSubscription = SubscriptionInfo(
       isActive: 0,
       isTrial: 1,
-      expiryDate: DateTime.now().add(const Duration(days: 7)), // or backend value
+      expiryDate: DateTime.now().add(const Duration(days: 7)),
       planId: 0,
     );
 
