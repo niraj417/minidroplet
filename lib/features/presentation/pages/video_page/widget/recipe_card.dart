@@ -54,21 +54,16 @@ class RecipeCard extends StatelessWidget {
             /// 🔒 LOCKED BADGE (subscription-based)
             if (showLocked)
               Positioned(
-                top: 0,
-                right: 0,
+                top: 8,
+                right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'Locked',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Icon(Icons.lock, color: Colors.black87,size: 20,),
                 ),
               ),
 

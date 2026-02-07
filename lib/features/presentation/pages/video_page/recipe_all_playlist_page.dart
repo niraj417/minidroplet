@@ -109,22 +109,16 @@ class RecipeAllPlaylistPage extends StatelessWidget {
                         /// 🔒 LOCKED BADGE (replaces Paid/Free)
                         if (_isLocked(item.priceType))
                           Positioned(
-                            top: 0,
-                            right: 0,
+                            top: 8,
+                            right: 8,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                              padding:
+                              const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              color: Colors.white,
-                              child: const Text(
-                                'Locked',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              child: const Icon(Icons.lock, color: Colors.black87,size: 20,),
                             ),
                           ),
 

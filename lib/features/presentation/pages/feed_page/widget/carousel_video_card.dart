@@ -146,17 +146,10 @@ class CarouselVideoCard extends StatelessWidget {
               padding:
               const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Text(
-                'Locked',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
+              child: const Icon(Icons.lock, color: Colors.black87,size: 20,),
             ),
           ),
       ],

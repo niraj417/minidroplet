@@ -14,6 +14,8 @@ import 'package:tinydroplets/features/presentation/pages/ebook_page/widget/book_
 import 'package:tinydroplets/features/presentation/pages/ebook_page/widget/ebook_read_mode.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/expandable_text.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/saved_bloc/saved_cubit.dart';
+import '../../../../../common/widgets/guest_user_restriction.dart';
+import '../../../../../common/widgets/no_data_widget.dart';
 import '../../../../../core/constant/app_export.dart';
 
 import 'dart:convert';
@@ -28,9 +30,19 @@ import 'package:tinydroplets/features/presentation/pages/ebook_page/purchased_eb
 import 'package:tinydroplets/features/presentation/pages/ebook_page/widget/book_palette_card.dart';
 import 'package:tinydroplets/features/presentation/pages/pdf_viewer/pdf_viewer_screen.dart';
 import '../../../../../core/constant/app_export.dart';
+import '../../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import '../../../../../core/services/payment_service.dart';
+import '../../../../../core/utils/shared_pref_key.dart';
 import '../../../../../injections/dependency_injection.dart';
 import '../../feed_page/bloc/feed_bloc.dart';
+import '../../pdf_viewer/pdf_chapter_pager.dart';
+import '../buy_ebook/ebook_buy_page.dart';
+import '../ebook_list/bloc/ebook_bloc.dart';
+import '../ebook_list/bloc/ebook_event.dart';
+import '../ebook_list/bloc/ebook_state.dart';
+import '../ebook_list/ebook_all_page.dart';
+import '../model/all_ebook_model.dart';
+import '../widget/trending_book_card.dart';
 
 class PurchasedEbookBuyDetailPage extends StatefulWidget {
   final int ebookId;
@@ -196,6 +208,11 @@ class _PurchasedEbookBuyDetailPageState
   //     debugPrint('Ebook rating data: $e');
   //   }
   // }
+  bool isSubscribed = false;
+
+  bool _shouldShowAd(String priceType) {
+    return priceType == 'free' && !isSubscribed;
+  }
 
   void _getPrefData() {
     final prefData = SharedPref.getLoginData();
@@ -204,9 +221,34 @@ class _PurchasedEbookBuyDetailPageState
     email = prefData?.data?.email ?? '';
   }
 
+  void _openEbook(
+      BuildContext context,
+      AllEbookDataModel data,
+      ) {
+    if (SharedPref.isGuestUser() && data.id != 29 && data.id != 28) {
+      GuestRestrictionDialog.show(context);
+      return;
+    }
+
+    if (isSubscribed) {
+      goto(
+        context,
+        PurchasedEbookBuyDetailPage(ebookId: data.id),
+      );
+    } else {
+      goto(
+        context,
+        EbookBuyDetailPage(ebookId: data.id),
+      );
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
+    isSubscribed =
+        SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
     _onEbookDetailData();
     _getPrefData();
     if (widget.ebookId != -1) {
@@ -222,207 +264,289 @@ class _PurchasedEbookBuyDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Icon(CupertinoIcons.share_up),
-            onPressed:
-                () => SharingHandler.handleEbookShare(
-                  bookName ?? '',
-                  author ?? '',
-                  description ?? '',
-                  context,
-                ),
-          ),
-          IconButton(
-            icon: Icon(
-              _isSaved == '1'
-                  ? CupertinoIcons.bookmark_solid
-                  : CupertinoIcons.bookmark,
+    return SafeArea(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.transparent,
+          actions: [
+            IconButton(
+              icon: Icon(CupertinoIcons.share_up),
+              onPressed:
+                  () => SharingHandler.handleEbookShare(
+                    bookName ?? '',
+                    author ?? '',
+                    description ?? '',
+                    context,
+                  ),
             ),
-            onPressed: () async {
-              if (_isSaved == '0') {
-                await _saveEbook();
-              } else {
-                // context.read<SavedItemsCubit>().removeItem(item)
-                if (mounted) {
-                  CommonMethods.showSnackBar(context, 'Already saved');
-                }
-              }
-            },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        backgroundColor: Color(AppColor.primaryColor),
-        color: Colors.white,
-
-        onRefresh: _onEbookDetailData,
-        child: SingleChildScrollView(
-          // padding: EdgeInsets.symmetric(horizontal: 10,vertical: 20),
-          child: Column(
-            children: [
-              BookPaletteCard(
-                imagePath: image ?? DummyData.avatarUrl,
-                showPreview: preview == null,
-                onPressed: () {
-                  if (preview != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => PdfViewerPage(pdfUrl: preview ?? ''),
-                      ),
-                    );
-                  } else {
-                    CommonMethods.showSnackBar(context, 'No Preview available');
-                  }
-                },
+            IconButton(
+              icon: Icon(
+                _isSaved == '1'
+                    ? CupertinoIcons.bookmark_solid
+                    : CupertinoIcons.bookmark,
               ),
-              SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        showRatingSheet(context, widget.ebookId);
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          totalRating != null ? int.parse(double.parse(totalRating.toString()).ceil().toStringAsFixed(0)) : 5,
-                          (index) => Icon(
-                            Icons.star,
-                            color: totalRating != null ? Color(AppColor.primaryColor) : Colors.grey,
+              onPressed: () async {
+                if (_isSaved == '0') {
+                  await _saveEbook();
+                } else {
+                  // context.read<SavedItemsCubit>().removeItem(item)
+                  if (mounted) {
+                    CommonMethods.showSnackBar(context, 'Already saved');
+                  }
+                }
+              },
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          backgroundColor: Color(AppColor.primaryColor),
+          color: Colors.white,
+      
+          onRefresh: _onEbookDetailData,
+          child: SingleChildScrollView(
+            // padding: EdgeInsets.symmetric(horizontal: 10,vertical: 20),
+            child: Column(
+              children: [
+                BookPaletteCard(
+                  imagePath: image ?? DummyData.avatarUrl,
+                  showPreview: preview == null,
+                  onPressed: () {
+                    if (preview != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => PdfViewerPage(pdfUrl: preview ?? ''),
+                        ),
+                      );
+                    } else {
+                      CommonMethods.showSnackBar(context, 'No Preview available');
+                    }
+                  },
+                ),
+                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          showRatingSheet(context, widget.ebookId);
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            totalRating != null ? int.parse(double.parse(totalRating.toString()).ceil().toStringAsFixed(0)) : 5,
+                            (index) => Icon(
+                              Icons.star,
+                              color: totalRating != null ? Color(AppColor.primaryColor) : Colors.grey,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    ReportContentWidget(
-                      contentId: widget.ebookId,
-                      contentType: 'e_book',
-                    ),
-                  ],
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(height: 20),
-                    Text(
-                      bookName ?? 'No data',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                      ReportContentWidget(
+                        contentId: widget.ebookId,
+                        contentType: 'e_book',
                       ),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      "Author: $author" ?? '',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    SizedBox(height: 20),
-                    _bookReview(),
-                    SizedBox(height: 20),
-                    ExpandableTextWidget(text: description ?? 'No data'),
-                    SizedBox(height: 10),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Chapter',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+      
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: 20),
+                      Text(
+                        bookName ?? 'No data',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    MediaQuery.removePadding(
-                      context: context,
-                      removeTop: true,
-                      child: ListView.builder(
-                        itemCount: _purchasedEbook.length,
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final chapters = _purchasedEbook[index].allChapters;
-                          final purchasedEbook = _purchasedEbook[index];
-                          CommonMethods.devLog(
-                            logName: 'Load chapter',
-                            message: chapters.runtimeType,
-                          );
-
-                          return Column(
-                            children: [
-                              ListView.builder(
-                                itemCount: chapters.length,
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, chapterIndex) {
-                                  final chapterData = chapters[chapterIndex];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8.0,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedIndex =
-                                                  (_selectedIndex ==
-                                                          chapterIndex)
-                                                      ? null
-                                                      : chapterIndex;
-                                            });
-                                          },
-                                          child: SizedBox(
-                                            width: double.infinity,
-                                            child: Text(
-                                              chapterData.chapterName,
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                          ),
-                                        ),
-                                        if (_selectedIndex == chapterIndex)
-                                          _buildReader(
-                                            context,
-                                            chapterData,
-                                            purchasedEbook,
-                                          ),
-                                        Divider(),
-                                      ],
+                      SizedBox(height: 5),
+                      Text(
+                        "Author: $author" ?? '',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      SizedBox(height: 20),
+                      _bookReview(),
+                      SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 0),
+                        child: Row(
+                          children: [
+                            // PREVIEW
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                icon: const Icon(CupertinoIcons.play_circle),
+                                label: const Text('Preview'),
+                                onPressed: () {
+                                  if (preview != null) {
+                                    goto(context, PdfViewerPage(pdfUrl: preview!));
+                                  } else {
+                                    CommonMethods.showSnackBar(context, 'No Preview available');
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+      
+                            // READ (🔥 SINGLE ENTRY POINT)
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(CupertinoIcons.book),
+                                label: const Text('Read'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  if (_purchasedEbook.isEmpty) return;
+      
+                                  goto(
+                                    context,
+                                    PdfChapterPager(
+                                      chapters: _purchasedEbook.first.allChapters,
+                                      initialIndex: 0, // 🔑 always start from beginning
                                     ),
                                   );
                                 },
                               ),
-                            ],
-                          );
-                        },
+                            ),
+                            const SizedBox(width: 12),
+      
+                            // LISTEN
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(CupertinoIcons.headphones),
+                                label: const Text('Listen'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: audio == "Not Avalible"
+                                    ? () => CommonMethods.showSnackBar(
+                                  context,
+                                  'Audio not available',
+                                )
+                                    : () {
+                                  goto(
+                                    context,
+                                    AudioPlayerScreen(
+                                      purchasedEbookDataModel: _purchasedEbook.first,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 20),
+                      ExpandableTextWidget(text: description ?? 'No data'),
+                      SizedBox(height: 10),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+      
+                BlocBuilder<EbookBloc, EbookState>(
+                  builder: (context, state) {
+                    if (state.allEbookItems.isEmpty) return const SizedBox();
+                    return _trendingSection(state);
+                  },
+                ),
+      
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Text(
+                //         'Chapter',
+                //         style: TextStyle(
+                //           fontSize: 24,
+                //           fontWeight: FontWeight.bold,
+                //         ),
+                //       ),
+                //       MediaQuery.removePadding(
+                //         context: context,
+                //         removeTop: true,
+                //         child: ListView.builder(
+                //           itemCount: _purchasedEbook.length,
+                //           shrinkWrap: true,
+                //           physics: NeverScrollableScrollPhysics(),
+                //           itemBuilder: (context, index) {
+                //             final chapters = _purchasedEbook[index].allChapters;
+                //             final purchasedEbook = _purchasedEbook[index];
+                //             CommonMethods.devLog(
+                //               logName: 'Load chapter',
+                //               message: chapters.runtimeType,
+                //             );
+                //
+                //             return Column(
+                //               children: [
+                //                 ListView.builder(
+                //                   itemCount: chapters.length,
+                //                   shrinkWrap: true,
+                //                   physics: NeverScrollableScrollPhysics(),
+                //                   itemBuilder: (context, chapterIndex) {
+                //                     final chapterData = chapters[chapterIndex];
+                //                     return Padding(
+                //                       padding: const EdgeInsets.symmetric(
+                //                         vertical: 8.0,
+                //                       ),
+                //                       child: Column(
+                //                         crossAxisAlignment:
+                //                             CrossAxisAlignment.start,
+                //                         children: [
+                //                           InkWell(
+                //                             onTap: () {
+                //                               setState(() {
+                //                                 _selectedIndex =
+                //                                     (_selectedIndex ==
+                //                                             chapterIndex)
+                //                                         ? null
+                //                                         : chapterIndex;
+                //                               });
+                //                             },
+                //                             child: SizedBox(
+                //                               width: double.infinity,
+                //                               child: Text(
+                //                                 chapterData.chapterName,
+                //                                 style: TextStyle(fontSize: 16),
+                //                               ),
+                //                             ),
+                //                           ),
+                //                           if (_selectedIndex == chapterIndex)
+                //                             _buildReader(
+                //                               context,
+                //                               chapterData,
+                //                               chapterIndex,
+                //                               purchasedEbook,
+                //                             ),
+                //                           Divider(),
+                //                         ],
+                //                       ),
+                //                     );
+                //                   },
+                //                 ),
+                //               ],
+                //             );
+                //           },
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ),
       ),
@@ -432,6 +556,7 @@ class _PurchasedEbookBuyDetailPageState
   Padding _buildReader(
     BuildContext context,
     AllChapter chapterData,
+    int chapterIndex,
     PurchasedEbookDataModel purchasedEbookDataModel,
   ) {
     return Padding(
@@ -443,11 +568,20 @@ class _PurchasedEbookBuyDetailPageState
           mainAxisSize: MainAxisSize.min,
           children: [
             InkWell(
-              onTap:
-                  () => goto(
-                    context,
-                    PdfViewerPage(pdfUrl: chapterData.attachment),
+              // onTap:
+              //     () => goto(
+              //       context,
+              //       PdfViewerPage(pdfUrl: chapterData.attachment),
+              //     ),
+              onTap: () {
+                goto(
+                  context,
+                  PdfChapterPager(
+                    chapters: purchasedEbookDataModel.allChapters,
+                    initialIndex: chapterIndex,
                   ),
+                );
+              },
               child: Row(
                 children: [
                   Icon(CupertinoIcons.book, size: 20),
@@ -643,6 +777,94 @@ class _PurchasedEbookBuyDetailPageState
               }
             },
           ),
+    );
+  }
+
+  // =============================================================
+  Widget _trendingSection(EbookState state) {
+    if (state.allEbookItems.isEmpty) {
+      return NoDataWidget(
+        onPressed: () =>
+            context.read<EbookBloc>().add(FetchRecentlyViewedEbookData()),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(
+            title: 'Trending books',
+            onViewAll: () => goto(
+              context,
+              EbookAllPage(allEbookData: state.allEbookItems),
+            ),
+          ),
+          SizedBox(
+            height: 255,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: state.allEbookItems.length >= 5
+                  ? 5
+                  : state.allEbookItems.length,
+              itemBuilder: (context, index) {
+                final data = state.allEbookItems[index];
+                final card = TrendingBookCard(
+                  imageUrl: data.coverImage,
+                  bookName: data.title,
+                  author: data.adminName,
+                );
+
+                if (_shouldShowAd(data.priceType)) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: InterstitialAdWidget(
+                      onAdClosed: () => _openEbook(context, data),
+                      child: card,
+                    ),
+                  );
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: GestureDetector(
+                    onTap: () => _openEbook(context, data),
+                    child: card,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionHeader({
+    required String title,
+    required VoidCallback onViewAll,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style:
+          const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        TextButton(
+          onPressed: onViewAll,
+          child: Text(
+            'View all',
+            style: TextStyle(
+              color: Color(AppColor.primaryColor),
+              fontWeight: FontWeight.w400,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

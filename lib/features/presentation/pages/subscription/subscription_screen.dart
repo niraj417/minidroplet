@@ -115,13 +115,13 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       _loadingType = LoadingType.purchase;
     });
 
-    if (!Platform.isIOS) {
-      await _subscriptionService.startIosPaidSubscriptionFlow(
-        selectedPlan: selectedPlan!,
-        onSuccess: _onSubscriptionSuccess,
-        onFailure: _handleError,
-      );
-    } else {
+    // if (Platform.isIOS) {
+    //   await _subscriptionService.startIosPaidSubscriptionFlow(
+    //     selectedPlan: selectedPlan!,
+    //     onSuccess: _onSubscriptionSuccess,
+    //     onFailure: _handleError,
+    //   );
+    // } else {
       await _subscriptionService.startAndroidPaidSubscriptionFlow(
         context: context,
         selectedPlan: selectedPlan!,
@@ -131,7 +131,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         onSuccess: _onSubscriptionSuccess,
         onFailure: _handleError,
       );
-    }
+    // }
   }
 
   Future<void> _startTrialOnly() async {

@@ -265,6 +265,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                             RecipeCategoryVideoPage(
                               id: category['video_cat_id'].toString(),
                               categoryName: category['name'],
+                              isFromHome: true,
                             ),
                           );
                         },

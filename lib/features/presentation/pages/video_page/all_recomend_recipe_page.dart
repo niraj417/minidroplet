@@ -132,22 +132,18 @@ class AllRecommendationRecipePage extends StatelessWidget {
                         /// 🔒 LOCKED TAG (replaces Paid)
                         if (_isLocked(item.priceType))
                           Positioned(
-                            top: 0,
-                            right: 0,
+                            top: 5,
+                            right: 5,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
                                 vertical: 2,
                               ),
-                              color: Colors.white,
-                              child: const Text(
-                                'Locked',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(6),
                               ),
+                              child: const Icon(Icons.lock, color: Colors.black87,size: 20,),
                             ),
                           ),
 

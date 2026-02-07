@@ -15,12 +15,14 @@ class RecipeCategoryVideoPage extends StatefulWidget {
   final String id;
   final String categoryName;
   final String? ageGroup;
+  final bool isFromHome;
 
   const RecipeCategoryVideoPage({
     super.key,
     required this.id,
     required this.categoryName,
     this.ageGroup,
+    this.isFromHome = false,
   });
 
   @override
@@ -158,35 +160,36 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
-            if (_showSubCategory && _subcategoryList.isNotEmpty)
-              SizedBox(
-                height: 50,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _subcategoryList.length,
-                  itemBuilder: (_, index) {
-                    final sub = _subcategoryList[index];
-                    final selected = _currentCategoryId == sub.id;
+            if(!widget.isFromHome)
+              if (_showSubCategory && _subcategoryList.isNotEmpty)
+                SizedBox(
+                  height: 50,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _subcategoryList.length,
+                    itemBuilder: (_, index) {
+                      final sub = _subcategoryList[index];
+                      final selected = _currentCategoryId == sub.id;
 
-                    return Padding(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 4),
-                      child: ChoiceChip(
-                        label: Text(sub.name ?? ''),
-                        selected: selected,
-                        onSelected: (_) => _loadVideosForSubcategory(
-                            sub.id.toString()),
-                        selectedColor:
-                        Color(AppColor.primaryColor),
-                        labelStyle: TextStyle(
-                          color:
-                          selected ? Colors.white : Colors.black,
+                      return Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 4),
+                        child: ChoiceChip(
+                          label: Text(sub.name ?? ''),
+                          selected: selected,
+                          onSelected: (_) => _loadVideosForSubcategory(
+                              sub.id.toString()),
+                          selectedColor:
+                          Color(AppColor.primaryColor),
+                          labelStyle: TextStyle(
+                            color:
+                            selected ? Colors.white : Colors.black,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
             const SizedBox(height: 10),
             Expanded(
               child: _displayedVideos.isEmpty
@@ -261,22 +264,16 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
               ),
               if (showLocked)
                 Positioned(
-                  top: 5,
-                  right: 5,
+                  top: 8,
+                  right: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 2),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(
-                      'Locked',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Icon(Icons.lock, color: Colors.black87,size: 20,),
                   ),
                 ),
               const Positioned.fill(
