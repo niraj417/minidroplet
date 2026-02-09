@@ -59,6 +59,8 @@ class ApiEndpoints {
   static const String recommendationRecipe =
       '${ApiEndpoints.serverURL}/recommendation_videos';
   static const String allRecipeVideos = '${ApiEndpoints.serverURL}/all_videos';
+  // In ApiEndpoints.dart
+  static const String allRecipeVideosByMultipleSubcategories = '${ApiEndpoints.serverURL}/all_videos_by_multiple_subcategories';
   static const String recipeSlider =
       '${ApiEndpoints.serverURL}/video_slider_image';
 

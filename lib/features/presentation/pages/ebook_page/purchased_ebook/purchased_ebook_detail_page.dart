@@ -431,7 +431,7 @@ class _PurchasedEbookBuyDetailPageState
                                   backgroundColor: Colors.black,
                                   foregroundColor: Colors.white,
                                 ),
-                                onPressed: audio == "Not Avalible"
+                                onPressed: audio == "Not Avalible" || audio == null
                                     ? () => CommonMethods.showSnackBar(
                                   context,
                                   'Audio not available',

@@ -22,6 +22,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/widget/post_w
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/profile_completion/profile_completion_cubit.dart';
 import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
+import 'package:tinydroplets/features/presentation/pages/video_page/recipe_slider_video_page.dart';
 import '../../../../common/widgets/custom_caraousel.dart';
 import '../../../../core/services/subscription_service.dart';
 import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
@@ -262,10 +263,9 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                         onCategoryTap: (category) {
                           goto(
                             context,
-                            RecipeCategoryVideoPage(
-                              id: category['video_cat_id'].toString(),
-                              categoryName: category['name'],
-                              isFromHome: true,
+                            RecipeSubcategoryVideoPage(
+                              subCategoryId: category['video_cat_id'].toString(),
+                              title: category['name'],
                             ),
                           );
                         },
