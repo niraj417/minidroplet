@@ -95,6 +95,7 @@ class _ChapterPdfViewState extends State<_ChapterPdfView> {
 
   @override
   Widget build(BuildContext context) {
+
     return SfPdfViewer.network(
       widget.chapter.attachment,
       controller: _controller,

@@ -386,7 +386,13 @@ class _PurchasedEbookBuyDetailPageState
                             Expanded(
                               child: OutlinedButton.icon(
                                 icon: const Icon(CupertinoIcons.play_circle),
-                                label: const Text('Preview'),
+                                label: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Preview',
+                                    style: Theme.of(context).textTheme.labelLarge,
+                                  ),
+                                ),
                                 onPressed: () {
                                   if (preview != null) {
                                     goto(context, PdfViewerPage(pdfUrl: preview!));
@@ -409,7 +415,8 @@ class _PurchasedEbookBuyDetailPageState
                                 ),
                                 onPressed: () {
                                   if (_purchasedEbook.isEmpty) return;
-      
+
+                                  //goto(context, PdfViewerPage(pdfUrl: _purchasedEbook.first.allChapters[0].attachment));
                                   goto(
                                     context,
                                     PdfChapterPager(
