@@ -144,6 +144,8 @@ class _VideoPageState extends State<VideoPage> {
           return const SizedBox.shrink();
         }
 
+        print("Age Group Data : ${state.ageGroupList}");
+
         return SizedBox(
           height: 60,
           child: ListView.builder(

@@ -46,6 +46,8 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
   void initState() {
     super.initState();
 
+    print("ID : ${widget.id}, Category Name : ${widget.categoryName}, ageGroup : ${widget.ageGroup}");
+
     _hasPremium =
         SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
 
@@ -142,8 +144,12 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
   }
 
   Future<bool> _fetchShowSubCategorySetting() async {
+
+    print("API Called For Fetch!!");
     final response =
     await _dioClient.sendGetRequest(ApiEndpoints.showSubcategories);
+
+    print("Response of SubCategories : ${response.statusCode}, ${response.statusMessage} ");
 
     return response.data['status'] == 1 &&
         response.data['data']['show_sub_category'] == "1";

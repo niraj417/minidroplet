@@ -45,6 +45,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
         {'video_id': widget.videoId},
       );
 
+      print("Recipe Details : ${response.statusMessage} ${response.statusCode} , ${response.data}");
+
       if (response.data['status'] != 1) {
         throw Exception(response.data['message'] ?? 'Failed to load data');
       }
