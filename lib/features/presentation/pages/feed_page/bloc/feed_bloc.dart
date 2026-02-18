@@ -53,11 +53,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
       if (response.data['status'] == 1) {
         final data = FeedSliderModel.fromJson(response.data);
-        emit(FeedLoading(
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
           carouselData: data.data,
-          postData: state.postData ?? [],
-          playlistData: state.playlistData ?? [],
         ));
+
       } else {
         emit(FeedError(error: response.data['message']));
       }
@@ -245,16 +246,19 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           return post;
         }).toList();
 
-        emit(FeedLoaded(
-          carouselData: currentState.carouselData ?? [],
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
           postData: updatedPostData ?? [],
           localComments: {
-            ...currentState.localComments ?? {},
-            event.postId: [...(currentState.localComments?[event.postId] ?? []), event.localComment!],
+            ...current.localComments ?? {},
+            event.postId: [
+              ...(current.localComments?[event.postId] ?? []),
+              event.localComment!
+            ],
           },
-          localReplies: currentState.localReplies,
-          playlistData: state.playlistData ?? [],
         ));
+
       }
 
       // Make API call
@@ -301,12 +305,10 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           }
         }
 
-        emit(FeedLoaded(
-          carouselData: latestState.carouselData ?? [],
+        final current = _currentLoadedState();
+        emit(current.copyWith(
           postData: updatedPostData ?? [],
           localComments: updatedLocalComments,
-          localReplies: latestState.localReplies,
-          playlistData: state.playlistData ?? [],
         ));
       } else {
         // If API fails, revert the comment count and remove local comment
@@ -332,13 +334,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           }
         }
 
-        emit(FeedLoaded(
-          carouselData: latestState.carouselData ?? [],
+        final current = _currentLoadedState();
+        emit(current.copyWith(
           postData: revertedPostData ?? [],
           localComments: updatedLocalComments,
-          localReplies: latestState.localReplies,
-          playlistData: state.playlistData ?? [],
         ));
+
         emit(FeedError(error: response.data['message']));
       }
     } catch (e) {
@@ -365,13 +366,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         }
       }
 
-      emit(FeedLoaded(
-        carouselData: latestState.carouselData ?? [],
+      final current = _currentLoadedState();
+      emit(current.copyWith(
         postData: revertedPostData ?? [],
         localComments: updatedLocalComments,
-        localReplies: latestState.localReplies,
-        playlistData: state.playlistData ?? [],
       ));
+
       emit(FeedError(error: e.toString()));
     }
   }
@@ -404,16 +404,16 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           );
         }).toList();
 
-        emit(FeedLoaded(
-          carouselData: currentState.carouselData ?? [],
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
           postData: updatedPostData ?? [],
-          localComments: currentState.localComments,
           localReplies: {
             ...currentState.localReplies ?? {},
             event.commentId: [...(currentState.localReplies?[event.commentId] ?? []), event.localComment!],
           },
-          playlistData: state.playlistData ?? [],
         ));
+
       }
 
       // Make API call for reply
@@ -467,6 +467,14 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           localReplies: updatedLocalReplies,
           playlistData: state.playlistData ?? [],
         ));
+
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
+          postData: updatedPostData ?? [],
+          localReplies: updatedLocalReplies,
+        ));
+
       } else {
         // Handle API failure - revert optimistic update
         final latestState = state as FeedLoaded;
@@ -496,13 +504,13 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           }
         }
 
-        emit(FeedLoaded(
-          carouselData: latestState.carouselData ?? [],
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
           postData: revertedPostData ?? [],
-          localComments: latestState.localComments,
           localReplies: updatedLocalReplies,
-          playlistData: state.playlistData ?? [],
         ));
+
         emit(FeedError(error: response.data['message']));
       }
     } catch (e) {
@@ -534,13 +542,13 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         }
       }
 
-      emit(FeedLoaded(
-        carouselData: latestState.carouselData ?? [],
+      final current = _currentLoadedState();
+
+      emit(current.copyWith(
         postData: revertedPostData ?? [],
-        localComments: latestState.localComments,
         localReplies: updatedLocalReplies,
-        playlistData: state.playlistData ?? [],
       ));
+
       emit(FeedError(error: e.toString()));
     }
   }

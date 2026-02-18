@@ -273,26 +273,14 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                     ),
                     const SizedBox(height: 10,),
                     // In your FeedPage build method
-                    BlocBuilder<FeedBloc, FeedState>(
-                      buildWhen: (previous, current) {
-                        // Only rebuild when homepageCarousels or loading state changes
-                        return previous.homepageCarousels != current.homepageCarousels ||
-                            previous.isHomepageCarouselLoading != current.isHomepageCarouselLoading ||
-                            previous.error != current.error;
-                      },
-                      builder: (context, state) {
-                        print('🔄 BlocBuilder rebuilding with ${state.homepageCarousels?.length} carousels');
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                          child: HomepageCarouselWidget(
-                            carousels: state.homepageCarousels ?? [],
-                            isLoading: state.isHomepageCarouselLoading,
-                            error: state.error,
-                          ),
-                        );
-                      },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: HomepageCarouselWidget(
+                        carousels: state.homepageCarousels ?? [],
+                        isLoading: state.isHomepageCarouselLoading,
+                        error: state.error,
+                      ),
                     ),
-
                     if(shouldShowTrialBanner)
                       trialStatusBanner(
                         onTap: () {
