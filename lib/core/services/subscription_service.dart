@@ -133,8 +133,8 @@ class SubscriptionPaymentService {
       _onFailureCallback = onFailure;
 
       final options = {
-        'key': 'rzp_test_RsFXTYqM8J4xnC',
-        //'key': 'rzp_live_Rn8Kp5iMCU2xjr',
+        //'key': 'rzp_test_RsFXTYqM8J4xnC',
+        'key': 'rzp_live_Rn8Kp5iMCU2xjr',
         'amount': (double.parse(amount!) * 100).round(),
         'name': name,
         'description': selectedPlan.name,

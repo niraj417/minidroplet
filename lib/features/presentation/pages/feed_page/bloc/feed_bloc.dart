@@ -22,6 +22,22 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<FeedPostReplyCommentData>(_onFeedAddReplyComment);
   }
 
+  FeedLoaded _currentLoadedState() {
+    if (state is FeedLoaded) {
+      return state as FeedLoaded;
+    }
+
+    return FeedLoaded(
+      carouselData: state.carouselData ?? [],
+      postData: state.postData ?? [],
+      playlistData: state.playlistData,
+      homepageCarousels: state.homepageCarousels ?? [],
+      localComments: state.localComments ?? {},
+      localReplies: state.localReplies ?? {},
+    );
+  }
+
+
   // Handler for FeedCarouselData
   Future<void> _onFeedCarouselData(
       FeedCarouselData event, Emitter<FeedState> emit) async {
@@ -80,10 +96,11 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           final data = FeedPostModel.fromJson(response.data);
           print('✅ FeedBloc: Successfully parsed ${data.data.length} posts');
 
-          emit(FeedLoaded(
-            carouselData: state.carouselData ?? [],
+          final current = _currentLoadedState();
+
+          emit(current.copyWith(
             postData: data.data,
-            playlistData: state.playlistData,
+            isPostLoading: false,
           ));
         } catch (parseError) {
           print('❌ FeedBloc: Parsing error: $parseError');
@@ -114,11 +131,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       if (response.data['status'] == 1) {
         final model = RecipeAllPlaylistModel.fromJson(response.data);
 
-        emit(FeedLoaded(
-          carouselData: state.carouselData ?? [],
-          postData: state.postData ?? [],
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
           playlistData: model.data,
         ));
+
       } else {
         emit(FeedError(error: response.data['message']));
       }
@@ -132,7 +150,12 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       FeedHomepageCarouselData event,
       Emitter<FeedState> emit,
       ) async {
-    emit(state.copyWith(
+    // First emit loading state
+    emit(FeedLoading(
+      carouselData: state.carouselData,
+      postData: state.postData,
+      playlistData: state.playlistData,
+      homepageCarousels: state.homepageCarousels,
       isHomepageCarouselLoading: true,
     ));
 
@@ -143,10 +166,13 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
       if (response.data['status'] == 1) {
         final model = HomepageCarouselModel.fromJson(response.data);
 
-        emit(state.copyWith(
-          homepageCarousels: model.data,
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
+          homepageCarousels: model.data ?? [],
           isHomepageCarouselLoading: false,
         ));
+
       } else {
         emit(state.copyWith(
           isHomepageCarouselLoading: false,
@@ -186,10 +212,10 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           return post;
         }).toList();
 
-        emit(FeedLoaded(
-          carouselData: state.carouselData ?? [],
+        final current = _currentLoadedState();
+
+        emit(current.copyWith(
           postData: updatedPostData ?? [],
-          playlistData: state.playlistData ?? [],
         ));
       } else {
         emit(FeedError(error: response.data['message']));

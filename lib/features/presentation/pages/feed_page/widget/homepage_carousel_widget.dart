@@ -39,17 +39,30 @@ class HomepageCarouselWidget extends StatelessWidget {
       );
     }
 
+    // 🔍 DEBUG: Log the carousels data
+    print('📊 HomepageCarouselWidget - Total carousels: ${carousels.length}');
+    for (var carousel in carousels) {
+      print('   Carousel: ${carousel.carouselTitle}');
+      print('   Videos count: ${carousel.videos?.length ?? 0}');
+      if (carousel.videos != null && carousel.videos!.isNotEmpty) {
+        print('   First video title: ${carousel.videos!.first.title}');
+      }
+    }
+
     // --------------------
     // FILTER EMPTY CAROUSELS
     // --------------------
     final visibleCarousels = carousels
-        .where((carousel) => carousel.videos.isNotEmpty)
+        .where((carousel) => carousel.videos != null && carousel.videos!.isNotEmpty)
         .toList();
+
+    print('📊 Visible carousels after filter: ${visibleCarousels.length}');
 
     // --------------------
     // EMPTY STATE
     // --------------------
     if (visibleCarousels.isEmpty) {
+      print('⚠️ No visible carousels found');
       return const SizedBox.shrink();
     }
 

@@ -28,7 +28,6 @@ sealed class FeedState {
     this.localReplies,
   });
 
-  // Add a copyWith method for easier state updates
   FeedState copyWith({
     List<FeedSliderDataModel>? carouselData,
     List<FeedPostDataModel>? postData,
@@ -42,10 +41,11 @@ sealed class FeedState {
     Map<int, List<Comment>>? localComments,
     Map<int, List<Comment>>? localReplies,
   }) {
+    // Always preserve existing data when creating new state
     if (this is FeedLoaded) {
       return FeedLoaded(
-        carouselData: carouselData ?? this.carouselData!,
-        postData: postData ?? this.postData!,
+        carouselData: carouselData ?? this.carouselData ?? [],
+        postData: postData ?? this.postData ?? [],
         playlistData: playlistData ?? this.playlistData,
         homepageCarousels: homepageCarousels ?? this.homepageCarousels,
         localComments: localComments ?? this.localComments,
@@ -53,13 +53,13 @@ sealed class FeedState {
       );
     }
 
+    // For non-loaded states, still preserve data
     return FeedLoading(
       carouselData: carouselData ?? this.carouselData,
       postData: postData ?? this.postData,
       playlistData: playlistData ?? this.playlistData,
       homepageCarousels: homepageCarousels ?? this.homepageCarousels,
-      isHomepageCarouselLoading:
-      isHomepageCarouselLoading ?? this.isHomepageCarouselLoading,
+      isHomepageCarouselLoading: isHomepageCarouselLoading ?? this.isHomepageCarouselLoading,
       isCarouselLoading: isCarouselLoading ?? this.isCarouselLoading,
       isPostLoading: isPostLoading ?? this.isPostLoading,
       isLikeLoading: isLikeLoading ?? this.isLikeLoading,
