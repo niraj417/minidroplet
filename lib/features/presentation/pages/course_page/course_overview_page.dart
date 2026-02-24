@@ -143,8 +143,8 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     return Stack(
       children: [
         Image.network(
-          //thumbnail,
-          "https://t3.ftcdn.net/jpg/09/73/18/30/360_F_973183014_a4cDr6BWLx1ZdXuzvabLQuVLa5zcMZ4B.jpg",
+          thumbnail,
+          //"https://t3.ftcdn.net/jpg/09/73/18/30/360_F_973183014_a4cDr6BWLx1ZdXuzvabLQuVLa5zcMZ4B.jpg",
           height: 220,
           width: double.infinity,
           fit: BoxFit.cover,
