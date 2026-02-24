@@ -8,6 +8,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/bloc/feed_blo
 import 'package:tinydroplets/features/presentation/pages/feed_page/bloc/track_milestone_bloc/track_milestone_cubit.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/profile_bloc/profile_state.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/bloc/ingredient_detail_bloc/ingredient_detail_cubit.dart';
+import '../../features/presentation/pages/course_page/bloc/course_list/course_list_bloc.dart';
 import '../../features/presentation/pages/dashboard/dashboard_bloc/dashboard_bloc.dart';
 import '../../features/presentation/pages/ebook_page/ebook_list/bloc/ebook_bloc.dart';
 import '../../features/presentation/pages/ebook_page/ebook_list/bloc/ebook_state.dart';
@@ -40,6 +41,9 @@ class BlocProviderHelper extends StatelessWidget {
                     ..add(FeedPostData())
                     ..add(FeedPlaylistData())
                     ..add(FeedHomepageCarouselData()),
+        ),
+        BlocProvider(
+          create: (_) => CourseBloc(),
         ),
         BlocProvider(
           create:

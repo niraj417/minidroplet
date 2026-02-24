@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
+import 'package:tinydroplets/features/presentation/pages/course_page/course_page.dart';
 import 'package:tinydroplets/features/presentation/pages/ebook_page/ebook_list/ebook_page.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/feed_page.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/my_account.dart';
@@ -25,6 +26,7 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   final List<Widget> screens = [
     const FeedPage(),
+    const CourseListPage(),
     const EbookPage(),
     VideoPage(),
     BlocProvider(
@@ -108,22 +110,28 @@ class _DashboardState extends State<Dashboard> {
                         currentIndex == 0 ? activeIconColor : inactiveIconColor,
                   ),
                   Icon(
-                    Icons.menu_book_rounded,
+                    Icons.feed,
                     size: 30,
                     color:
-                        currentIndex == 1 ? activeIconColor : inactiveIconColor,
+                    currentIndex == 1 ? activeIconColor : inactiveIconColor,
                   ),
                   Icon(
-                    CupertinoIcons.videocam_fill,
+                    Icons.menu_book_rounded,
                     size: 30,
                     color:
                         currentIndex == 2 ? activeIconColor : inactiveIconColor,
                   ),
                   Icon(
-                    CupertinoIcons.person,
+                    CupertinoIcons.videocam_fill,
                     size: 30,
                     color:
                         currentIndex == 3 ? activeIconColor : inactiveIconColor,
+                  ),
+                  Icon(
+                    CupertinoIcons.person,
+                    size: 30,
+                    color:
+                        currentIndex == 4 ? activeIconColor : inactiveIconColor,
                   ),
                 ],
                 onTap: (index) {

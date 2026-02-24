@@ -1,10 +1,10 @@
 class ApiEndpoints {
 
   // static const String serverURL = "http://192.168.1.10:8080/adminapp_tinydroplets/appadmin/api";
-  // static const String serverURL = "https://testbackend.tinydroplets.com/api";
+  static const String serverURL = "https://testbackend.tinydroplets.com/api";
   // static const String serverURL = "http://43.204.111.100/api";
   // static const String serverURL = "http://43.204.111.100/api";
-  static const String serverURL = "https://backend.tinydroplets.com/api";
+  // static const String serverURL = "https://backend.tinydroplets.com/api";
   // static const String serverURL = "http://13.234.75.223/api";
   // static const String serverURL = "https://appadmin.softdkc.com/api";
 
@@ -172,4 +172,11 @@ class ApiEndpoints {
   static const String startFreeTrial = '$serverURL/start_free_trial';
 
   static const String homepageCarousels = '$serverURL/getHomepageCarousels';
+
+  //Course Api endpoints
+  static const String courseList = '$serverURL/course_list';
+  static const String lessonsDetials = '$serverURL/lesson_details';
+  static const String courseDetials = '$serverURL/course_details';
+  static const String enrollCourse = '$serverURL/enroll_course';
+  static const String updateCourseProgress = '$serverURL/update_progress';
 }

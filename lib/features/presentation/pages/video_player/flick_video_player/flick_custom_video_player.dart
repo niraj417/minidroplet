@@ -5,8 +5,13 @@ import 'dart:io';
 
 class FlickCustomVideoPlayer extends StatefulWidget {
   final String videoUrl;
+  final void Function(Duration, Duration)? onProgress;
 
-  const FlickCustomVideoPlayer({super.key, required this.videoUrl});
+  const FlickCustomVideoPlayer({
+    super.key,
+    required this.videoUrl,
+    this.onProgress, // OPTIONAL
+  });
 
   @override
   State<FlickCustomVideoPlayer> createState() => _FlickCustomVideoPlayerState();
@@ -22,6 +27,19 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
   void initState() {
     super.initState();
     _initializePlayer();
+  }
+
+  void _attachProgressListener() {
+    if (widget.onProgress == null) return;
+
+    _controller.addListener(() {
+      if (!_controller.value.isInitialized) return;
+
+      final position = _controller.value.position;
+      final duration = _controller.value.duration;
+
+      widget.onProgress?.call(position, duration);
+    });
   }
 
   Future<void> _initializePlayer() async {
@@ -44,6 +62,7 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
             allowRemotePlayback: false,
           ),
         ),
+
       );
 
       // CRITICAL: Add listener BEFORE initialization
@@ -51,6 +70,10 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
 
       // Initialize and wait for completion
       await _controller.initialize();
+      //     .then((_) {
+      //   setState(() {});
+      //   _attachProgressListener(); // SAFE
+      // });
 
       // Verify the video is actually loaded
       if (_controller.value.hasError) {
@@ -104,6 +127,14 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
         });
       }
     }
+    _controller.addListener(() {
+      if (!_controller.value.isInitialized) return;
+
+      final position = _controller.value.position;
+      final duration = _controller.value.duration;
+
+      widget.onProgress?.call(position, duration);
+    });
   }
 
   @override
