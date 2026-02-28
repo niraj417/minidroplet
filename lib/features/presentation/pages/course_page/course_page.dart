@@ -23,7 +23,7 @@ class _CourseListPageState extends State<CourseListPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
     context.read<CourseBloc>().add(
       FetchCourseList(SharedPref.getLoginData()!.data!.id ?? 0),
@@ -52,10 +52,10 @@ class _CourseListPageState extends State<CourseListPage>
                   CourseListView(tabIndex: 0),
                   CourseListView(tabIndex: 1),
                   CourseListView(tabIndex: 2),
-                  CourseListView(tabIndex: 3),
                 ],
               ),
             ),
+            SizedBox(height: 120,),
           ],
         ),
       ),
@@ -64,19 +64,35 @@ class _CourseListPageState extends State<CourseListPage>
 
   Widget _buildTabs() {
     return Container(
-      height: 50,
       margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
       child: TabBar(
         controller: _tabController,
-        isScrollable: true, // ✅ makes it horizontally scrollable
-        labelPadding: const EdgeInsets.symmetric(horizontal: 20),
+        isScrollable: false,
         indicator: BoxDecoration(
-          color: const Color(0xFFFFF2E1),
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFFFFB703),
+              Color(0xFFFB8500),
+            ],
+          ),
           borderRadius: BorderRadius.circular(25),
         ),
-        indicatorSize: TabBarIndicatorSize.tab, // ✅ fixes indicator sizing
-        labelColor: Colors.orange,
-        unselectedLabelColor: Colors.grey,
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.grey.shade600,
+        dividerColor: Colors.transparent, // 🔥 removes bottom divider
         labelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 14,
@@ -85,7 +101,6 @@ class _CourseListPageState extends State<CourseListPage>
           Tab(text: "All"),
           Tab(text: "In Progress"),
           Tab(text: "Completed"),
-          Tab(text: "Expired"),
         ],
       ),
     );
@@ -114,46 +129,57 @@ class CourseListView extends StatelessWidget {
         // TAB FILTERING
         final filteredCourses = courses.where((course) {
           switch (tabIndex) {
+
             case 1: // In Progress
-              return course.completionPercentage > 0 &&
+              return course.isEnrolled &&
                   course.completionPercentage < 100;
+
             case 2: // Completed
-              return course.completionPercentage == 100;
-            case 3: // Expired (not enrolled)
-              return !course.isEnrolled;
+              return course.isEnrolled &&
+                  course.completionPercentage == 100;
+
             default: // All
               return true;
           }
         }).toList();
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: filteredCourses.length,
-          itemBuilder: (context, index) {
-            final course = filteredCourses[index];
-
-            if (filteredCourses.isEmpty) {
-              return const Center(
-                child: Text(
-                  "No courses available",
-                  style: TextStyle(color: Colors.grey),
+        return RefreshIndicator(
+            onRefresh: () async {
+              context.read<CourseBloc>().add(
+                FetchCourseList(
+                  SharedPref.getLoginData()!.data!.id ?? 0,
                 ),
               );
-            }
+            },
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filteredCourses.length,
+              itemBuilder: (context, index) {
+              final course = filteredCourses[index];
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: CourseCard(
-                course_id: course.id,
-                title: course.title,
-                thumbnail: course.thumbnail,
-                progress: course.completionPercentage / 100,
-                shortDescription: course.shortDescription,
-                chapters: course.totalLessons,
-                isLocked: course.isLocked,
-              ),
-            );
-          },
+              if (filteredCourses.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "No courses available",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                );
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: CourseCard(
+                  course_id: course.id,
+                  title: course.title,
+                  thumbnail: course.thumbnail,
+                  progress: course.completionPercentage / 100,
+                  shortDescription: course.shortDescription,
+                  chapters: course.totalLessons,
+                  isLocked: course.isLocked,
+                ),
+              );
+            },
+          )
         );
       },
     );

@@ -1,6 +1,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../../core/constant/app_export.dart';
 import '../../../../../../core/network/api_endpoints.dart';
 import '../../../../../../core/services/payment_service.dart';
 import '../../model/course_detial_model.dart';
@@ -19,7 +20,10 @@ class CourseDetailBloc
       Emitter<CourseDetailState> emit,
       ) async {
 
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      error: null,
+    ));
 
     try {
       final response = await dioClient.sendPostRequest(
@@ -34,14 +38,22 @@ class CourseDetailBloc
         final model =
         CourseDetailModel.fromJson(response.data['data']);
 
-        emit(CourseDetailState(data: model));
+        debugPrint("API completion: ${response.data['data']['completion_percentage']}");
+
+        emit(state.copyWith(
+          isLoading: false,
+          data: model,
+          error: null,
+        ));
       } else {
-        emit(CourseDetailState(
+        emit(state.copyWith(
+          isLoading: false,
           error: response.data['message'],
         ));
       }
     } catch (e) {
-      emit(CourseDetailState(
+      emit(state.copyWith(
+        isLoading: false,
         error: e.toString(),
       ));
     }

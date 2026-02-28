@@ -30,6 +30,7 @@ class CourseVideoLessonPage extends StatefulWidget {
 class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
   late int _currentIndex;
   late LessonModel _lesson;
+  bool _isExpanded = false;
 
   int _lastSentSecond = 0;
   bool _completedSent = false;
@@ -48,13 +49,16 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
     final percentage = currentSecond / totalSecond;
 
     /// 🔁 Send every 5 seconds
-    if (currentSecond - _lastSentSecond >= 5) {
+    if (!_completedSent &&
+        currentSecond - _lastSentSecond >= 5) {
       _lastSentSecond = currentSecond;
 
-      await _updateProgress(
-        watchedDuration: currentSecond,
-        isCompleted: false,
-      );
+      if (!_completedSent) {
+        await _updateProgress(
+          watchedDuration: currentSecond,
+          isCompleted: false,
+        );
+      }
     }
 
     /// ✅ Mark complete at 90%
@@ -94,21 +98,21 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
 
       _progressUpdated = true;
 
-      // Only try to refresh CourseDetailBloc if it exists in the widget tree
-      try {
-        // Check if bloc exists before trying to access it
-        if (context.mounted && context.read<CourseDetailBloc>() != null) {
-          context.read<CourseDetailBloc>().add(
-            FetchCourseDetail(
-              userId: int.parse(widget.userId),
-              courseId: int.parse(widget.courseId),
-            ),
-          );
-        }
-      } catch (blocError) {
-        // Bloc not found - but that's okay, API already succeeded
-        debugPrint('⚠️ CourseDetailBloc not found, but API call succeeded');
-      }
+      // // Only try to refresh CourseDetailBloc if it exists in the widget tree
+      // try {
+      //   // Check if bloc exists before trying to access it
+      //   if (context.mounted && context.read<CourseDetailBloc>() != null) {
+      //     context.read<CourseDetailBloc>().add(
+      //       FetchCourseDetail(
+      //         userId: int.parse(widget.userId),
+      //         courseId: int.parse(widget.courseId),
+      //       ),
+      //     );
+      //   }
+      // } catch (blocError) {
+      //   // Bloc not found - but that's okay, API already succeeded
+      //   debugPrint('⚠️ CourseDetailBloc not found, but API call succeeded');
+      // }
 
     } catch (e) {
       debugPrint("❌ Progress update failed: $e");
@@ -129,6 +133,7 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
   }
 
   void _goBack() {
+    print("Go Back mehtod Invoked ");
     // Pass true back if progress was updated
     Navigator.pop(context, _progressUpdated);
   }
@@ -159,9 +164,11 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
 
     return SafeArea(
       child: PopScope(
-        onPopInvoked: (bool didPop) async {
-          if (didPop) return; // Exit if already popped
-          if (context.mounted) _goBack();
+        canPop: false,
+        onPopInvoked: (didPop) {
+          if (!didPop) {
+            _goBack(); // always send result back
+          }
         },
         child: Scaffold(
           backgroundColor: const Color(0xFFF6F7FB),
@@ -179,33 +186,37 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
               ),
             ],
           ),
-          body: Column(
-            children: [
-              /// ---------------- VIDEO PLAYER ----------------
-              videoUrl.isNotEmpty
-                  ? FlickCustomVideoPlayer(
-                videoUrl: videoUrl,
-                onProgress: _handleVideoProgress,
-              )
-                  : Container(
-                height: 220,
-                color: Colors.black,
-                child: const Center(
-                  child: Text(
-                    "Loading video...",
-                    style: TextStyle(color: Colors.white),
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                /// ---------------- VIDEO PLAYER ----------------
+                videoUrl.isNotEmpty
+                    ? FlickCustomVideoPlayer(
+                  videoUrl: videoUrl,
+                  onProgress: _handleVideoProgress,
+                )
+                    : Container(
+                  height: 220,
+                  color: Colors.black,
+                  child: const Center(
+                    child: Text(
+                      "Loading video...",
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
 
-              /// ---------------- CONTENT AREA ----------------
-              Expanded(
-                child: Container(
+                /// ---------------- CONTENT AREA ----------------
+                Container(
                   color: Colors.white,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// TITLE + DURATION
+
+                      /// TITLE
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -221,9 +232,7 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
                             const SizedBox(height: 6),
                             Text(
                               _lesson.duration,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                              ),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -231,33 +240,15 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
 
                       const Divider(height: 1),
 
-                      /// ---------------- ABOUT SECTION ----------------
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Description",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _lesson.description.isNotEmpty
-                                    ? _lesson.description
-                                    : "No description available.",
-                                style: const TextStyle(height: 1.5),
-                              ),
-                            ],
-                          ),
-                        ),
+                      /// DESCRIPTION
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: _buildExpandableDescription(_lesson.description),
                       ),
 
-                      /// ---------------- PREVIOUS / NEXT ----------------
+                      const SizedBox(height: 20),
+
+                      /// PREVIOUS / NEXT
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 14),
@@ -269,7 +260,7 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            /// PREVIOUS
+
                             GestureDetector(
                               onTap: _currentIndex > 0
                                   ? () => _loadLesson(_currentIndex - 1)
@@ -285,9 +276,9 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
                               ),
                             ),
 
-                            /// NEXT
                             GestureDetector(
-                              onTap: _currentIndex < widget.lessons.length - 1
+                              onTap: _currentIndex <
+                                  widget.lessons.length - 1
                                   ? () => _loadLesson(_currentIndex + 1)
                                   : null,
                               child: Text(
@@ -307,11 +298,65 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildExpandableDescription(String description) {
+    const int maxLength = 300;
+
+    final bool isLong = description.length > maxLength;
+
+    final String displayText = !_isExpanded && isLong
+        ? description.substring(0, maxLength) + "..."
+        : description;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Description",
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: Text(
+            description.isNotEmpty
+                ? displayText
+                : "No description available.",
+            style: const TextStyle(height: 1.5),
+          ),
+        ),
+
+        if (isLong)
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _isExpanded ? "Read less" : "Read more",
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

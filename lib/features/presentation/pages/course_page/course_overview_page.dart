@@ -60,17 +60,23 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
       ),
     );
 
-    // If shouldRefresh is true, refresh the course details
-    if (shouldRefresh == true) {
-      if (context.mounted) {
-        context.read<CourseDetailBloc>().add(
-          FetchCourseDetail(
-            userId: widget.userId,
-            courseId: widget.courseId,
-          ),
-        );
+    print("Should Refresh : ${shouldRefresh}");
+    try{
+      // If shouldRefresh is true, refresh the course details
+      if (shouldRefresh == true) {
+        if (context.mounted) {
+          context.read<CourseDetailBloc>().add(
+            FetchCourseDetail(
+              userId: widget.userId,
+              courseId: widget.courseId,
+            ),
+          );
+        }
       }
+    }catch(Exception){
+      print("Error Recalling return COurse detials bloc");
     }
+
   }
 
   @override
@@ -116,20 +122,22 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               ),
             );
           },
-          child: Scaffold(
-            backgroundColor: const Color(0xFFF6F7FB),
-            body: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildBanner(data.thumbnail),
-                  _buildHeaderSection(data, isEnrolled),
-                  const SizedBox(height: 20),
-                  _buildSectionHeader(),
-                  const SizedBox(height: 10),
-                  _buildLessonList(data.lessons),
-                  const SizedBox(height: 30),
-                ],
+          child: SafeArea(
+            child: Scaffold(
+              backgroundColor: const Color(0xFFF6F7FB),
+              body: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBanner(data.thumbnail),
+                    _buildHeaderSection(data, isEnrolled),
+                    const SizedBox(height: 20),
+                    _buildSectionHeader(),
+                    const SizedBox(height: 10),
+                    _buildLessonList(data.lessons),
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
           ),
@@ -249,14 +257,31 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     return;
                   }
 
-                  final nextIndex = data.lessons.indexWhere(
+                  final lessons = data.lessons;
+
+                  /// 1️⃣ Find lesson that is partially watched (resume case)
+                  int resumeIndex = lessons.indexWhere(
+                        (e) => !e.isCompleted && e.watchedDuration > 0,
+                  );
+
+                  /// 2️⃣ If found → resume it
+                  if (resumeIndex != -1) {
+                    _openLesson(lessons, resumeIndex);
+                    return;
+                  }
+
+                  /// 3️⃣ Otherwise find first incomplete lesson
+                  int firstIncompleteIndex = lessons.indexWhere(
                         (e) => !e.isCompleted,
                   );
 
-                  _openLesson(
-                    data.lessons,
-                    nextIndex == -1 ? 0 : nextIndex,
-                  );
+                  if (firstIncompleteIndex != -1) {
+                    _openLesson(lessons, firstIncompleteIndex);
+                    return;
+                  }
+
+                  /// 4️⃣ If all completed → start from first lesson
+                  _openLesson(lessons, 0);
                 },
                 child: Container(
                   height: 45,
