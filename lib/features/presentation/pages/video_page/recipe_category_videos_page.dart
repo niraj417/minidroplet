@@ -203,13 +203,13 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
               child: _displayedVideos.isEmpty
                   ? NoDataWidget(onPressed: _loadInitialData)
                   : GridView.builder(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(4),
                 gridDelegate:
                 const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 2,
+                  mainAxisSpacing: 2,
+                  childAspectRatio: 0.9,
                 ),
                 itemCount: _displayedVideos.length,
                 itemBuilder: (_, index) {
@@ -234,6 +234,7 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
                 },
               ),
             ),
+            SizedBox(height: 50,)
           ],
         ),
       ),
@@ -248,7 +249,7 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
         !_hasPremium && video.priceType != 'free';
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

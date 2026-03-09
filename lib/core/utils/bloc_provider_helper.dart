@@ -33,6 +33,7 @@ class BlocProviderHelper extends StatelessWidget {
       providers: [
         BlocProvider<DashboardBloc>(create: (_) => DashboardBloc()),
         BlocProvider<ThemeBloc>(create: (context) => ThemeBloc()),
+        BlocProvider(create: (_) => FeedActivityCubit(dioClient)),
         BlocProvider<FeedBloc>(
           create:
               (context) =>

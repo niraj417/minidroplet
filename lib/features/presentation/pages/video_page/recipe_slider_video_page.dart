@@ -77,9 +77,9 @@ class _RecipeSubcategoryVideoPageState
         gridDelegate:
         const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.8,
+          crossAxisSpacing: 2,
+          mainAxisSpacing: 2,
+          childAspectRatio: 0.9,
         ),
         itemCount: _videos.length,
         itemBuilder: (_, index) {

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
 import 'package:tinydroplets/core/constant/app_vector.dart';
 import 'package:tinydroplets/core/services/ad_service/ad_view.dart';
@@ -62,6 +63,9 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
     void initState() {
       // TODO: implement initState
       super.initState();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<FeedActivityCubit>().fetchFeedActivityData();
+      });
       _loadSubscriptionState();
     }
 
@@ -136,6 +140,18 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
         body: BlocBuilder<FeedBloc, FeedState>(
           builder: (context, state) {
 
+            // final bool isFeedLoading =
+            //     (state.isPostLoading && state.postData == null) ||
+            //         (state.isCarouselLoading && state.carouselData == null) ||
+            //           (state.isHomepageCarouselLoading && state.homepageCarousels == null);
+
+            final bool isFeedLoading =
+                state.postData == null ||
+                    state.carouselData == null ||
+                    state.homepageCarousels == null;
+
+            final bool hasError = state.error != null;
+
             print('🔍 FeedBloc State Analysis:');
             print('   - State type: ${state.runtimeType}');
             print('   - Has error: ${state.error != null}');
@@ -164,236 +180,261 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
               );
             }
 
-            return RefreshIndicator(
-              backgroundColor: Color(AppColor.primaryColor),
-              color: Colors.white,
+            return Stack(
+              children: [
+                RefreshIndicator(
+                  backgroundColor: Color(AppColor.primaryColor),
+                  color: Colors.white,
 
-              onRefresh: () async {
-                context.read<FeedBloc>().refreshFeed();
-                context.read<FeedActivityCubit>().fetchFeedActivityData();
-                context.read<ProfileCompletionCubit>().getProfileCompletion();
-                //context.read<HomepageCarouselCubit>().fetchHomepageCarousels();
-              },
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    //ProfileCompletionCard(),
-
-                    if (state.isCarouselLoading)
-                      const FeedCarouselShimmer()
-                    else if (state.carouselData != null)
-                      CustomCarousel(
-                        items: state.carouselData!,
-                        itemBuilder: (context, feedSliderItem, index) {
-                          return GestureDetector(
-                          onTap: () {
-                            // if (feedSliderItem.link.isNotEmpty &&
-                            //     feedSliderItem.link != null) {
-                            //   UrlOpener.launchURL(feedSliderItem.link);
-                            // } else {
-                            //   return;
-                            // }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: CustomImage(
-                                fit: BoxFit.contain,
-                                imageUrl: feedSliderItem.image,
-                                //width: 300,
-                                //height: 200,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    )
-                  else if (state.carouselData == null)
-                    SizedBox.shrink(),
-                  // NoDataWidget(
-                  //   onPressed:
-                  //       () =>
-                  //           context.read<FeedBloc>().add(FeedCarouselData()),
-                  // ),
-                  //const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Align(
-                          //   alignment: AlignmentDirectional.topStart,
-                          //   child: Text(
-                          //     'For Your Baby',
-                          //     style: TextStyle(
-                          //       fontWeight: FontWeight.bold,
-                          //       fontSize: 20,
-                          //     ),
-                          //   ),
-                          // ),
-                          //BannerAdWidget(),
-                          ActivityGridWidget(),
-                        ],
-                      ),
-                    ),
-                    if (state.playlistData != null && state.playlistData!.isNotEmpty)
-                      premiumPlaylistBanner(
-                        onTap: () {
-                          goto(
-                            context,
-                            RecipeAllPlaylistPage(
-                              recipeAllPlaylistList: state.playlistData!,
-                            ),
-                          );
-                        }, context: context,
-                      ),
-                    SizedBox(height: 5,),
-                    exploreEbookBanner(
-                      onTap: () {
-                        UrlOpener.launchURL("https://tinydroplets.myinstamojo.com");
-                      },
-                    ),
-
-                    const SizedBox(height: 10,),
-                    BlocProvider(
-                      create: (_) =>
-                          HomepageRecipeSliderCubit(dioClient),
-                      child: HomepageRecipeCategory(
-                        onCategoryTap: (category) {
-                          goto(
-                            context,
-                            RecipeSubcategoryVideoPage(
-                              subCategoryId: category['video_cat_id'].toString(),
-                              title: category['name'],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10,),
-                    // In your FeedPage build method
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: HomepageCarouselWidget(
-                        carousels: state.homepageCarousels ?? [],
-                        isLoading: state.isHomepageCarouselLoading,
-                        error: state.error,
-                      ),
-                    ),
-                    if(shouldShowTrialBanner)
-                      trialStatusBanner(
-                        onTap: () {
-                          // 🔥 Navigate to subscription / open bottom sheet
-                          //_openSubscriptionPage();
-                          goto(context, SubscriptionPage());
-                        },
-                      ),
-                    const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  onRefresh: () async {
+                    context.read<FeedBloc>().refreshFeed();
+                    context.read<FeedActivityCubit>().fetchFeedActivityData();
+                    context.read<ProfileCompletionCubit>().getProfileCompletion();
+                    //context.read<HomepageCarouselCubit>().fetchHomepageCarousels();
+                  },
+                  child: SingleChildScrollView(
                     child: Column(
-                        children: [
-                          if (state.isPostLoading) PostWidgetShimmer(),
-                          if (state.postData != null)
-                            AnimatedWrapper(
-                              direction: AnimationDirection.fadeIn,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Feed',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                      children: [
+                        //ProfileCompletionCard(),
+
+                        if (state.isCarouselLoading)
+                          const FeedCarouselShimmer()
+                        else if (state.carouselData != null)
+                          CustomCarousel(
+                            items: state.carouselData!,
+                            itemBuilder: (context, feedSliderItem, index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  // if (feedSliderItem.link.isNotEmpty &&
+                                  //     feedSliderItem.link != null) {
+                                  //   UrlOpener.launchURL(feedSliderItem.link);
+                                  // } else {
+                                  //   return;
+                                  // }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: CustomImage(
+                                      fit: BoxFit.contain,
+                                      imageUrl: feedSliderItem.image,
+                                      //width: 300,
+                                      //height: 200,
                                     ),
                                   ),
-                                  SizedBox(height: 10),
-                                  //BannerAdWidget(),
-                                  ListView.builder(
-                                    itemCount: state.postData!.length,
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    itemBuilder: (context, index) {
-                                      final postData = state.postData![index];
-                                      CommonMethods.devLog(logName: 'Comment Count', message: postData.commentCount);
-                                      return Column(
-                                        children: [
-                                          // AdView.bannerAd(context) ?? SizedBox.shrink(),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0,
-                                            ),
-                                            child: PostWidget(
-                                              avatarUrl: postData.profile,
-                                              type: postData.type,
-                                              imageUrl: postData.image,
-                                              companyName: postData.title,
-                                              userName: postData.name,
-                                              shareDate: postData.postDate,
-                                              text: postData.description,
+                                ),
+                              );
+                            },
+                          )
+                        else if (state.carouselData == null)
+                            SizedBox.shrink(),
+                        // NoDataWidget(
+                        //   onPressed:
+                        //       () =>
+                        //           context.read<FeedBloc>().add(FeedCarouselData()),
+                        // ),
+                        //const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Align(
+                              //   alignment: AlignmentDirectional.topStart,
+                              //   child: Text(
+                              //     'For Your Baby',
+                              //     style: TextStyle(
+                              //       fontWeight: FontWeight.bold,
+                              //       fontSize: 20,
+                              //     ),
+                              //   ),
+                              // ),
+                              //BannerAdWidget(),
+                              ActivityGridWidget(),
+                            ],
+                          ),
+                        ),
+                        if (state.playlistData != null && state.playlistData!.isNotEmpty)
+                          premiumPlaylistBanner(
+                            onTap: () {
+                              goto(
+                                context,
+                                RecipeAllPlaylistPage(
+                                  recipeAllPlaylistList: state.playlistData!,
+                                ),
+                              );
+                            }, context: context,
+                          ),
+                        SizedBox(height: 5,),
+                        exploreEbookBanner(
+                          onTap: () {
+                            UrlOpener.launchURL("https://tinydroplets.myinstamojo.com");
+                          },
+                        ),
 
-                                              //  videoUrl:  postData.type == 'video' ? postData.image : ,
-                                              isLiked: postData.isLike == '1',
-                                              onLike: () {
-                                                context.read<FeedBloc>().add(
-                                                  FeedLikeData(
-                                                    postId: postData.id,
-                                                  ),
-                                                );
-                                              },
-                                              onComment: () {
-                                                _showCommentSheet(
-                                                  context,
-                                                  postData.allComments,
-                                                  postData.id,
-                                                );
+                        const SizedBox(height: 10,),
+                        BlocProvider(
+                          create: (_) =>
+                              HomepageRecipeSliderCubit(dioClient),
+                          child: HomepageRecipeCategory(
+                            onCategoryTap: (category) {
+                              goto(
+                                context,
+                                RecipeSubcategoryVideoPage(
+                                  subCategoryId: category['video_cat_id'].toString(),
+                                  title: category['name'],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+                        // In your FeedPage build method
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                          child: HomepageCarouselWidget(
+                            carousels: state.homepageCarousels ?? [],
+                            isLoading: state.isHomepageCarouselLoading,
+                            error: state.error,
+                          ),
+                        ),
+                        if(shouldShowTrialBanner)
+                          trialStatusBanner(
+                            onTap: () {
+                              // 🔥 Navigate to subscription / open bottom sheet
+                              //_openSubscriptionPage();
+                              goto(context, SubscriptionPage());
+                            },
+                          ),
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Column(
+                            children: [
+                              if (state.isPostLoading) PostWidgetShimmer(),
+                              if (state.postData != null)
+                                AnimatedWrapper(
+                                  direction: AnimationDirection.fadeIn,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Feed',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      //BannerAdWidget(),
+                                      ListView.builder(
+                                        itemCount: state.postData!.length,
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemBuilder: (context, index) {
+                                          final postData = state.postData![index];
+                                          CommonMethods.devLog(logName: 'Comment Count', message: postData.commentCount);
+                                          return Column(
+                                            children: [
+                                              // AdView.bannerAd(context) ?? SizedBox.shrink(),
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(
+                                                  vertical: 8.0,
+                                                ),
+                                                child: PostWidget(
+                                                  avatarUrl: postData.profile,
+                                                  type: postData.type,
+                                                  imageUrl: postData.image,
+                                                  companyName: postData.title,
+                                                  userName: postData.name,
+                                                  shareDate: postData.postDate,
+                                                  text: postData.description,
 
-                                                // _showCommentSheet(context, comment, postData.id)
-                                              },
-                                              onShare: () async {
-                                                await SharingHandler.handleFeedShare(
-                                                  postData.id,
-                                                  postData.title,
-                                                  postData.description,
-                                                  context,
-                                                );
-                                              },
-                                              onDoubleTap: () {
-                                                context.read<FeedBloc>().add(
-                                                  FeedLikeData(
-                                                    postId: postData.id,
-                                                  ),
-                                                );
-                                              },
-                                              likeCount:
+                                                  //  videoUrl:  postData.type == 'video' ? postData.image : ,
+                                                  isLiked: postData.isLike == '1',
+                                                  onLike: () {
+                                                    context.read<FeedBloc>().add(
+                                                      FeedLikeData(
+                                                        postId: postData.id,
+                                                      ),
+                                                    );
+                                                  },
+                                                  onComment: () {
+                                                    _showCommentSheet(
+                                                      context,
+                                                      postData.allComments,
+                                                      postData.id,
+                                                    );
+
+                                                    // _showCommentSheet(context, comment, postData.id)
+                                                  },
+                                                  onShare: () async {
+                                                    await SharingHandler.handleFeedShare(
+                                                      postData.id,
+                                                      postData.title,
+                                                      postData.description,
+                                                      context,
+                                                    );
+                                                  },
+                                                  onDoubleTap: () {
+                                                    context.read<FeedBloc>().add(
+                                                      FeedLikeData(
+                                                        postId: postData.id,
+                                                      ),
+                                                    );
+                                                  },
+                                                  likeCount:
                                                   postData.likeCount.toString(),
-                                              commentCount:
+                                                  commentCount:
                                                   postData.commentCount
                                                       .toString(),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        if (state.postData == null)
-                          NoDataWidget(
-                            onPressed:
-                                () => context.read<FeedBloc>().add(
-                                  FeedPostData(),
+                              if (state.postData == null)
+                                NoDataWidget(
+                                  onPressed:
+                                      () => context.read<FeedBloc>().add(
+                                    FeedPostData(),
+                                  ),
                                 ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          );
+                ),
+                /// ==========================
+                /// LOADING LOTTIE OVERLAY
+                /// ==========================
+                if (isFeedLoading && !hasError)
+                  AnimatedOpacity(
+                    opacity: isFeedLoading ? 1 : 0,
+                    duration: const Duration(seconds: 2),
+                    child: Positioned.fill(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.6),
+                        child: Center(
+                          child: Lottie.asset(
+                            AppVector.waterDropLoading,
+                            width: 120,
+                            height: 120,
+                            repeat: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
         },
       ),
     );

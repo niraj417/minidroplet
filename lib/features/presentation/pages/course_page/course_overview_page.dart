@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/features/presentation/pages/course_page/video_lesson_page.dart';
 
+import '../../../../core/constant/app_vector.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/services/payment_service.dart';
 import '../../../../core/theme/app_color.dart';
@@ -83,11 +85,43 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<CourseDetailBloc, CourseDetailState>(
         builder: (context, state) {
-          // 1️⃣ Loading
           if (state.isLoading) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
+            return Scaffold(
+              backgroundColor: const Color(0xFFF6F7FB),
+              body: Stack(
+                children: [
+
+                  /// =========================
+                  /// SHIMMER CONTENT
+                  /// =========================
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        CourseDetailBannerShimmer(),
+                        CourseDetailHeaderShimmer(),
+                        CourseLessonListShimmer(),
+                      ],
+                    ),
+                  ),
+
+                  /// =========================
+                  /// LOTTIE OVERLAY
+                  /// =========================
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.white.withOpacity(0.6),
+                      child: Center(
+                        child: Lottie.asset(
+                          AppVector.waterDropLoading,
+                          width: 120,
+                          height: 120,
+                          repeat: true,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -475,6 +509,80 @@ class LessonTile extends StatelessWidget {
             else
               const Icon(Icons.play_circle_outline),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class CourseDetailBannerShimmer extends StatelessWidget {
+  const CourseDetailBannerShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      color: Colors.grey.shade300,
+    );
+  }
+}
+
+class CourseDetailHeaderShimmer extends StatelessWidget {
+  const CourseDetailHeaderShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _box(height: 22, width: 200),
+          const SizedBox(height: 14),
+          _box(height: 14, width: 150),
+          const SizedBox(height: 8),
+          _box(height: 6, width: double.infinity),
+          const SizedBox(height: 16),
+          _box(height: 45, width: 120),
+        ],
+      ),
+    );
+  }
+
+  Widget _box({required double height, required double width}) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+}
+
+class CourseLessonListShimmer extends StatelessWidget {
+  const CourseLessonListShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: List.generate(
+          6,
+              (index) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
         ),
       ),
     );

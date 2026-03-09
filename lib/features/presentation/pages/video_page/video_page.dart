@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
 import 'package:tinydroplets/common/widgets/search_text_card.dart';
 import 'package:tinydroplets/core/utils/shared_pref_key.dart';
@@ -23,6 +24,7 @@ import '../../../../common/widgets/custom_caraousel.dart';
 import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../common/widgets/loader.dart';
 import '../../../../core/constant/app_export.dart';
+import '../../../../core/constant/app_vector.dart';
 import '../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import '../../../../core/services/payment_service.dart';
 import '../feed_page/bloc/age_group_bloc/age_group_cubit.dart';
@@ -78,40 +80,68 @@ class _VideoPageState extends State<VideoPage> {
           builder: (context, state) {
             final bool hasPremium = _hasPremiumAccess(state);
 
-            return RefreshIndicator(
-              backgroundColor: Color(AppColor.primaryColor),
-              color: Colors.white,
-              onRefresh: () async {
-                await context.read<AgeGroupCubit>().fetchAgeGroup();
-                await context.read<VideoPageCubit>().refreshData();
-              },
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: SearchTextCard(
-                        text: 'Search, Favorite Recipe',
-                        onTap: () =>
-                            goto(context, const RecipeSearchFilterScreen()),
+            final bool isLoading =
+                state.recipeCarouselList.isEmpty &&
+                    state.allRecipeCategoryList.isEmpty &&
+                    state.recommendationRecipeList.isEmpty &&
+                    state.recipeAllPlaylistList.isEmpty &&
+                    state.allRecipeVideoList.isEmpty;
+
+            return Stack(
+              children: [
+                RefreshIndicator(
+                  backgroundColor: Color(AppColor.primaryColor),
+                  color: Colors.white,
+                  onRefresh: () async {
+                    await context.read<AgeGroupCubit>().fetchAgeGroup();
+                    await context.read<VideoPageCubit>().refreshData();
+                  },
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: SearchTextCard(
+                            text: 'Search, Favorite Recipe',
+                            onTap: () =>
+                                goto(context, const RecipeSearchFilterScreen()),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildCarousel(state, context, hasPremium),
+                        _ageGroup(context),
+                        _ingredientCategory(context),
+                        const SizedBox(height: 10),
+                        _buildRecipePlaylist(state, context, hasPremium),
+                        const SizedBox(height: 10),
+                        _buildVideoCategory(state, context),
+                        const SizedBox(height: 10),
+                        _buildRecommendation(state, context, hasPremium),
+                        const SizedBox(height: 10),
+                        _buildRecipeOfTheWeek(state, context, hasPremium),
+                        const SizedBox(height: 120),
+                      ],
+                    ),
+                  ),
+                ),
+                /// ==============================
+                /// LOTTIE OVERLAY
+                /// ==============================
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.white.withOpacity(0.6),
+                      child: Center(
+                        child: Lottie.asset(
+                          AppVector.waterDropLoading,
+                          width: 120,
+                          height: 120,
+                          repeat: true,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    _buildCarousel(state, context, hasPremium),
-                    _ageGroup(context),
-                    _ingredientCategory(context),
-                    const SizedBox(height: 10),
-                    _buildRecipePlaylist(state, context, hasPremium),
-                    const SizedBox(height: 10),
-                    _buildVideoCategory(state, context),
-                    const SizedBox(height: 10),
-                    _buildRecommendation(state, context, hasPremium),
-                    const SizedBox(height: 10),
-                    _buildRecipeOfTheWeek(state, context, hasPremium),
-                    const SizedBox(height: 120),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             );
           },
         ),

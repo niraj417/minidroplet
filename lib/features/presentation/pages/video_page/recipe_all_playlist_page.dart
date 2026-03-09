@@ -69,9 +69,9 @@ class RecipeAllPlaylistPage extends StatelessWidget {
             crossAxisCount:
             (MediaQuery.of(context).size.width ~/ 180)
                 .clamp(1, 4),
-            crossAxisSpacing: 20,
+            crossAxisSpacing: 6,
             mainAxisSpacing: 2,
-            childAspectRatio: 2.1 / 4,
+            childAspectRatio: 2.0 / 3,
           ),
           itemCount: recipeAllPlaylistList.length,
           itemBuilder: (context, index) {

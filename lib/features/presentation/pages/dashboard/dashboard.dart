@@ -110,7 +110,7 @@ class _DashboardState extends State<Dashboard> {
                         currentIndex == 0 ? activeIconColor : inactiveIconColor,
                   ),
                   Icon(
-                    Icons.feed,
+                    Icons.ondemand_video_outlined,
                     size: 30,
                     color:
                     currentIndex == 1 ? activeIconColor : inactiveIconColor,

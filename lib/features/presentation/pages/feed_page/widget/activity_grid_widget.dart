@@ -26,9 +26,9 @@ class ActivityGridWidget extends StatefulWidget {
 class _ActivityGridWidgetState extends State<ActivityGridWidget> {
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FeedActivityCubit>().fetchFeedActivityData();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   context.read<FeedActivityCubit>().fetchFeedActivityData();
+    // });
     super.initState();
   }
 

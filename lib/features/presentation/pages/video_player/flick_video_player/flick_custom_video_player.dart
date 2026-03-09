@@ -215,33 +215,41 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
       );
     }
 
-    return FlickVideoPlayer(
-      flickManager: flickManager,
-      flickVideoWithControls: FlickVideoWithControls(
-        controls: const FlickPortraitControls(),
-        // controls: Platform.isIOS ? const IOSVideoControls() : const FlickPortraitControls(),
-        videoFit: BoxFit.contain,
-        playerErrorFallback: Container(
-          color: Colors.black,
-          child: const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.play_circle_outline, color: Colors.white, size: 64),
-                SizedBox(height: 16),
-                Text(
-                  'Video failed to load\nTap retry above',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                  textAlign: TextAlign.center,
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+          child: FlickVideoPlayer(
+            flickManager: flickManager,
+            flickVideoWithControls: FlickVideoWithControls(
+              controls: const FlickPortraitControls(),
+              // controls: Platform.isIOS ? const IOSVideoControls() : const FlickPortraitControls(),
+              videoFit: BoxFit.contain,
+              playerErrorFallback: Container(
+                color: Colors.black,
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.play_circle_outline, color: Colors.white, size: 64),
+                      SizedBox(height: 16),
+                      Text(
+                        'Video failed to load\nTap retry above',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
+            ),
+            flickVideoWithControlsFullscreen: const FlickVideoWithControls(
+              controls: FlickLandscapeControls(),
+              videoFit: BoxFit.contain,
             ),
           ),
         ),
-      ),
-      flickVideoWithControlsFullscreen: const FlickVideoWithControls(
-        controls: FlickLandscapeControls(),
-        videoFit: BoxFit.contain,
       ),
     );
   }

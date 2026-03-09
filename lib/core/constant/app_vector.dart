@@ -40,4 +40,7 @@ class AppVector {
   static const String iconActivities = '${base1}iconActivities.png';
   static const String iconTrackGrowth = '${base1}iconTrackGrowth.png';
 
+  static const String base2 = 'assets/lottie_animation/';
+
+  static const String waterDropLoading = '${base2}water_drop_loading.json';
 }

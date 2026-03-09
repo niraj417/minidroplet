@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/features/presentation/pages/course_page/course_overview_page.dart';
 
 import '../../../../common/widgets/app_bar/custom_app_bar.dart';
+import '../../../../core/constant/app_vector.dart';
 import '../../../../core/utils/shared_pref.dart';
 import 'bloc/course_detials/course_details_bloc.dart';
 import 'bloc/course_list/course_list_bloc.dart';
@@ -117,7 +119,39 @@ class CourseListView extends StatelessWidget {
     return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
         if (state.isLoading) {
-          return const Center(child: CircularProgressIndicator());
+          return Stack(
+            children: [
+
+              /// ============================
+              /// SHIMMER LIST
+              /// ============================
+              ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 5,
+                itemBuilder: (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: CourseCardShimmer(),
+                ),
+              ),
+
+              /// ============================
+              /// LOTTIE ANIMATION OVERLAY
+              /// ============================
+              Positioned.fill(
+                child: Container(
+                  color: Colors.white.withOpacity(0.6),
+                  child: Center(
+                    child: Lottie.asset(
+                      AppVector.waterDropLoading,
+                      width: 120,
+                      height: 120,
+                      repeat: true,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
         }
 
         if (state.error != null) {
@@ -361,6 +395,62 @@ class CourseCard extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class CourseCardShimmer extends StatelessWidget {
+  const CourseCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Thumbnail shimmer
+          Container(
+            height: 180,
+            decoration: const BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _shimmerBox(height: 20, width: 150),
+                const SizedBox(height: 10),
+                _shimmerBox(height: 14, width: double.infinity),
+                const SizedBox(height: 6),
+                _shimmerBox(height: 14, width: 200),
+                const SizedBox(height: 10),
+                _shimmerBox(height: 8, width: double.infinity),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _shimmerBox({required double height, required double width}) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }
