@@ -23,14 +23,21 @@ class _LauncherPageState extends State<LauncherPage> {
     final bool isOnboardingViewed = SharedPref.getOnboardingViewed();
     final bool keepLoggedIn = SharedPref.getKeepLoggedIn();
     final loginData = SharedPref.getLoginData();
-          MaterialPageRoute(builder: (_) => LoginPage()),
-              (route) => false,
-        );
-      }
+
+    if (!isOnboardingViewed) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LetsGetStartedPage()),
+        (route) => false,
+      );
+    } else if (keepLoggedIn && loginData != null && loginData.data?.apiToken != null) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const Dashboard()),
+        (route) => false,
+      );
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => LetsGetStartedPage()),
-            (route) => false,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
       );
     }
   }
