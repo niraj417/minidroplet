@@ -31,7 +31,6 @@ class SharedPref {
   }
 
   static Future<bool> setBool(String key, bool value) async {
-    await init(); // Ensure initialization
     return await prefs.setBool(key, value);
   }
 
@@ -40,7 +39,6 @@ class SharedPref {
   }
 
   static Future<bool> setInt(String key, int value) async {
-    await init(); // Ensure initialization
     return await prefs.setInt(key, value);
   }
 
@@ -53,12 +51,10 @@ class SharedPref {
   }
 
   static Future<bool> remove(String key) async {
-    await init(); // Ensure initialization
     return await prefs.remove(key);
   }
 
   static Future<void> clear() async {
-    await init(); // Ensure initialization
     await prefs.clear();
   }
 
@@ -84,7 +80,7 @@ class SharedPref {
   }
 
   static bool getKeepLoggedIn() {
-    return _prefs?.getBool(SharedPrefKeys.keepLoggedIn) ?? true;
+    return _prefs?.getBool(SharedPrefKeys.keepLoggedIn) ?? false;
   }
 
   static Future<bool> saveLoginData(dynamic data) async {
@@ -121,7 +117,6 @@ class SharedPref {
   }
 
   static Future<void> resetAllDataExceptSettings() async {
-    await init(); // Ensure initialization
     final isDarkTheme = getTheme();
     final onboardingViewed = getOnboardingViewed();
 

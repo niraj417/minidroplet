@@ -289,26 +289,27 @@ class SubscriptionPaymentService {
 
       if (response.data['status'] == 1) {
         final data = response.data['data'];
-        final int isActive = data['is_active'] ?? 0;
-        final int isTrial = data['is_trial'] ?? 0;
-        final String? expiryStr = data['expiry_date'];
-        final int planId = data['plan_id'] ?? 0;
+        final bool hasActuallyNotExpired = expiryStr != null &&
+            DateTime.tryParse(expiryStr) != null &&
+            DateTime.tryParse(expiryStr)!.isAfter(DateTime.now());
+
+        final bool effectiveActive = isActive == 1 && hasActuallyNotExpired;
 
         // 🛡️ Sync Single Source of Truth
-        await SharedPref.setBool('isSubscribed', isActive == 1 && isTrial == 0);
-        await SharedPref.setBool('isTrial', isTrial == 1);
+        await SharedPref.setBool('isSubscribed', effectiveActive && isTrial == 0);
+        await SharedPref.setBool('isTrial', isTrial == 1 && hasActuallyNotExpired);
         await SharedPref.setBool('trialAvailed', isTrial == 1 || isActive == 1);
         await SharedPref.setString('trialExpiry', expiryStr ?? '');
         await SharedPref.setBool(
           SharedPrefKeys.hasPremiumAccess,
-          isActive == 1,
+          effectiveActive,
         );
 
         // 🛡️ Also sync full LoginDataModel for consistency
         final loginData = SharedPref.getLoginData();
         if (loginData != null && loginData.data != null) {
           final updatedSubscription = SubscriptionInfo(
-            isActive: isActive,
+            isActive: effectiveActive ? 1 : 0,
             isTrial: isTrial,
             expiryDate: expiryStr != null ? DateTime.tryParse(expiryStr) : null,
             planId: planId,
@@ -328,9 +329,12 @@ class SubscriptionPaymentService {
           await SharedPref.saveLoginData(updatedLoginData);
         }
 
-        if (isActive == 1) {
+        if (effectiveActive) {
           return isTrial == 1 ? "Trial restored successfully." : "Subscription restored successfully.";
         } else {
+          if (isActive == 1 && !hasActuallyNotExpired) {
+             return "Your subscription has expired.";
+          }
           return "No active subscription found.";
         }
       } else {
