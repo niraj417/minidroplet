@@ -45,6 +45,15 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 //        multiDexEnabeld true
+
+        externalNativeBuild {
+            ndkBuild {
+                arguments "-Wl,-z,max-page-size=16384"
+            }
+            cmake {
+                arguments "-DANDROID_EXTRACT_NATIVE_LIBS=OFF", "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
+            }
+        }
     }
     signingConfigs {
         release {
@@ -63,11 +72,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')        }
     }
 
-    android {
-        packagingOptions {
-            jniLibs {
-                useLegacyPackaging = false
-            }
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 
