@@ -1,0 +1,1 @@
+/Users/galaxyworld/Desktop/akshya_development_latest/demo_app/tinydroplets/build/app/intermediates/cxx/RelWithDebInfo/59y2y3fx/obj/arm64-v8a

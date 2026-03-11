@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "674903063868",
+    "firebase_url": "https://tinydroplets-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "tinydroplets",
+    "storage_bucket": "tinydroplets.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674903063868:android:92ba495434d1f4718bb239",
+        "android_client_info": {
+          "package_name": "com.tinydroplets.tinydroplets"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFNuadE5Wbf5_F3Q5uEFMVkT6wuQJ4K9s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

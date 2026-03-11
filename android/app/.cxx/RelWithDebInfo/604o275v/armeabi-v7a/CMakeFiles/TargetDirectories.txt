@@ -1,0 +1,2 @@
+D:/developer/tinydroplets/android/app/.cxx/RelWithDebInfo/604o275v/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/developer/tinydroplets/android/app/.cxx/RelWithDebInfo/604o275v/armeabi-v7a/CMakeFiles/rebuild_cache.dir
