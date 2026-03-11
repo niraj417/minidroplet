@@ -10,6 +10,7 @@ import 'package:tinydroplets/services/in_app_purchases.dart';
 
 import '../../features/presentation/pages/feed_page/bloc/feed_bloc.dart';
 import '../../features/presentation/pages/subscription/model/subscription_plan_model.dart';
+import '../../features/presentation/pages/auth/login_page/model/login_data_model.dart';
 import '../utils/shared_pref_key.dart';
 
 class SubscriptionPaymentService {
