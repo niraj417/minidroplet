@@ -98,8 +98,6 @@ workflows:
     name: Android Workflow
     max_build_duration: 60
     environment:
-      groups:
-        # - keystore_credentials # Add your keystore env vars group here if using env vars
       vars:
         PACKAGE_NAME: "com.tinydroplets.tinydroplets"
       flutter: 3.35.5
