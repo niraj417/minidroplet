@@ -80,7 +80,7 @@ class SharedPref {
 
   // FIXED: Use the same prefs instance
   static Future<void> setKeepLoggedIn(bool isChecked) async {
-    await setBool('keepLoggedIn', isChecked);
+    await setBool(SharedPrefKeys.keepLoggedIn, isChecked);
   }
 
   static bool getKeepLoggedIn() {

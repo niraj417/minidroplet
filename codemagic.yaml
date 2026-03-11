@@ -106,17 +106,13 @@ workflows:
         script: |
           flutter clean
           flutter pub get
-      - name: Flutter build apk and aab
+      - name: Flutter build apk
         script: |
           flutter build apk --release \
             --build-name=1.2.10 \
             --build-number=3
-          flutter build appbundle --release \
-            --build-name=1.2.10 \
-            --build-number=3
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
-      - build/app/outputs/bundle/release/*.aab
     publishing:
       email:
         recipients:
