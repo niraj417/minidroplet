@@ -289,6 +289,10 @@ class SubscriptionPaymentService {
 
       if (response.data['status'] == 1) {
         final data = response.data['data'];
+        final int isActive = data['is_active'] ?? 0;
+        final int isTrial = data['is_trial'] ?? 0;
+        final String? expiryStr = data['expiry_date'];
+        final int planId = data['plan_id'] ?? 0;
         final bool hasActuallyNotExpired = expiryStr != null &&
             DateTime.tryParse(expiryStr) != null &&
             DateTime.tryParse(expiryStr)!.isAfter(DateTime.now());
