@@ -278,6 +278,70 @@ class SubscriptionPaymentService {
   }
 
   // =============================================================
+  // REFRESH / RESTORE SUBSCRIPTION STATUS
+  // =============================================================
+  Future<String> refreshSubscriptionStatus() async {
+    try {
+      final response = await dioClient.sendGetRequest(
+        ApiEndpoints.getUserSubscription,
+      );
+
+      if (response.data['status'] == 1) {
+        final data = response.data['data'];
+        final int isActive = data['is_active'] ?? 0;
+        final int isTrial = data['is_trial'] ?? 0;
+        final String? expiryStr = data['expiry_date'];
+        final int planId = data['plan_id'] ?? 0;
+
+        // 🛡️ Sync Single Source of Truth
+        await SharedPref.setBool('isSubscribed', isActive == 1 && isTrial == 0);
+        await SharedPref.setBool('isTrial', isTrial == 1);
+        await SharedPref.setBool('trialAvailed', isTrial == 1 || isActive == 1);
+        await SharedPref.setString('trialExpiry', expiryStr ?? '');
+        await SharedPref.setBool(
+          SharedPrefKeys.hasPremiumAccess,
+          isActive == 1,
+        );
+
+        // 🛡️ Also sync full LoginDataModel for consistency
+        final loginData = SharedPref.getLoginData();
+        if (loginData != null && loginData.data != null) {
+          final updatedSubscription = SubscriptionInfo(
+            isActive: isActive,
+            isTrial: isTrial,
+            expiryDate: expiryStr != null ? DateTime.tryParse(expiryStr) : null,
+            planId: planId,
+          );
+
+          final updatedData = loginData.data!.copyWith(
+            subscription: updatedSubscription,
+            trialAvailed: (isTrial == 1 || isActive == 1) ? 1 : loginData.data!.trialAvailed,
+          );
+
+          final updatedLoginData = LoginDataModel(
+            status: loginData.status,
+            message: loginData.message,
+            data: updatedData,
+          );
+
+          await SharedPref.saveLoginData(updatedLoginData);
+        }
+
+        if (isActive == 1) {
+          return isTrial == 1 ? "Trial restored successfully." : "Subscription restored successfully.";
+        } else {
+          return "No active subscription found.";
+        }
+      } else {
+        return response.data['message'] ?? "Failed to refresh subscription status.";
+      }
+    } catch (e) {
+      debugPrint("Error refreshing subscription: $e");
+      return "An error occurred while restoring purchase.";
+    }
+  }
+
+  // =============================================================
   void dispose() {
     _razorpay.clear();
   }

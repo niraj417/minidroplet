@@ -12,22 +12,21 @@ class SharedPref {
 
   // Initialize SharedPreferences once
   static Future<void> init() async {
-    if (_prefs == null) {
-      _prefs = await SharedPreferences.getInstance();
-    }
+    _prefs = await SharedPreferences.getInstance();
+    // 🛡️ Ensure SharedPreferences is synchronized with disk on Android
+    await _prefs?.reload();
   }
 
-  // Getter that ensures prefs is initialized
   static SharedPreferences get prefs {
     if (_prefs == null) {
-      throw Exception('SharedPreferences not initialized. Call SharedPref.init() first.');
+      throw Exception(
+          "SharedPref not initialized. Call SharedPref.init() in main().");
     }
     return _prefs!;
   }
 
   static Future<bool> setString(String key, String value) async {
-    await init(); // Ensure initialization
-    return await prefs.setString(key, value);
+    return await _prefs?.setString(key, value) ?? false;
   }
 
   static Future<bool> setBool(String key, bool value) async {
@@ -88,14 +87,26 @@ class SharedPref {
   }
 
   static Future<bool> saveLoginData(dynamic data) async {
-    final jsonString = jsonEncode(data.toJson());
-    return await setString('loginData', jsonString);
+    try {
+      final jsonString = jsonEncode(data.toJson());
+      debugPrint("Saving loginData: $jsonString");
+      return await setString('loginData', jsonString);
+    } catch (e) {
+      debugPrint("Error saving login data: $e");
+      return false;
+    }
   }
 
   static LoginDataModel? getLoginData() {
-    final jsonString = getString('loginData');
-    if (jsonString != null) {
-      return LoginDataModel.fromJson(jsonDecode(jsonString));
+    try {
+      final jsonString = getString('loginData');
+      if (jsonString != null && jsonString.isNotEmpty) {
+        return LoginDataModel.fromJson(jsonDecode(jsonString));
+      }
+    } catch (e) {
+      debugPrint("Error parsing login data: $e");
+      // If data is corrupted, clear it to avoid repeated crashes
+      remove('loginData');
     }
     return null;
   }

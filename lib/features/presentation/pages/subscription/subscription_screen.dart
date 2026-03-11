@@ -192,6 +192,35 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     CommonMethods.showSnackBar(context, err);
   }
 
+  Future<void> _restorePurchaseAction() async {
+    if (SharedPref.isGuestUser()) {
+      GuestRestrictionDialog.show(context);
+      return;
+    }
+
+    setState(() {
+      _isActionLoading = true;
+      _loadingType = null; // General loading
+    });
+
+    final message = await _subscriptionService.refreshSubscriptionStatus();
+    
+    // Refresh local status
+    await _loadStatus();
+
+    setState(() => _isActionLoading = false);
+    
+    if (mounted) {
+      CommonMethods.showSnackBar(context, message);
+      
+      // If now subscribed or trial active, hard refresh to unlock features
+      if (_status == SubscriptionStatus.subscribed || _status == SubscriptionStatus.trialActive) {
+        await Future.delayed(const Duration(seconds: 2));
+        AppRestartWidget.restartApp(context);
+      }
+    }
+  }
+
   void _goToDashboard() {
     final navigator = Navigator.of(context);
 
@@ -796,13 +825,18 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   Widget _restorePurchase() {
     return Column(
       children: [
-        Text(
-          "Restore purchase",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+        GestureDetector(
+          onTap: _isActionLoading ? null : _restorePurchaseAction,
+          child: _isActionLoading && _loadingType == null 
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : Text(
+                "Restore purchase",
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
         ),
         const SizedBox(height: 6),
         Container(

@@ -24,21 +24,22 @@ class _LauncherPageState extends State<LauncherPage> {
     final bool keepLoggedIn = SharedPref.getKeepLoggedIn();
     final loginData = SharedPref.getLoginData();
 
+    debugPrint("--- LauncherPage Debug ---");
+    debugPrint("isOnboardingViewed: $isOnboardingViewed");
+    debugPrint("keepLoggedIn: $keepLoggedIn");
+    debugPrint("loginData attached: ${loginData != null}");
+    debugPrint("apiToken: ${loginData?.data?.apiToken}");
+    debugPrint("--------------------------");
+
     if (!isOnboardingViewed) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LetsGetStartedPage()),
-        (route) => false,
-      );
-    } else if (keepLoggedIn && loginData != null && loginData.data?.apiToken != null) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const Dashboard()),
-        (route) => false,
-      );
+      gotoRemoveAll(context, const LetsGetStartedPage());
     } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-        (route) => false,
-      );
+      // 🛡️ Robust check for existing session
+      if (keepLoggedIn && loginData != null && (loginData.data?.apiToken?.isNotEmpty ?? false)) {
+        gotoRemoveAll(context, const Dashboard());
+      } else {
+        gotoRemoveAll(context, LoginPage());
+      }
     }
   }
 
