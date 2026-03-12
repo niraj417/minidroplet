@@ -81,47 +81,61 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
   }
 
+  void _goBack() {
+    print("Go Back mehtod Invoked ");
+    // Pass true back if progress was updated
+    Navigator.pop(context, true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CourseDetailBloc, CourseDetailState>(
         builder: (context, state) {
           if (state.isLoading) {
-            return Scaffold(
-              backgroundColor: const Color(0xFFF6F7FB),
-              body: Stack(
-                children: [
+            return PopScope(
+              canPop: false,
+              onPopInvoked: (didPop) {
+                if (!didPop) {
+                  _goBack(); // always send result back
+                }
+              },
+              child: Scaffold(
+                backgroundColor: const Color(0xFFF6F7FB),
+                body: Stack(
+                  children: [
 
-                  /// =========================
-                  /// SHIMMER CONTENT
-                  /// =========================
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        CourseDetailBannerShimmer(),
-                        CourseDetailHeaderShimmer(),
-                        CourseLessonListShimmer(),
-                      ],
+                    /// =========================
+                    /// SHIMMER CONTENT
+                    /// =========================
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          CourseDetailBannerShimmer(),
+                          CourseDetailHeaderShimmer(),
+                          CourseLessonListShimmer(),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  /// =========================
-                  /// LOTTIE OVERLAY
-                  /// =========================
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.white.withOpacity(0.6),
-                      child: Center(
-                        child: Lottie.asset(
-                          AppVector.waterDropLoading,
-                          width: 120,
-                          height: 120,
-                          repeat: true,
+                    /// =========================
+                    /// LOTTIE OVERLAY
+                    /// =========================
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.6),
+                        child: Center(
+                          child: Lottie.asset(
+                            AppVector.waterDropLoading,
+                            width: 120,
+                            height: 120,
+                            repeat: true,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           }
@@ -194,9 +208,12 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
         Positioned(
           top: 40,
           left: 16,
-          child: CircleAvatar(
-            backgroundColor: Colors.black.withOpacity(0.5),
-            child: const BackButton(color: Colors.white),
+          child: InkWell(
+            onTap: () => _goBack(),
+            child: CircleAvatar(
+              backgroundColor: Colors.black.withOpacity(0.5),
+              child: const BackButton(color: Colors.white),
+            ),
           ),
         )
       ],

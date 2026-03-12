@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe_all_playlist_model.dart';
@@ -18,25 +19,66 @@ class VideoPageCubit extends Cubit<VideoPageState> {
     _fetchInitialData();
   }
 
-  void _fetchInitialData() {
-    fetchRecipeCarousel();
-    fetchRecipeCategory();
-    fetchRecommendationRecipe();
-    fetchAllRecipeVideo();
-    fetchRecipeAllPlaylist();
-    _loadSubscriptionStatus();
+  Future<void> _fetchInitialData() async {
+    await refreshData();
   }
 
+
   Future<void> refreshData() async {
-    await Future.wait([
-      fetchRecipeCarousel(),
-      fetchRecipeCategory(),
-      fetchRecommendationRecipe(),
-      fetchAllRecipeVideo(),
-      fetchRecipeAllPlaylist(),
-      _loadSubscriptionStatus(),
-    ]);
+
+    emit(state.copyWith(isLoading: true));
+
+    try {
+
+      final results = await Future.wait([
+        _dioClient.sendGetRequest(ApiEndpoints.recipeSlider),
+        _dioClient.sendGetRequest(ApiEndpoints.recipeCategory),
+        _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe),
+        _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos),
+        _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist),
+        SubscriptionPaymentService.hasActiveSubscription(),
+      ]);
+
+      final sliderResponse = results[0] as Response;
+      final categoryResponse = results[1] as Response;
+      final recommendationResponse = results[2] as Response;
+      final videoResponse = results[3] as Response;
+      final playlistResponse = results[4] as Response;
+      final subscription = results[5] as bool;
+
+      emit(
+        state.copyWith(
+          recipeCarouselList:
+          FeedSliderModel.fromJson(sliderResponse.data).data,
+
+          allRecipeCategoryList:
+          RecipeCategoryModel.fromJson(categoryResponse.data).data,
+
+          recommendationRecipeList:
+          RecipeRecommendationModel.fromJson(recommendationResponse.data).data ?? [],
+
+          allRecipeVideoList:
+          AllRecipeVideoModel.fromJson(videoResponse.data).data,
+
+          recipeAllPlaylistList:
+          RecipeAllPlaylistModel.fromJson(playlistResponse.data).data,
+
+          subscribed: subscription,
+          isLoading: false,
+        ),
+      );
+
+    } catch (e) {
+
+      debugPrint("Refresh error: $e");
+
+      emit(state.copyWith(isLoading: false));
+    }
   }
+
+
+
+
 
   Future<void> _loadSubscriptionStatus() async {
     try{
@@ -120,6 +162,7 @@ class VideoPageState {
   final List<AllRecipeVideoDataModel> allRecipeVideoList;
   final List<RecipeAllPlaylistDataModel> recipeAllPlaylistList;
   final bool subscribed;
+  final bool isLoading;
 
   VideoPageState({
     required this.recipeCarouselList,
@@ -127,7 +170,8 @@ class VideoPageState {
     required this.recommendationRecipeList,
     required this.allRecipeVideoList,
     required this.recipeAllPlaylistList,
-    required this.subscribed
+    required this.subscribed,
+    required this.isLoading,
   });
 
   VideoPageState.initial()
@@ -136,7 +180,8 @@ class VideoPageState {
         recommendationRecipeList = [],
         allRecipeVideoList = [],
         recipeAllPlaylistList = [],
-        subscribed = false;
+        subscribed = false,
+        isLoading = true;
 
   VideoPageState copyWith({
     List<FeedSliderDataModel>? recipeCarouselList,
@@ -145,6 +190,7 @@ class VideoPageState {
     List<AllRecipeVideoDataModel>? allRecipeVideoList,
     List<RecipeAllPlaylistDataModel>? recipeAllPlaylistList,
     bool? subscribed,
+    bool? isLoading,
   }) {
     return VideoPageState(
       recipeCarouselList: recipeCarouselList ?? this.recipeCarouselList,
@@ -155,6 +201,7 @@ class VideoPageState {
       recipeAllPlaylistList:
       recipeAllPlaylistList ?? this.recipeAllPlaylistList,
       subscribed: subscribed ?? this.subscribed,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }

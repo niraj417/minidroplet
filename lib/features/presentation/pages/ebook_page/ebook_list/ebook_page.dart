@@ -45,7 +45,7 @@ class _EbookPageState extends State<EbookPage> {
 
   Future<void> _handleRefresh(BuildContext context) async {
     context.read<EbookBloc>().add(RefreshEbookData());
-    return Future.delayed(const Duration(seconds: 1));
+    //return Future.delayed(const Duration(seconds: 1));
   }
 
   // =============================================================

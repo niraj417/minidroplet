@@ -47,7 +47,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       ),
     ];
 
-    //SharedPref.setOnboardingViewed(true);
+    SharedPref.setOnboardingViewed(true);
     super.initState();
   }
 

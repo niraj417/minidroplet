@@ -62,7 +62,7 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
     }
 
     /// ✅ Mark complete at 90%
-    if (percentage >= 0.9 && !_completedSent) {
+    if (percentage >= 0.7 && !_completedSent) {
       _completedSent = true;
 
       await _updateProgress(
@@ -195,6 +195,7 @@ class _CourseVideoLessonPageState extends State<CourseVideoLessonPage> {
                 /// ---------------- VIDEO PLAYER ----------------
                 videoUrl.isNotEmpty
                     ? FlickCustomVideoPlayer(
+                  key: ValueKey(videoUrl),
                   videoUrl: videoUrl,
                   onProgress: _handleVideoProgress,
                 )

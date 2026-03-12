@@ -243,8 +243,8 @@ class CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final shouldRefresh = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => BlocProvider(
@@ -256,6 +256,14 @@ class CourseCard extends StatelessWidget {
             ),
           ),
         );
+
+        if (shouldRefresh == true && context.mounted) {
+          context.read<CourseBloc>().add(
+            FetchCourseList(
+              SharedPref.getLoginData()!.data!.id ?? 0,
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(

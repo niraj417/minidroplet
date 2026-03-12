@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tinydroplets/common/widgets/loader.dart';
 import 'package:tinydroplets/features/presentation/pages/feed_page/feed_activity_page.dart';
@@ -167,8 +168,9 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
                           width: 70,
                           color: Theme.of(context).cardColor,
                           // padding: EdgeInsets.all(20.0),
-                          child: CustomImage(
+                          child: CachedNetworkImage(
                             imageUrl: data.image ?? DummyData.bookCover,
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),

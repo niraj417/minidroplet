@@ -10,6 +10,7 @@ import 'package:tinydroplets/services/in_app_purchases.dart';
 
 import '../../features/presentation/pages/feed_page/bloc/feed_bloc.dart';
 import '../../features/presentation/pages/subscription/model/subscription_plan_model.dart';
+import '../../features/presentation/pages/auth/login_page/model/login_data_model.dart';
 import '../utils/shared_pref_key.dart';
 
 class SubscriptionPaymentService {
@@ -275,6 +276,78 @@ class SubscriptionPaymentService {
 
     final List list = response.data['data'];
     return list.map((e) => SubscriptionPlan.fromJson(e)).toList();
+  }
+
+  // =============================================================
+  // REFRESH / RESTORE SUBSCRIPTION STATUS
+  // =============================================================
+  Future<String> refreshSubscriptionStatus() async {
+    try {
+      final response = await dioClient.sendGetRequest(
+        ApiEndpoints.getUserSubscription,
+      );
+
+      if (response.data['status'] == 1) {
+        final data = response.data['data'];
+        final int isActive = data['is_active'] ?? 0;
+        final int isTrial = data['is_trial'] ?? 0;
+        final String? expiryStr = data['expiry_date'];
+        final int planId = data['plan_id'] ?? 0;
+        final bool hasActuallyNotExpired = expiryStr != null &&
+            DateTime.tryParse(expiryStr) != null &&
+            DateTime.tryParse(expiryStr)!.isAfter(DateTime.now());
+
+        final bool effectiveActive = isActive == 1 && hasActuallyNotExpired;
+
+        // 🛡️ Sync Single Source of Truth
+        await SharedPref.setBool('isSubscribed', effectiveActive && isTrial == 0);
+        await SharedPref.setBool('isTrial', isTrial == 1 && hasActuallyNotExpired);
+        await SharedPref.setBool('trialAvailed', isTrial == 1 || isActive == 1);
+        await SharedPref.setString('trialExpiry', expiryStr ?? '');
+        await SharedPref.setBool(
+          SharedPrefKeys.hasPremiumAccess,
+          effectiveActive,
+        );
+
+        // 🛡️ Also sync full LoginDataModel for consistency
+        final loginData = SharedPref.getLoginData();
+        if (loginData != null && loginData.data != null) {
+          final updatedSubscription = SubscriptionInfo(
+            isActive: effectiveActive ? 1 : 0,
+            isTrial: isTrial,
+            expiryDate: expiryStr != null ? DateTime.tryParse(expiryStr) : null,
+            planId: planId,
+          );
+
+          final updatedData = loginData.data!.copyWith(
+            subscription: updatedSubscription,
+            trialAvailed: (isTrial == 1 || isActive == 1) ? 1 : loginData.data!.trialAvailed,
+          );
+
+          final updatedLoginData = LoginDataModel(
+            status: loginData.status,
+            message: loginData.message,
+            data: updatedData,
+          );
+
+          await SharedPref.saveLoginData(updatedLoginData);
+        }
+
+        if (effectiveActive) {
+          return isTrial == 1 ? "Trial restored successfully." : "Subscription restored successfully.";
+        } else {
+          if (isActive == 1 && !hasActuallyNotExpired) {
+            return "Your subscription has expired.";
+          }
+          return "No active subscription found.";
+        }
+      } else {
+        return response.data['message'] ?? "Failed to refresh subscription status.";
+      }
+    } catch (e) {
+      debugPrint("Error refreshing subscription: $e");
+      return "An error occurred while restoring purchase.";
+    }
   }
 
   // =============================================================

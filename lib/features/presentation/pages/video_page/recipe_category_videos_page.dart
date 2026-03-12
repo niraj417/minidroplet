@@ -207,7 +207,7 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
                 gridDelegate:
                 const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 2,
+                  crossAxisSpacing: 10,
                   mainAxisSpacing: 2,
                   childAspectRatio: 0.9,
                 ),
@@ -249,7 +249,7 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
         !_hasPremium && video.priceType != 'free';
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

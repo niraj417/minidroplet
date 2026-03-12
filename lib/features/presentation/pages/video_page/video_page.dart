@@ -80,12 +80,7 @@ class _VideoPageState extends State<VideoPage> {
           builder: (context, state) {
             final bool hasPremium = _hasPremiumAccess(state);
 
-            final bool isLoading =
-                state.recipeCarouselList.isEmpty &&
-                    state.allRecipeCategoryList.isEmpty &&
-                    state.recommendationRecipeList.isEmpty &&
-                    state.recipeAllPlaylistList.isEmpty &&
-                    state.allRecipeVideoList.isEmpty;
+            final bool isLoading = state.isLoading;
 
             return Stack(
               children: [
@@ -535,7 +530,11 @@ class _VideoPageState extends State<VideoPage> {
 
                 if (_shouldShowAd(item.priceType,hasPremium)) {
                   return InterstitialAdWidget(
-                    onAdClosed: () => hasPremium
+                    onAdClosed: () => item.priceType == 'free' ?  goto(
+                      context,
+                      RecipeDetailScreen(
+                          videoId: item.id.toString()),
+                    ) : hasPremium
                         ? goto(
                       context,
                       RecipeDetailScreen(

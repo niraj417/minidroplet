@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -37,6 +38,7 @@ import '../video_page/recipe_all_playlist_page.dart';
 import '../video_page/recipe_category_videos_page.dart';
 import '../video_page/widget/ingredient_category.dart';
 import 'bloc/feed_activity_bloc/feed_activity_cubit.dart';
+import 'bloc/feed_activity_bloc/feed_activity_state.dart';
 import 'bloc/homepage_carousel_bloc/homepage_carousel_bloc.dart';
 import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
 
@@ -58,6 +60,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
     bool _isTrial = false;
     bool _trialAvailed = false;
     DateTime? _trialExpiry;
+    bool _pageReady = false;
 
     @override
     void initState() {
@@ -134,6 +137,9 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
 
     @override
     Widget build(BuildContext context) {
+
+      final activityState = context.watch<FeedActivityCubit>().state;
+
       return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: CustomAppBar(title: 'Home'),
@@ -148,7 +154,10 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
             final bool isFeedLoading =
                 state.postData == null ||
                     state.carouselData == null ||
-                    state.homepageCarousels == null;
+                    state.homepageCarousels == null ||
+                    activityState is! FeedActivityLoaded;
+
+            bool _pageReady = false;
 
             final bool hasError = state.error != null;
 
@@ -216,12 +225,19 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                                   padding: const EdgeInsets.only(left: 8.0, right: 8.0),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: CustomImage(
+                                    child: CachedNetworkImage(
                                       fit: BoxFit.contain,
                                       imageUrl: feedSliderItem.image,
+                                      placeholder: (_, __) => Container(color: Colors.grey[200]), 
                                       //width: 300,
                                       //height: 200,
                                     ),
+                                    // child: CustomImage(
+                                    //   fit: BoxFit.contain,
+                                    //   imageUrl: feedSliderItem.image,
+                                    //   //width: 300,
+                                    //   //height: 200,
+                                    // ),
                                   ),
                                 ),
                               );
@@ -416,19 +432,15 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                 /// LOADING LOTTIE OVERLAY
                 /// ==========================
                 if (isFeedLoading && !hasError)
-                  AnimatedOpacity(
-                    opacity: isFeedLoading ? 1 : 0,
-                    duration: const Duration(seconds: 2),
-                    child: Positioned.fill(
-                      child: Container(
-                        color: Colors.white.withOpacity(0.6),
-                        child: Center(
-                          child: Lottie.asset(
-                            AppVector.waterDropLoading,
-                            width: 120,
-                            height: 120,
-                            repeat: true,
-                          ),
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.white.withOpacity(0.6),
+                      child: Center(
+                        child: Lottie.asset(
+                          AppVector.waterDropLoading,
+                          width: 120,
+                          height: 120,
+                          repeat: true,
                         ),
                       ),
                     ),

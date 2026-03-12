@@ -183,9 +183,24 @@ class EbookBloc extends Bloc<EbookEvent, EbookState> {
       RefreshEbookData event,
       Emitter<EbookState> emit,
       ) async {
+
+    /// 🔥 Show loading animation
+    emit(EbookLoaded(
+      ebookItems: state.ebookItems,
+      allEbookItems: state.allEbookItems,
+      recentlyViewedItem: state.recentlyViewedItem,
+      ebookPageCarousels: state.ebookPageCarousels,
+      isCarouselLoading: true,
+      isAllEbookLoading: true,
+      recentlyViewedItemLoading: true,
+      isPageCarouselsLoading: true,
+    ));
+
+    /// Fetch APIs
     add(FetchEbookCarouselData());
     add(FetchAllEbookData());
     add(FetchRecentlyViewedEbookData());
     add(FetchEbookPageCarouselsData());
   }
+
 }

@@ -91,29 +91,29 @@ void showScreenshotWarning() {
       context: navigatorKey.currentContext!,
       builder:
           (context) => Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.warning, color: Colors.orange, size: 36),
-                SizedBox(height: 12),
-                Text(
-                  'Screenshot Detected',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Taking screenshots of this content is not allowed for security reasons.',
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Understand'),
-                ),
-              ],
+        padding: EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.warning, color: Colors.orange, size: 36),
+            SizedBox(height: 12),
+            Text(
+              'Screenshot Detected',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-          ),
+            SizedBox(height: 8),
+            Text(
+              'Taking screenshots of this content is not allowed for security reasons.',
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Understand'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -179,23 +179,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
 
         return Sizer(
-          builder: (context, orientation, deviceType) {
-            return MaterialApp(
-              navigatorKey: navigatorKey,
-              themeMode:
-                  (state is DarkThemeState) ? ThemeMode.dark : ThemeMode.light,
-              debugShowCheckedModeBanner: false,
-              theme: theme,
-              darkTheme: ThemeManager.darkTheme.copyWith(
-                primaryColor: Color(AppColor.primaryColor),
-              ),
-              home: LauncherPage(),
-              // home: NewOnboardingPage(),
-              // home: SizedBox.shrink(),
-              // home: LetsGetStartedPage(),
-              // home: SplashPage(),
-            );
-          }
+            builder: (context, orientation, deviceType) {
+              return MaterialApp(
+                navigatorKey: navigatorKey,
+                themeMode:
+                (state is DarkThemeState) ? ThemeMode.dark : ThemeMode.light,
+                debugShowCheckedModeBanner: false,
+                theme: theme,
+                darkTheme: ThemeManager.darkTheme.copyWith(
+                  primaryColor: Color(AppColor.primaryColor),
+                ),
+                home: LauncherPage(),
+                // home: NewOnboardingPage(),
+                // home: SizedBox.shrink(),
+                // home: LetsGetStartedPage(),
+                // home: SplashPage(),
+              );
+            }
         );
       },
     );

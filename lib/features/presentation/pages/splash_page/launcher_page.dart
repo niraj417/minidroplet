@@ -19,33 +19,27 @@ class _LauncherPageState extends State<LauncherPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) => navigateToNextScreen());
   }
 
-  Future<void> navigateToNextScreen() async {
-    final isOnboardingViewed = SharedPref.getOnboardingViewed();
-    final keepLoggedIn = SharedPref.getKeepLoggedIn(); // Changed - no async needed
+  void navigateToNextScreen() {
+    final bool isOnboardingViewed = SharedPref.getOnboardingViewed();
+    final bool keepLoggedIn = SharedPref.getKeepLoggedIn();
     final loginData = SharedPref.getLoginData();
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    debugPrint("--- LauncherPage Debug ---");
+    debugPrint("isOnboardingViewed: $isOnboardingViewed");
+    debugPrint("keepLoggedIn: $keepLoggedIn");
+    debugPrint("loginData attached: ${loginData != null}");
+    debugPrint("apiToken: ${loginData?.data?.apiToken}");
+    debugPrint("--------------------------");
 
-    if (!mounted) return;
-
-    if (isOnboardingViewed) {
-      // Double-check that login data is valid
-      if (keepLoggedIn && loginData?.data?.apiToken != null && loginData?.data?.apiToken?.isNotEmpty == true) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => Dashboard()),
-              (route) => false,
-        );
-      } else {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => LoginPage()),
-              (route) => false,
-        );
-      }
+    if (!isOnboardingViewed) {
+      gotoRemoveAll(context, const LetsGetStartedPage());
     } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => LetsGetStartedPage()),
-            (route) => false,
-      );
+      // 🛡️ Robust check for existing session
+      if (keepLoggedIn && loginData != null && (loginData.data?.apiToken?.isNotEmpty ?? false)) {
+        gotoRemoveAll(context, const Dashboard());
+      } else {
+        gotoRemoveAll(context, LoginPage());
+      }
     }
   }
 

@@ -30,16 +30,23 @@ class _LetsGetStartedPageState extends State<LetsGetStartedPage> {
     final keepLoggedIn = SharedPref.getKeepLoggedIn();
     final loginData = SharedPref.getLoginData();
 
+    debugPrint("--- LetsGetStartedPage Debug ---");
+    debugPrint("isOnboardingViewed: $_isOnboardingViewed");
+    debugPrint("keepLoggedIn: $keepLoggedIn");
+    debugPrint("loginData attached: ${loginData != null}");
+    debugPrint("apiToken: ${loginData?.data?.apiToken}");
+    debugPrint("--------------------------");
+
     await Future.delayed(Duration(seconds: 1));
 
     if (!mounted) return;
 
     if (_isOnboardingViewed) {
-      if (keepLoggedIn && loginData?.data?.apiToken != null) {
+      // 🛡️ Robust check for existing session
+      if (keepLoggedIn && loginData != null && (loginData.data?.apiToken?.isNotEmpty ?? false)) {
         gotoRemoveAll(context, Dashboard());
       } else {
         gotoRemoveAll(context, LoginPage());
-        // gotoRemoveAll(context, NewOnboardingPage());
       }
     } else {
       gotoRemoveAll(context, NewOnboardingPage());
@@ -208,7 +215,7 @@ class DisclaimerContent extends StatelessWidget {
                 ],
               ),
             ),
-      
+
             // --- Scrollable Text Section ---
             Expanded(
               child: SingleChildScrollView(
@@ -239,7 +246,7 @@ class DisclaimerContent extends StatelessWidget {
                 ),
               ),
             ),
-      
+
             // --- Static Footer (Link + Button) ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
