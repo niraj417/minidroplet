@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:tinydroplets/core/constant/app_vector.dart';
 
 class NoInternetDialog extends StatelessWidget {
   final VoidCallback onRetry;
@@ -11,7 +13,7 @@ class NoInternetDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false, // Prevents dismissing by back button
+      onWillPop: () async => false,
       child: Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -23,7 +25,8 @@ class NoInternetDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icon and title
+
+              /// TITLE
               Row(
                 children: [
                   Container(
@@ -50,36 +53,31 @@ class NoInternetDialog extends StatelessWidget {
                   ),
                 ],
               ),
+
               const SizedBox(height: 24),
 
-              // Illustration
-              Container(
-                width: 100,
-                height: 100,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE3F2FD),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.cloud_off_rounded,
-                    size: 60,
-                    color: Colors.blue.shade700,
-                  ),
+              /// LOTTIE ANIMATION
+              SizedBox(
+                height: 160,
+                child: Lottie.asset(
+                  AppVector.noInternet,
+                  repeat: true,
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 20),
 
-              // Message
+              const SizedBox(height: 16),
+
+              /// MESSAGE
               const Text(
-                'Check your connection and try again',
+                'Please check your internet connection and try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 15),
               ),
 
               const SizedBox(height: 20),
 
-              // Progress indicator
+              /// LOADING INDICATOR
               LinearProgressIndicator(
                 backgroundColor: Colors.grey.shade200,
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
@@ -87,7 +85,7 @@ class NoInternetDialog extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Retry button
+              /// RETRY BUTTON
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

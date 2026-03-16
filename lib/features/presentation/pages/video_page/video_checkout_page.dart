@@ -317,278 +317,280 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
             }
           }
         },
-        child: Scaffold(
-          bottomSheet: Container(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            color: Theme.of(context).scaffoldBackgroundColor,
-            height: 80,
-            child: buildPaymentButton(),
-          ),
-          appBar: AppBar(
-            title: Text(
-              "Checkout Page",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        child: SafeArea(
+          child: Scaffold(
+            bottomSheet: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              color: Theme.of(context).scaffoldBackgroundColor,
+              height: 80,
+              child: buildPaymentButton(),
             ),
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+            appBar: AppBar(
+              title: Text(
+                "Checkout Page",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              actions: [
+                // Add restore purchases button for iOS
+                if (Platform.isIOS)
+                  TextButton(
+                    onPressed: () {
+                      _paymentBloc.add(RestoreIAPurchases());
+                    },
+                    child: Text('Restore'),
+                  ),
+              ],
             ),
-            actions: [
-              // Add restore purchases button for iOS
-              if (Platform.isIOS)
-                TextButton(
-                  onPressed: () {
-                    _paymentBloc.add(RestoreIAPurchases());
-                  },
-                  child: Text('Restore'),
-                ),
-            ],
-          ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Tiny Droplets Shop",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        clipBehavior: Clip.hardEdge,
-                        child: CustomImage(
-                          imageUrl: widget.thumbnail,
-                          height: 160,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Title: ${widget.title}",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 4),
-                          // Text(
-                          //   "Amount: ${CommonMethods.formatRupees(amount ?? '')}",
-                          // ),
-                          // SizedBox(height: 4),
-                          // Row(
-                          //   children: [
-                          //     Text(
-                          //       CommonMethods.formatRupees(widget.mainPrice),
-                          //       style: TextStyle(
-                          //         decoration: TextDecoration.lineThrough,
-                          //         color: Colors.grey,
-                          //       ),
-                          //     ),
-                          //     SizedBox(width: 8),
-                          //     Text(
-                          //       CommonMethods.formatRupees(amount ?? ''),
-                          //       style: TextStyle(
-                          //         fontWeight: FontWeight.bold,
-                          //         fontSize: 18,
-                          //       ),
-                          //     ),
-                          //   ],
-                          // ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Divider(height: 32, thickness: 1),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_appliedCoupon == null || _isExpired)
-                        TextField(
-                          maxLines: 1,
-                          maxLength: 10,
-                          controller: _controller,
-                          decoration: InputDecoration(
-                            labelText: 'Enter coupon code',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 12,
-                            ),
-                            suffixIcon: TextButton(
-                              onPressed: () {
-                                if (_controller.text.isNotEmpty) {
-                                  setState(() {
-                                    _appliedCoupon = _controller.text;
-                                  });
-                                }
-                              },
-                              child: Text('Apply'),
-                            ),
-                          ),
-                        )
-                      else
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tiny Droplets Shop",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 16,
-                          ),
                           decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.green.shade300),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Coupon: $_appliedCoupon',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.green[800],
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _appliedCoupon = null;
-                                    _controller.clear();
-                                  });
-                                  _removeCouponCode();
-                                },
-                                icon: Icon(Icons.close, color: Colors.red),
-                              ),
-                            ],
+                          clipBehavior: Clip.hardEdge,
+                          child: CustomImage(
+                            imageUrl: widget.thumbnail,
+                            height: 160,
                           ),
                         ),
-                    ],
-                  ),
-                  // Divider(height: 32, thickness: 1),
-                  // _allCouponLoading
-                  //     ? Loader()
-                  //     : Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Text('Apply Coupon', style: TextStyle(fontSize: 19)),
-                  //         SizedBox(height: 10),
-                  //         SizedBox(
-                  //           height: 40,
-                  //           width: double.infinity,
-                  //           child: ListView.builder(
-                  //             itemCount: _allCouponList.length,
-                  //             scrollDirection: Axis.horizontal,
-                  //             itemBuilder: (context, index) {
-                  //               return Padding(
-                  //                 padding: const EdgeInsets.only(right: 8.0),
-                  //                 child: InkWell(
-                  //                   onTap: () async {
-                  //                     if (_allCouponList[index].name.isNotEmpty) {
-                  //                       _appliedCoupon =
-                  //                           _allCouponList[index].name;
-                  //                       await _applyCouponCode(
-                  //                         _appliedCoupon ?? '',
-                  //                       );
-                  //                     }
-                  //                   },
-                  //                   child: Container(
-                  //                     padding: EdgeInsets.symmetric(
-                  //                       horizontal: 10,
-                  //                       vertical: 3,
-                  //                     ),
-                  //                     alignment: Alignment.center,
-                  //                     decoration: BoxDecoration(
-                  //                       borderRadius: BorderRadius.circular(8),
-                  //                       color: Theme.of(context).cardColor,
-                  //                     ),
-                  //                     child: Text(
-                  //                       _allCouponList[index].name,
-                  //                       style: TextStyle(
-                  //                         fontSize: 14,
-                  //                         fontStyle: FontStyle.italic,
-                  //                       ),
-                  //                     ),
-                  //                   ),
-                  //                 ),
-                  //               );
-                  //             },
-                  //           ),
-                  //         ),
-                  //         Divider(height: 32, thickness: 1),
-                  //       ],
-                  //     ),
-            
-                  // _recipeCouponList.isNotEmpty
-                  //     ? Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Text(
-                  //           "Order Summary",
-                  //           style: TextStyle(fontWeight: FontWeight.bold),
-                  //         ),
-                  //         SizedBox(height: 8),
-                  //         ListView.builder(
-                  //           itemCount: _recipeCouponList.length,
-                  //           shrinkWrap: true,
-                  //           physics: NeverScrollableScrollPhysics(),
-                  //           itemBuilder: (context, index) {
-                  //             final data = _recipeCouponList[index];
-                  //             return Padding(
-                  //               padding: const EdgeInsets.symmetric(
-                  //                 vertical: 4.0,
-                  //               ),
-                  //               child: Column(
-                  //                 mainAxisAlignment:
-                  //                     MainAxisAlignment.spaceBetween,
-                  //                 children: [
-                  //                   _buildSummaryRow(
-                  //                     'Amount:',
-                  //                     '₹${CommonMethods.formatRupees(amount ?? '')}',
-                  //                   ),
-                  //                   _buildSummaryRow(
-                  //                     'Total discount:',
-                  //                     "₹${data.discountAmount}",
-                  //                   ),
-                  //                   _buildSummaryRow(
-                  //                     'Discount percentage:',
-                  //                     "${data.discountPercentage}%",
-                  //                   ),
-                  //                 ],
-                  //               ),
-                  //             );
-                  //           },
-                  //         ),
-                  //       ],
-                  //     )
-                  //     : Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         Text(
-                  //           "Order Summary",
-                  //           style: TextStyle(fontWeight: FontWeight.bold),
-                  //         ),
-                  //         SizedBox(height: 8),
-                  //         Column(
-                  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //           children: [
-                  //             _buildSummaryRow(
-                  //               'Amount:',
-                  //               CommonMethods.formatRupees(amount ?? ''),
-                  //             ),
-                  //           ],
-                  //         ),
-                  //       ],
-                  //     ),
-                ],
+                        SizedBox(height: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Title: ${widget.title}",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 4),
+                            // Text(
+                            //   "Amount: ${CommonMethods.formatRupees(amount ?? '')}",
+                            // ),
+                            // SizedBox(height: 4),
+                            // Row(
+                            //   children: [
+                            //     Text(
+                            //       CommonMethods.formatRupees(widget.mainPrice),
+                            //       style: TextStyle(
+                            //         decoration: TextDecoration.lineThrough,
+                            //         color: Colors.grey,
+                            //       ),
+                            //     ),
+                            //     SizedBox(width: 8),
+                            //     Text(
+                            //       CommonMethods.formatRupees(amount ?? ''),
+                            //       style: TextStyle(
+                            //         fontWeight: FontWeight.bold,
+                            //         fontSize: 18,
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Divider(height: 32, thickness: 1),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_appliedCoupon == null || _isExpired)
+                          TextField(
+                            maxLines: 1,
+                            maxLength: 10,
+                            controller: _controller,
+                            decoration: InputDecoration(
+                              labelText: 'Enter coupon code',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 12,
+                              ),
+                              suffixIcon: TextButton(
+                                onPressed: () {
+                                  if (_controller.text.isNotEmpty) {
+                                    setState(() {
+                                      _appliedCoupon = _controller.text;
+                                    });
+                                  }
+                                },
+                                child: Text('Apply'),
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green.shade300),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Coupon: $_appliedCoupon',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.green[800],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _appliedCoupon = null;
+                                      _controller.clear();
+                                    });
+                                    _removeCouponCode();
+                                  },
+                                  icon: Icon(Icons.close, color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                    // Divider(height: 32, thickness: 1),
+                    // _allCouponLoading
+                    //     ? Loader()
+                    //     : Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text('Apply Coupon', style: TextStyle(fontSize: 19)),
+                    //         SizedBox(height: 10),
+                    //         SizedBox(
+                    //           height: 40,
+                    //           width: double.infinity,
+                    //           child: ListView.builder(
+                    //             itemCount: _allCouponList.length,
+                    //             scrollDirection: Axis.horizontal,
+                    //             itemBuilder: (context, index) {
+                    //               return Padding(
+                    //                 padding: const EdgeInsets.only(right: 8.0),
+                    //                 child: InkWell(
+                    //                   onTap: () async {
+                    //                     if (_allCouponList[index].name.isNotEmpty) {
+                    //                       _appliedCoupon =
+                    //                           _allCouponList[index].name;
+                    //                       await _applyCouponCode(
+                    //                         _appliedCoupon ?? '',
+                    //                       );
+                    //                     }
+                    //                   },
+                    //                   child: Container(
+                    //                     padding: EdgeInsets.symmetric(
+                    //                       horizontal: 10,
+                    //                       vertical: 3,
+                    //                     ),
+                    //                     alignment: Alignment.center,
+                    //                     decoration: BoxDecoration(
+                    //                       borderRadius: BorderRadius.circular(8),
+                    //                       color: Theme.of(context).cardColor,
+                    //                     ),
+                    //                     child: Text(
+                    //                       _allCouponList[index].name,
+                    //                       style: TextStyle(
+                    //                         fontSize: 14,
+                    //                         fontStyle: FontStyle.italic,
+                    //                       ),
+                    //                     ),
+                    //                   ),
+                    //                 ),
+                    //               );
+                    //             },
+                    //           ),
+                    //         ),
+                    //         Divider(height: 32, thickness: 1),
+                    //       ],
+                    //     ),
+
+                    // _recipeCouponList.isNotEmpty
+                    //     ? Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text(
+                    //           "Order Summary",
+                    //           style: TextStyle(fontWeight: FontWeight.bold),
+                    //         ),
+                    //         SizedBox(height: 8),
+                    //         ListView.builder(
+                    //           itemCount: _recipeCouponList.length,
+                    //           shrinkWrap: true,
+                    //           physics: NeverScrollableScrollPhysics(),
+                    //           itemBuilder: (context, index) {
+                    //             final data = _recipeCouponList[index];
+                    //             return Padding(
+                    //               padding: const EdgeInsets.symmetric(
+                    //                 vertical: 4.0,
+                    //               ),
+                    //               child: Column(
+                    //                 mainAxisAlignment:
+                    //                     MainAxisAlignment.spaceBetween,
+                    //                 children: [
+                    //                   _buildSummaryRow(
+                    //                     'Amount:',
+                    //                     '₹${CommonMethods.formatRupees(amount ?? '')}',
+                    //                   ),
+                    //                   _buildSummaryRow(
+                    //                     'Total discount:',
+                    //                     "₹${data.discountAmount}",
+                    //                   ),
+                    //                   _buildSummaryRow(
+                    //                     'Discount percentage:',
+                    //                     "${data.discountPercentage}%",
+                    //                   ),
+                    //                 ],
+                    //               ),
+                    //             );
+                    //           },
+                    //         ),
+                    //       ],
+                    //     )
+                    //     : Column(
+                    //       crossAxisAlignment: CrossAxisAlignment.start,
+                    //       children: [
+                    //         Text(
+                    //           "Order Summary",
+                    //           style: TextStyle(fontWeight: FontWeight.bold),
+                    //         ),
+                    //         SizedBox(height: 8),
+                    //         Column(
+                    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //           children: [
+                    //             _buildSummaryRow(
+                    //               'Amount:',
+                    //               CommonMethods.formatRupees(amount ?? ''),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ],
+                    //     ),
+                  ],
+                ),
               ),
             ),
           ),

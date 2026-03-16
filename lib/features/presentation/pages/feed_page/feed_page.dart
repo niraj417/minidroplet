@@ -26,6 +26,8 @@ import 'package:tinydroplets/features/presentation/pages/my_account/profile_comp
 import 'package:tinydroplets/features/presentation/pages/subscription/subscription_screen.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/recipe_slider_video_page.dart';
 import '../../../../common/widgets/custom_caraousel.dart';
+import '../../../../core/services/internet_connectivity/internet_cubit.dart';
+import '../../../../core/services/internet_connectivity/internet_state.dart';
 import '../../../../core/services/subscription_service.dart';
 import '../ebook_page/ebook_list/bloc/ebook_bloc.dart';
 import '../ebook_page/ebook_list/bloc/ebook_state.dart';
@@ -183,7 +185,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
 
             if (state.error != null) {
               // return Center(child: Text(state.error!));
-              return SizedBox.shrink();
+              //return SizedBox.shrink();
               return NoDataWidget(
                 onPressed: () => context.read<FeedBloc>().refreshFeed(),
               );
@@ -244,31 +246,30 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                             },
                           )
                         else if (state.carouselData == null)
-                            SizedBox.shrink(),
-                        // NoDataWidget(
-                        //   onPressed:
-                        //       () =>
-                        //           context.read<FeedBloc>().add(FeedCarouselData()),
-                        // ),
-                        //const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Align(
-                              //   alignment: AlignmentDirectional.topStart,
-                              //   child: Text(
-                              //     'For Your Baby',
-                              //     style: TextStyle(
-                              //       fontWeight: FontWeight.bold,
-                              //       fontSize: 20,
-                              //     ),
-                              //   ),
-                              // ),
-                              //BannerAdWidget(),
-                              ActivityGridWidget(),
-                            ],
+                            //SizedBox.shrink(),
+                          NoDataWidget(
+                            onPressed:
+                                () =>
+                                    context.read<FeedBloc>().add(FeedCarouselData()),
+                          ),
+                        const SizedBox(height: 10),
+                        BlocListener<InternetCubit, InternetState>(
+                          listener: (context, state) {
+                            if (state is InternetConnected) {
+
+                              /// Refresh activity grid when internet returns
+                              context.read<FeedActivityCubit>().fetchFeedActivityData();
+
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ActivityGridWidget(),
+                              ],
+                            ),
                           ),
                         ),
                         if (state.playlistData != null && state.playlistData!.isNotEmpty)
@@ -432,6 +433,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                 /// LOADING LOTTIE OVERLAY
                 /// ==========================
                 if (isFeedLoading && !hasError)
+                //if (isFeedLoading && state.error == null)
                   Positioned.fill(
                     child: Container(
                       color: Colors.white.withOpacity(0.6),
@@ -1059,7 +1061,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
     }) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        height: Platform.isIOS ? 180 : 170,
+        height: Platform.isIOS ? 190 : 180,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
         ),

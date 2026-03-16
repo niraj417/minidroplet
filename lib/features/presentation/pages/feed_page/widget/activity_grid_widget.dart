@@ -190,7 +190,21 @@ class _ActivityGridWidgetState extends State<ActivityGridWidget> {
             ),
           );
         } else if (state is FeedActivityError) {
-          return Center(child: Text(state.message));
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.refresh, size: 30,),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<FeedActivityCubit>().fetchFeedActivityData();
+                  },
+                  child: const Text("Retry"),
+                )
+              ],
+            ),
+          );
         }
         return const SizedBox.shrink();
       },

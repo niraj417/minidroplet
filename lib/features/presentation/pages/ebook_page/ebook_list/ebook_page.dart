@@ -18,6 +18,8 @@ import '../../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../../common/widgets/search_text_card.dart';
 import '../../../../../core/constant/app_vector.dart';
 import '../../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
+import '../../../../../core/services/internet_connectivity/internet_cubit.dart';
+import '../../../../../core/services/internet_connectivity/internet_state.dart';
 import '../model/recently_viewed_ebook_model.dart';
 import '../widget/ebook_page_carousel_section.dart';
 import 'bloc/ebook_bloc.dart';
@@ -110,153 +112,163 @@ class _EbookPageState extends State<EbookPage> {
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: CustomAppBar(title: 'Guide'),
-      body: BlocBuilder<EbookBloc, EbookState>(
-        builder: (context, state) {
+    return BlocListener<InternetCubit, InternetState>(
+        listener: (context, state) {
+          if (state is InternetConnected) {
 
-          final bool isLoading =
-              state.isCarouselLoading ||
-                  state.isAllEbookLoading ||
-                  state.recentlyViewedItemLoading ||
-                  state.isPageCarouselsLoading;
+            /// Reload ebooks when internet comes back
+            context.read<EbookBloc>().add(RefreshEbookData());
 
-          ebookCarouselItems = state.ebookItems
-              .where((e) => e.image != null && e.image.isNotEmpty)
-              .toList();
-
-          return Stack(
-            children: [
-              RefreshIndicator(
-                backgroundColor: Color(AppColor.primaryColor),
-                color: Colors.white,
-                onRefresh: () => _handleRefresh(context),
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          /// Search
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 2,vertical: 0),
-                            child: SearchTextCard(
-                              text: 'Search Guides and Meal Plans',
-                              onTap: () =>
-                                  goto(context, EbookSearchFilterScreen()),
-                            ),
-                          ),
-
-                          /// Slider
-                          if (!state.isCarouselLoading && ebookCarouselItems.isNotEmpty)
-                            CustomCarousel<EbookSliderDataModel>(
-                              items: ebookCarouselItems,
-                              itemBuilder: (context, item, index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    if (item.openId != null) {
-                                      final id = int.parse(item.openId!);
-                                      if (isSubscribed) {
-                                        goto(context, PurchasedEbookBuyDetailPage(ebookId: id));
-                                      } else {
-                                        goto(context, EbookBuyDetailPage(ebookId: id));
-                                      }
-                                    } else {
-                                      debugPrint('⚠️ Ebook tapped without openId');
-                                    }
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: CustomImage(
-                                        imageUrl: item.image,
-                                        width: 300,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-
-                          /// Recently Viewed
-                          if (state.recentlyViewedItem.isEmpty)
-                            Padding(
-                              padding:
-                              const EdgeInsets.symmetric(vertical: 10),
-                              child: AppButton(
-                                onPressed: () {
-                                  goto(
-                                    context,
-                                    EbookAllPage(
-                                      allEbookData: state.allEbookItems,
-                                    ),
-                                  );
-                                },
-                                text: 'Explore More',
-                                width:
-                                MediaQuery.of(context).size.width * 0.4,
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: CustomAppBar(title: 'Guide'),
+          body: BlocBuilder<EbookBloc, EbookState>(
+            builder: (context, state) {
+        
+              final bool isLoading =
+                  state.isCarouselLoading ||
+                      state.isAllEbookLoading ||
+                      state.recentlyViewedItemLoading ||
+                      state.isPageCarouselsLoading;
+        
+              ebookCarouselItems = state.ebookItems
+                  .where((e) => e.image != null && e.image.isNotEmpty)
+                  .toList();
+        
+              return Stack(
+                children: [
+                  RefreshIndicator(
+                    backgroundColor: Color(AppColor.primaryColor),
+                    color: Colors.white,
+                    onRefresh: () => _handleRefresh(context),
+                    child: CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /// Search
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2,vertical: 0),
+                                child: SearchTextCard(
+                                  text: 'Search Guides and Meal Plans',
+                                  onTap: () =>
+                                      goto(context, EbookSearchFilterScreen()),
+                                ),
                               ),
-                            )
-                          else
-                            _recentlyViewedSection(state),
-
-                          /// Trending
-                          _trendingSection(state),
-                          /// Dynamic Carousel Sections
-                          if (!state.isPageCarouselsLoading && state.ebookPageCarousels.isNotEmpty)
-                            ...state.ebookPageCarousels.map((carousel) {
-                              return EbookPageCarouselSection(
-                                carouselData: carousel,
-                                onEbookTap: (ebook) => _openEbook(context, ebook),
-                                isSubscribed: isSubscribed,
-                                showAdForFreeBooks: true, // Set based on your logic
-                              );
-                            }).toList(),
-
-                          premiumPlaylistBanner(
-                            context: context,
-                              onTap: () {
-                                goto(
-                                  context,
-                                  EbookAllPage(
-                                    allEbookData: state.allEbookItems,
+        
+                              /// Slider
+                              if (!state.isCarouselLoading && ebookCarouselItems.isNotEmpty)
+                                CustomCarousel<EbookSliderDataModel>(
+                                  items: ebookCarouselItems,
+                                  itemBuilder: (context, item, index) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        if (item.openId != null) {
+                                          final id = int.parse(item.openId!);
+                                          if (isSubscribed) {
+                                            goto(context, PurchasedEbookBuyDetailPage(ebookId: id));
+                                          } else {
+                                            goto(context, EbookBuyDetailPage(ebookId: id));
+                                          }
+                                        } else {
+                                          debugPrint('⚠️ Ebook tapped without openId');
+                                        }
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: CustomImage(
+                                            imageUrl: item.image,
+                                            width: 300,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+        
+                              /// Recently Viewed
+                              if (state.recentlyViewedItem.isEmpty)
+                                Padding(
+                                  padding:
+                                  const EdgeInsets.symmetric(vertical: 10),
+                                  child: AppButton(
+                                    onPressed: () {
+                                      goto(
+                                        context,
+                                        EbookAllPage(
+                                          allEbookData: state.allEbookItems,
+                                        ),
+                                      );
+                                    },
+                                    text: 'Explore More',
+                                    width:
+                                    MediaQuery.of(context).size.width * 0.4,
                                   ),
-                                );
-                              }
+                                )
+                              else
+                                _recentlyViewedSection(state),
+        
+                              /// Trending
+                              _trendingSection(state),
+                              /// Dynamic Carousel Sections
+                              if (!state.isPageCarouselsLoading && state.ebookPageCarousels.isNotEmpty)
+                                ...state.ebookPageCarousels.map((carousel) {
+                                  return EbookPageCarouselSection(
+                                    carouselData: carousel,
+                                    onEbookTap: (ebook) => _openEbook(context, ebook),
+                                    isSubscribed: isSubscribed,
+                                    showAdForFreeBooks: true, // Set based on your logic
+                                  );
+                                }).toList(),
+        
+                              premiumPlaylistBanner(
+                                context: context,
+                                  onTap: () {
+                                    goto(
+                                      context,
+                                      EbookAllPage(
+                                        allEbookData: state.allEbookItems,
+                                      ),
+                                    );
+                                  }
+                              ),
+        
+                              SizedBox(height: 120,),
+                            ],
                           ),
-
-                          SizedBox(height: 120,),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              /// ==============================
-              /// LOTTIE OVERLAY
-              /// ==============================
-              if (isLoading)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.white.withOpacity(0.6),
-                    child: Center(
-                      child: Lottie.asset(
-                        AppVector.waterDropLoading,
-                        width: 120,
-                        height: 120,
-                        repeat: true,
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-            ],
-          );
-        },
-      ),
+                  /// ==============================
+                  /// LOTTIE OVERLAY
+                  /// ==============================
+                  if (isLoading)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.6),
+                        child: Center(
+                          child: Lottie.asset(
+                            AppVector.waterDropLoading,
+                            width: 120,
+                            height: 120,
+                            repeat: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
     );
   }
 

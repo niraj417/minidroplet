@@ -43,4 +43,5 @@ class AppVector {
   static const String base2 = 'assets/lottie_animation/';
 
   static const String waterDropLoading = '${base2}water_drop_loading.json';
+  static const String noInternet = '${base2}no_internet.json';
 }

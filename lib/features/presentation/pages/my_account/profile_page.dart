@@ -60,35 +60,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile'), centerTitle: true),
-      body: BlocListener<ProfileCubit, ProfileState>(
-        listener: (context, state) {
-          if (state.error != null) {
-            CommonMethods.showSnackBar(context, state.error!);
-            context.read<ProfileCubit>().clearSuccessMessage();
-          }
-
-          // Handle success messages
-          if (state.successMessage != null) {
-            CommonMethods.showSnackBar(context, state.successMessage!);
-            context.read<ProfileCubit>().clearSuccessMessage();
-          }
-          _initializeControllers(state);
-        },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _key,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildProfileImage(),
-                const SizedBox(height: 40),
-                _buildFormFields(),
-                const SizedBox(height: 40),
-                _buildUpdateButton(),
-              ],
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Profile'), centerTitle: true),
+        body: BlocListener<ProfileCubit, ProfileState>(
+          listener: (context, state) {
+            if (state.error != null) {
+              CommonMethods.showSnackBar(context, state.error!);
+              context.read<ProfileCubit>().clearSuccessMessage();
+            }
+      
+            // Handle success messages
+            if (state.successMessage != null) {
+              CommonMethods.showSnackBar(context, state.successMessage!);
+              Navigator.pop(context, true); // return true to previous page
+              context.read<ProfileCubit>().clearSuccessMessage();
+            }
+            _initializeControllers(state);
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _key,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildProfileImage(),
+                  const SizedBox(height: 40),
+                  _buildFormFields(),
+                  const SizedBox(height: 40),
+                  _buildUpdateButton(),
+                ],
+              ),
             ),
           ),
         ),

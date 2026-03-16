@@ -26,6 +26,9 @@ import '../../../../common/widgets/loader.dart';
 import '../../../../core/constant/app_export.dart';
 import '../../../../core/constant/app_vector.dart';
 import '../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
+import '../../../../core/services/internet_connectivity/internet_cubit.dart';
+import '../../../../core/services/internet_connectivity/internet_state.dart';
+import '../../../../core/services/internet_connectivity/widget/no_internet_dialog.dart';
 import '../../../../core/services/payment_service.dart';
 import '../feed_page/bloc/age_group_bloc/age_group_cubit.dart';
 import 'bloc/ingredient_bloc/ingredient_cubit.dart';
@@ -68,9 +71,30 @@ class _VideoPageState extends State<VideoPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => VideoPageCubit()),
-        BlocProvider(create: (_) => IngredientCategoryCubit(dioClient)),
+        BlocProvider(
+          create: (_) => VideoPageCubit()..refreshData(),
+        ),
+        BlocProvider(
+          create: (_) => IngredientCategoryCubit(dioClient),
+        ),
       ],
+      child: BlocListener<InternetCubit, InternetState>(
+        listener: (context, state) async {
+
+          if (state is InternetConnected) {
+            await context.read<AgeGroupCubit>().fetchAgeGroup();
+            await context.read<VideoPageCubit>().refreshData();
+          }
+
+          if (state is InternetDisconnected) {
+            NoInternetDialog(
+              onRetry: () async {
+                await context.read<VideoPageCubit>().refreshData();
+              },
+            );
+          }
+
+        },
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Recipe Hub',
@@ -141,6 +165,7 @@ class _VideoPageState extends State<VideoPage> {
           },
         ),
       ),
+    ),
     );
   }
 

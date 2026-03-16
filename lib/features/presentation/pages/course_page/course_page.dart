@@ -4,7 +4,10 @@ import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/features/presentation/pages/course_page/course_overview_page.dart';
 
 import '../../../../common/widgets/app_bar/custom_app_bar.dart';
+import '../../../../common/widgets/no_data_widget.dart';
 import '../../../../core/constant/app_vector.dart';
+import '../../../../core/services/internet_connectivity/internet_cubit.dart';
+import '../../../../core/services/internet_connectivity/internet_state.dart';
 import '../../../../core/utils/shared_pref.dart';
 import 'bloc/course_detials/course_details_bloc.dart';
 import 'bloc/course_list/course_list_bloc.dart';
@@ -34,31 +37,47 @@ class _CourseListPageState extends State<CourseListPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
-      appBar: CustomAppBar(title: 'Courses'),
-      body: RefreshIndicator(
-        onRefresh: () async {
+    return BlocListener<InternetCubit, InternetState>(
+      listener: (context, state) {
+        if (state is InternetConnected) {
+
+          /// Refresh course list when internet comes back
           context.read<CourseBloc>().add(
-            FetchCourseList(SharedPref.getLoginData()!.data!.id ?? 0),
-          );
-        },
-        child: Column(
-          children: [
-            _buildTabs(),
-            const SizedBox(height: 10),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: const [
-                  CourseListView(tabIndex: 0),
-                  CourseListView(tabIndex: 1),
-                  CourseListView(tabIndex: 2),
-                ],
-              ),
+            FetchCourseList(
+              SharedPref.getLoginData()!.data!.id ?? 0,
             ),
-            SizedBox(height: 120,),
-          ],
+          );
+
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF6F7FB),
+        appBar: CustomAppBar(title: 'Courses'),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            context.read<CourseBloc>().add(
+              FetchCourseList(
+                SharedPref.getLoginData()!.data!.id ?? 0,
+              ),
+            );
+          },
+          child: Column(
+            children: [
+              _buildTabs(),
+              const SizedBox(height: 10),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: const [
+                    CourseListView(tabIndex: 0),
+                    CourseListView(tabIndex: 1),
+                    CourseListView(tabIndex: 2),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 120),
+            ],
+          ),
         ),
       ),
     );
@@ -155,7 +174,12 @@ class CourseListView extends StatelessWidget {
         }
 
         if (state.error != null) {
-          return Center(child: Text(state.error!));
+          return NoDataWidget(
+            onPressed:
+                () => context.read<CourseBloc>().add(
+              FetchCourseList(SharedPref.getLoginData()!.data!.id ?? 0),
+            ),
+          );
         }
 
         final courses = state.courses ?? [];

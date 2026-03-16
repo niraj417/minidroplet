@@ -16,6 +16,7 @@ import 'package:tinydroplets/core/utils/bloc_provider_helper.dart';
 import 'package:tinydroplets/features/presentation/pages/splash_page/launcher_page.dart';
 
 import 'core/services/ad_service/ad_manager.dart';
+import 'core/services/internet_connectivity/widget/internet_checker.dart';
 import 'core/theme/theme_bloc/theme_bloc.dart';
 import 'core/theme/theme_bloc/theme_state.dart';
 import 'injections/dependency_injection.dart';
@@ -134,6 +135,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      InternetChecker().initialize(navigatorKey, context);
       AdManager().checkAdStatus(context);
       initialization();
     });

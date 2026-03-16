@@ -138,7 +138,7 @@ class CarouselVideoCard extends StatelessWidget {
         ),
 
         /// 🔒 LOCKED tag (paid + no access)
-        if (!hasAccess)
+        if (!hasAccess && video.priceType != 'free')
           Positioned(
             top: 8,
             right: 8,
@@ -163,7 +163,7 @@ class CarouselVideoCard extends StatelessWidget {
     final bool isPaid = video.priceType != 'free';
 
     /// ❌ Paid video + no access → checkout ONLY
-    if (!hasAccess) {
+    if (!hasAccess && video.priceType != 'free') {
       goto(
         context,
         VideoCheckoutPage(

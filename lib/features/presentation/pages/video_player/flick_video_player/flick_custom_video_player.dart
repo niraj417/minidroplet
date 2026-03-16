@@ -117,24 +117,36 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
     }
   }
 
+  bool _wasPlayingBeforeBuffering = false;
+
   void _videoListener() {
-    if (_controller.value.hasError) {
-      debugPrint('Video player error: ${_controller.value.errorDescription}');
+    final value = _controller.value;
+
+    if (value.hasError) {
+      debugPrint('Video player error: ${value.errorDescription}');
       if (mounted) {
         setState(() {
-          _error = _controller.value.errorDescription ?? 'Unknown video error';
+          _error = value.errorDescription ?? 'Unknown video error';
           _isLoading = false;
         });
       }
+      return;
     }
-    _controller.addListener(() {
-      if (!_controller.value.isInitialized) return;
 
-      final position = _controller.value.position;
-      final duration = _controller.value.duration;
+    // Detect buffering start
+    if (value.isBuffering) {
+      _wasPlayingBeforeBuffering = value.isPlaying;
+    }
 
-      widget.onProgress?.call(position, duration);
-    });
+    // When buffering finishes, resume playback
+    if (!value.isBuffering && _wasPlayingBeforeBuffering && !value.isPlaying) {
+      _controller.play();
+    }
+
+    // Progress callback
+    if (widget.onProgress != null && value.isInitialized) {
+      widget.onProgress!(value.position, value.duration);
+    }
   }
 
   @override
