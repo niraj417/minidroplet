@@ -26,17 +26,32 @@ class CourseBloc extends Bloc<CourseEvent, CourseState> {
         },
       );
 
-      if (response.data['status'] == 1 || response.data['status'] == 0) {
-        final List data = response.data['data'] ?? [];
+      final data = response.data;
 
-        final courses =
-        data.map((e) => CourseModel.fromJson(e)).toList();
+      if (data['status'] == 0 &&
+          data['message'] == "Coming Soon") {
+        emit(const CourseComingSoon());
+        return;
+      }
+
+      if (data['status'] == 1) {
+        final courses = (data['data'] as List)
+            .map((e) => CourseModel.fromJson(e))
+            .toList();
 
         emit(CourseLoaded(courses: courses));
-      } else {
-        emit(CourseError(response.data['msg'] ?? "Something went wrong"));
+        return;
       }
+
+      emit(CourseError(data['message']));
     } catch (e) {
+
+      /// 🔥 HANDLE EXCEPTION COMING SOON
+      if (e.toString().toLowerCase().contains("coming soon")) {
+        emit(const CourseComingSoon());
+        return;
+      }
+
       emit(CourseError(e.toString()));
     }
   }

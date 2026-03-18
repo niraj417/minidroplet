@@ -187,14 +187,14 @@ class _VideoPageState extends State<VideoPage> {
 
   // ================= AGE GROUP =================
   Widget _ageGroup(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return BlocBuilder<AgeGroupCubit, AgeGroupState>(
       builder: (context, state) {
         if (state is AgeGroupLoading) return Loader();
         if (state is! AgeGroupLoaded || state.ageGroupList.isEmpty) {
           return const SizedBox.shrink();
         }
-
-        print("Age Group Data : ${state.ageGroupList}");
 
         return SizedBox(
           height: 60,
@@ -223,11 +223,11 @@ class _VideoPageState extends State<VideoPage> {
                     ),
                   ),
                   child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 6, horizontal: 12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
-                      color: Theme.of(context).brightness == Brightness.dark
+                      color: isDark
                           ? Colors.grey[900]
                           : Colors.grey[200],
                     ),

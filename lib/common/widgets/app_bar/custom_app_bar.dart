@@ -54,7 +54,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(right: 16.0),
             child: InkWell(
               onTap: () {
-                context.read<DashboardBloc>().add(NavigateToIndex(3));
+                context.read<DashboardBloc>().add(NavigateToIndex(4));
               },
               child:    BlocBuilder<ProfileCubit, ProfileState>(
             builder: (context, state) {

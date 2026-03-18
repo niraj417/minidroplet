@@ -40,44 +40,113 @@ class _CourseListPageState extends State<CourseListPage>
     return BlocListener<InternetCubit, InternetState>(
       listener: (context, state) {
         if (state is InternetConnected) {
-
-          /// Refresh course list when internet comes back
           context.read<CourseBloc>().add(
             FetchCourseList(
               SharedPref.getLoginData()!.data!.id ?? 0,
             ),
           );
-
         }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF6F7FB),
         appBar: CustomAppBar(title: 'Courses'),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            context.read<CourseBloc>().add(
-              FetchCourseList(
-                SharedPref.getLoginData()!.data!.id ?? 0,
-              ),
+        body: BlocBuilder<CourseBloc, CourseState>(
+          builder: (context, state) {
+            return Stack(
+              children: [
+
+                /// ===============================
+                /// ORIGINAL CONTENT (UNCHANGED)
+                /// ===============================
+                RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<CourseBloc>().add(
+                      FetchCourseList(
+                        SharedPref.getLoginData()!.data!.id ?? 0,
+                      ),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      _buildTabs(),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: const [
+                            CourseListView(tabIndex: 0),
+                            CourseListView(tabIndex: 1),
+                            CourseListView(tabIndex: 2),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 120),
+                    ],
+                  ),
+                ),
+
+                /// ===============================
+                /// 🔥 COMING SOON OVERLAY
+                /// ===============================
+                if (state is CourseComingSoon)
+                  Positioned.fill(
+                    child: AbsorbPointer(
+                      absorbing: true, // disables clicks
+                      child: Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+
+                              /// 🔥 Blur Glass Effect
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.lock_outline,
+                                      color: Colors.white,
+                                      size: 40,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      "Coming Soon",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      "Courses will be available soon",
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
-          child: Column(
-            children: [
-              _buildTabs(),
-              const SizedBox(height: 10),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: const [
-                    CourseListView(tabIndex: 0),
-                    CourseListView(tabIndex: 1),
-                    CourseListView(tabIndex: 2),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 120),
-            ],
-          ),
         ),
       ),
     );
@@ -137,13 +206,15 @@ class CourseListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CourseBloc, CourseState>(
       builder: (context, state) {
+
+        /// 🔥 FIX: HANDLE COMING SOON
+        if (state is CourseComingSoon) {
+          return const SizedBox.shrink();
+        }
+
         if (state.isLoading) {
           return Stack(
             children: [
-
-              /// ============================
-              /// SHIMMER LIST
-              /// ============================
               ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: 5,
@@ -152,10 +223,6 @@ class CourseListView extends StatelessWidget {
                   child: CourseCardShimmer(),
                 ),
               ),
-
-              /// ============================
-              /// LOTTIE ANIMATION OVERLAY
-              /// ============================
               Positioned.fill(
                 child: Container(
                   color: Colors.white.withOpacity(0.6),
@@ -164,7 +231,6 @@ class CourseListView extends StatelessWidget {
                       AppVector.waterDropLoading,
                       width: 120,
                       height: 120,
-                      repeat: true,
                     ),
                   ),
                 ),
@@ -175,54 +241,52 @@ class CourseListView extends StatelessWidget {
 
         if (state.error != null) {
           return NoDataWidget(
-            onPressed:
-                () => context.read<CourseBloc>().add(
-              FetchCourseList(SharedPref.getLoginData()!.data!.id ?? 0),
+            onPressed: () => context.read<CourseBloc>().add(
+              FetchCourseList(
+                SharedPref.getLoginData()!.data!.id ?? 0,
+              ),
             ),
           );
         }
 
         final courses = state.courses ?? [];
 
-        // TAB FILTERING
         final filteredCourses = courses.where((course) {
           switch (tabIndex) {
-
-            case 1: // In Progress
+            case 1:
               return course.isEnrolled &&
                   course.completionPercentage < 100;
-
-            case 2: // Completed
+            case 2:
               return course.isEnrolled &&
                   course.completionPercentage == 100;
-
-            default: // All
+            default:
               return true;
           }
         }).toList();
 
-        return RefreshIndicator(
-            onRefresh: () async {
-              context.read<CourseBloc>().add(
-                FetchCourseList(
-                  SharedPref.getLoginData()!.data!.id ?? 0,
-                ),
-              );
-            },
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredCourses.length,
-              itemBuilder: (context, index) {
-              final course = filteredCourses[index];
+        /// ✅ FIXED EMPTY STATE
+        if (filteredCourses.isEmpty) {
+          return const Center(
+            child: Text(
+              "No courses available",
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
 
-              if (filteredCourses.isEmpty) {
-                return const Center(
-                  child: Text(
-                    "No courses available",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                );
-              }
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<CourseBloc>().add(
+              FetchCourseList(
+                SharedPref.getLoginData()!.data!.id ?? 0,
+              ),
+            );
+          },
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: filteredCourses.length,
+            itemBuilder: (context, index) {
+              final course = filteredCourses[index];
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -237,7 +301,7 @@ class CourseListView extends StatelessWidget {
                 ),
               );
             },
-          )
+          ),
         );
       },
     );
