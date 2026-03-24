@@ -413,6 +413,7 @@ class _EbookBuyDetailPageState extends State<EbookBuyDetailPage> {
             // }
           },
         ),
+        SizedBox(height: 120,),
       ],
     );
   }

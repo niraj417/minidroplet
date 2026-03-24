@@ -646,6 +646,8 @@ class _PlaylistCheckoutPageState extends State<PlaylistCheckoutPage> {
             // }
           },
         ),
+
+        SizedBox(height: 120,),
       ],
     );
   }

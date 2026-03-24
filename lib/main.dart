@@ -143,7 +143,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void initialization() async {
     print("Pausing");
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(milliseconds: 300));
     print("unpausing");
     FlutterNativeSplash.remove();
   }

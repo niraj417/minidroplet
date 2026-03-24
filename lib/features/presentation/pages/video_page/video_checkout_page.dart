@@ -672,6 +672,7 @@ class _VideoCheckoutPageState extends State<VideoCheckoutPage> {
             // }
           },
         ),
+        SizedBox(height: 120,),
       ],
     );
   }

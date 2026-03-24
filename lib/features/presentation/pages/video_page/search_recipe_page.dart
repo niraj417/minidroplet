@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tinydroplets/common/navigation/navigation_service.dart';
 import 'package:tinydroplets/common/widgets/custom_image.dart';
@@ -41,6 +43,10 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
   double _minPrice = 0;
   double _maxPrice = 20000;
 
+  // ✅ NEW: debounce + request control
+  Timer? _debounce;
+  int _requestId = 0;
+
   bool get _hasPremiumAccess =>
       SubscriptionStateManager.hasPremiumAccess(_subscriptionStatus);
 
@@ -55,6 +61,13 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _debounce?.cancel(); // ✅ prevent memory leak
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _resolveSubscription() async {
     final status = await SubscriptionStateManager.resolve();
     if (mounted) {
@@ -64,14 +77,25 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
     }
   }
 
+  // ✅ UPDATED FETCH (race condition safe)
   Future<void> _fetchRecipes() async {
+    final searchText = _searchController.text.trim();
+
+    // ✅ ignore very short search
+    if (searchText.isNotEmpty && searchText.length < 2) {
+      setState(() => _recipes = []);
+      return;
+    }
+
+    final currentRequest = ++_requestId;
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final queryParameters = {
-        if (_searchController.text.isNotEmpty) 'search': _searchController.text,
+        if (searchText.isNotEmpty) 'search': searchText,
         if (selectedFilters['category']!.isNotEmpty)
           'category': selectedFilters['category']!.join(','),
         if (selectedFilters['sub_category']!.isNotEmpty)
@@ -89,6 +113,9 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
         queryParameters,
       );
 
+      // ❗ ignore outdated responses
+      if (currentRequest != _requestId) return;
+
       if (response.statusCode == 200 &&
           response.data['status'] == 1 &&
           mounted) {
@@ -99,12 +126,21 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
     } catch (e) {
       debugPrint('Error fetching recipes: $e');
     } finally {
-      if (mounted) {
+      if (mounted && currentRequest == _requestId) {
         setState(() {
           _isLoading = false;
         });
       }
     }
+  }
+
+  // ✅ NEW: debounce handler
+  void _onSearchChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _fetchRecipes();
+    });
   }
 
   @override
@@ -122,7 +158,7 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
             hintText: 'Search Recipes',
             border: InputBorder.none,
           ),
-          onChanged: (_) => _fetchRecipes(),
+          onChanged: _onSearchChanged, // ✅ FIXED HERE
         ),
         actions: [
           IconButton(

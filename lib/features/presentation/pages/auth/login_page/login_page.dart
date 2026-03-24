@@ -502,18 +502,6 @@ class _LoginPageState extends State<LoginPage> {
                                           const SizedBox(height: 10),
 
                                           if(Platform.isIOS)
-                                            Text(
-                                              'Explore without Login',
-                                              style: GoogleFonts.poppins(
-                                                color: AppColor.grey,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w300,
-                                              ),
-                                            ),
-
-                                          const SizedBox(height: 6),
-
-                                          if(Platform.isIOS)
                                             _loading3
                                                 ? const Loader()
                                                 : OutlinedButton(
