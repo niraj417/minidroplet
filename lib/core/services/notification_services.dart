@@ -22,6 +22,13 @@ class NotificationService {
       badge: true,
       sound: true,
     );
+
+    // ✅ CRITICAL FIX FOR iOS
+    await _firebaseService.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     CommonMethods.devLog(logName: 'User granted permission:', message: settings.authorizationStatus);
   }
 }
