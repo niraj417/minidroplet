@@ -338,7 +338,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 TextFormField(
                                                   controller: _emailOrMobile,
                                                   decoration: InputDecoration(
-                                                    labelText: 'Email or Mobile Number',
+                                                    labelText: 'Email',
                                                     labelStyle: const TextStyle(
                                                       color: Color(0xFF2C68EE),
                                                       fontSize: 14,
