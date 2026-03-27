@@ -266,9 +266,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     children: [
                       const SizedBox(height: 20),
                       _title(context),
-                      const SizedBox(height: 20),
-                      _features(),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 10),
+                      //_features(),
+                      //const SizedBox(height: 30),
                       _choosePlanTitle(),
                       const SizedBox(height: 20),
                       _plans(),
@@ -391,7 +391,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     "CHOOSE YOUR PLAN",
     style: TextStyle(
       fontFamily: "BobbyJones",
-      fontSize: 28,
+      fontSize: 24,
       decoration: TextDecoration.underline,
       color: Colors.white,
     ),
@@ -679,7 +679,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Text(
               feature,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
@@ -691,7 +691,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Center(
               child: Image.asset(
                 pro ? AppVector.proCheck : AppVector.basicCross,
-                height: 28,
+                height: 20,
               ),
             ),
           ),
@@ -701,7 +701,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Center(
               child: Image.asset(
                 basic ? AppVector.proCheck : AppVector.basicCross,
-                height: 28,
+                height: 20,
               ),
             ),
           ),
