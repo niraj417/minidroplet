@@ -61,6 +61,9 @@
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="false" />
 
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="3483909408428516"/>
+        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="555895be68538ef61530108075b9f272"/>
+
         <!-- Your App ID -->
         <provider android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider" android:authorities="${applicationId}.flutter_downloader.provider" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths"/>

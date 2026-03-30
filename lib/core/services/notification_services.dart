@@ -31,4 +31,24 @@ class NotificationService {
     );
     CommonMethods.devLog(logName: 'User granted permission:', message: settings.authorizationStatus);
   }
+
+  /// ✅ ENABLE notifications
+  Future<void> enableNotifications() async {
+    try {
+      await _firebaseService.subscribeToTopic("general");
+      CommonMethods.devLog(logName: "Notification", message: "Enabled");
+    } catch (e) {
+      CommonMethods.devLog(logName: "Enable Error", message: e.toString());
+    }
+  }
+
+  /// ❌ DISABLE notifications
+  Future<void> disableNotifications() async {
+    try {
+      await _firebaseService.unsubscribeFromTopic("general");
+      CommonMethods.devLog(logName: "Notification", message: "Disabled");
+    } catch (e) {
+      CommonMethods.devLog(logName: "Disable Error", message: e.toString());
+    }
+  }
 }

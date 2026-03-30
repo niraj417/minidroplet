@@ -46,9 +46,9 @@ class _DashboardState extends State<Dashboard> {
         final Color activeIconColor =
             themeState is DarkThemeState ? Colors.white : Colors.white;
         final Color inactiveIconColor =
-            themeState is DarkThemeState ? Colors.white : Colors.black;
+            themeState is DarkThemeState ? Colors.white : Colors.white;
         final Color buttonBackgroundColor =
-            themeState is DarkThemeState ? Colors.black : Colors.white;
+            themeState is DarkThemeState ? Colors.black : Colors.black;
 
         return PopScope(
           canPop: false, // Prevent system navigation

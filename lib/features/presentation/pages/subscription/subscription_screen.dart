@@ -264,19 +264,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      const SizedBox(height: 20),
-                      _title(context),
                       const SizedBox(height: 10),
+                      _title(context),
+                      //const SizedBox(height: 5),
                       //_features(),
                       //const SizedBox(height: 30),
                       _choosePlanTitle(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
                       _plans(),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 10),
                       _comparisonTable(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
                       _promoCodeButton(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 15),
                       _actionButtons(),
                       const SizedBox(height: 10),
                       _restorePurchase(),
@@ -342,7 +342,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         children: [
           // ✅ Centered title (never moves)
           const Text(
-            "START YOUR FREE TRIAL TODAY!",
+            "SUBSCRIBE TO GO AD-FREE",
             style: TextStyle(
               fontFamily: "BobbyJones",
               fontSize: 20,
@@ -391,7 +391,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     "CHOOSE YOUR PLAN",
     style: TextStyle(
       fontFamily: "BobbyJones",
-      fontSize: 24,
+      fontSize: 20,
       decoration: TextDecoration.underline,
       color: Colors.white,
     ),
@@ -620,7 +620,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Widget _tableHeaderRow() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       child: Row(
         children: [
           Expanded(
@@ -628,7 +628,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Text(
               "Features",
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: Colors.black,
               ),
@@ -640,7 +640,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               "Pro\nPlans",
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -651,7 +651,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               "Basic\nPlans",
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -663,14 +663,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Widget _tableDivider() {
     return Container(
-      height: 2,
+      height: 1,
       color: Colors.white, // Subtle grey-blue divider like design
     );
   }
 
   Widget _tableRow(String feature, bool pro, bool basic) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       child: Row(
         children: [
           /// Feature Text
@@ -691,7 +691,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Center(
               child: Image.asset(
                 pro ? AppVector.proCheck : AppVector.basicCross,
-                height: 20,
+                height: 15,
               ),
             ),
           ),
@@ -701,7 +701,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Center(
               child: Image.asset(
                 basic ? AppVector.proCheck : AppVector.basicCross,
-                height: 20,
+                height: 15,
               ),
             ),
           ),
@@ -717,17 +717,16 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         Text(
           "I have a promo code",
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 4),
 
         /// Underline bar (not TextDecoration)
         Container(
-          width: 180,
-          height: 2,
+          width: 160,
+          height: 1,
           color: Colors.white,
         ),
       ],
@@ -832,16 +831,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               : Text(
             "Restore purchase",
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
         ),
-        const SizedBox(height: 6),
         Container(
-          width: 180,
-          height: 2,
+          width: 140,
+          height: 1,
           color: Colors.white,
         ),
       ],
@@ -857,15 +855,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           Text(
             "Not Now, Browse App First",
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 6),
           Container(
-            width: 220,
-            height: 2,
+            width: 190,
+            height: 1,
             color: Colors.white,
           ),
         ],

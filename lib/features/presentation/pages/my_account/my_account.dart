@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tinydroplets/core/services/notification_services.dart';
 import 'package:tinydroplets/core/services/payment_service.dart';
 import 'package:tinydroplets/core/theme/theme_bloc/theme_bloc.dart';
 import 'package:tinydroplets/core/theme/theme_bloc/theme_event.dart';
+import 'package:tinydroplets/core/utils/shared_pref_key.dart';
 import 'package:tinydroplets/features/presentation/pages/auth/login_page/login_page.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/account.dart';
 import 'package:tinydroplets/features/presentation/pages/my_account/orders_page.dart';
@@ -50,8 +53,17 @@ class _MyAccountState extends State<MyAccount> {
     super.initState();
     checkStatus();
     _loadAppVersion();
+    _loadNotificationState();
     //getUserProfile();
     _getCms();
+  }
+
+  Future<void> _loadNotificationState() async {
+
+    setState(() {
+      _disableNotification =
+          SharedPref.getBool(SharedPrefKeys.notificationDisabled) ?? false;
+    });
   }
 
   Future<void> checkStatus() async {
@@ -115,6 +127,18 @@ class _MyAccountState extends State<MyAccount> {
 
   bool isDarkMode = false;
   bool _disableNotification = false;
+
+  Future<void> _toggleNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final newValue = !_disableNotification;
+
+    setState(() {
+      _disableNotification = newValue;
+    });
+
+    await prefs.setBool(SharedPrefKeys.notificationDisabled, newValue);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -275,11 +299,7 @@ class _MyAccountState extends State<MyAccount> {
                     'Notification',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
-                  onTap: () {
-                    setState(() {
-                      _disableNotification = !_disableNotification;
-                    });
-                  },
+                  onTap: _toggleNotification,
                   trailing: Icon(
                     _disableNotification
                         ? CupertinoIcons.bell

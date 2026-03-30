@@ -19,4 +19,5 @@ class SharedPrefKeys {
   static const String hasPremiumAccess = "hasPremiumAccess";
   static const String isGuestUser = "isGuestUser";
   static const String keepLoggedIn = "keepLoggedIn";
+  static const notificationDisabled = "notifications_disabled";
 }

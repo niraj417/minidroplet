@@ -2,6 +2,8 @@
   import 'package:shared_preferences/shared_preferences.dart';
 
   import '../utils/common_methods.dart';
+import '../utils/shared_pref.dart';
+import '../utils/shared_pref_key.dart';
 
   class FCMService {
     final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -26,6 +28,8 @@
         if (settings.authorizationStatus == AuthorizationStatus.authorized) {
           CommonMethods.devLog(logName: 'User granted notification permissions', message: settings.authorizationStatus.toString());
 
+          await SharedPref.setBool(SharedPrefKeys.notificationDisabled, true);
+
           String? fcmToken = await _firebaseMessaging.getToken();
 
           if (fcmToken != null) {
@@ -41,6 +45,7 @@
             CommonMethods.devLog(logName: 'APNS Token:', message: apnsToken ?? 'No APNS token available');
           }
         } else {
+          await SharedPref.setBool(SharedPrefKeys.notificationDisabled, false);
           CommonMethods.devLog(logName: 'Notification permissions not granted', message: settings.authorizationStatus.toString());
         }
       } catch (e) {
