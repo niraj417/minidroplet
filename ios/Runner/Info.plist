@@ -65,6 +65,7 @@
 
         <key>CFBundleURLTypes</key>
         <array>
+          <!-- Google Sign-In reverse client ID -->
           <dict>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
@@ -72,10 +73,15 @@
             <array>
               <string>com.googleusercontent.apps.674903063868-kqri9715c9s6u0s49ujir6ektc11kpon</string>
             </array>
+          </dict>
+          <!-- Facebook URL Scheme -->
+          <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
             <key>CFBundleURLSchemes</key>
-             <array>
-               <string>fb3483909408428516</string>
-             </array>
+            <array>
+              <string>fb3483909408428516</string>
+            </array>
           </dict>
         </array>
 
@@ -113,12 +119,6 @@
 		<key>SKAdNetworkItems</key>
 		<array/>
 
-		<!-- Disable ATS entirely -->
-		<key>NSAppTransportSecurity</key>
-		<dict>
-			<key>NSAllowsArbitraryLoads</key>
-			<true/>
-		</dict>
 		<!--Localize notification messages:  -->
 		<key>FDAllFilesDownloadedMessage</key>
 		<string>All files have been downloaded</string>
