@@ -61,31 +61,33 @@
 		</array>
 		<!-- ✅ Google SignIn -->
 		<key>GIDClientID</key>
-        <string>674903063868-kqri9715c9s6u0s49ujir6ektc11kpon.apps.googleusercontent.com</string>
-
-        <key>CFBundleURLTypes</key>
-        <array>
-          <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-              <string>com.googleusercontent.apps.674903063868-kqri9715c9s6u0s49ujir6ektc11kpon</string>
-            </array>
-            <key>CFBundleURLSchemes</key>
-             <array>
-               <string>fb3483909408428516</string>
-             </array>
-          </dict>
-        </array>
-
-        <key>FacebookAppID</key>
-        <string>3483909408428516</string>
-        <key>FacebookClientToken</key>
-        <string>555895be68538ef61530108075b9f272</string>
-        <key>FacebookDisplayName</key>
-        <string>TinyDroplets</string>
-
+		<string>674903063868-kqri9715c9s6u0s49ujir6ektc11kpon.apps.googleusercontent.com</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.674903063868-kqri9715c9s6u0s49ujir6ektc11kpon</string>
+				</array>
+			</dict>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>fb3483909408428516</string>
+				</array>
+			</dict>
+		</array>
+		<!-- ✅ Facebook -->
+		<key>FacebookAppID</key>
+		<string>3483909408428516</string>
+		<key>FacebookClientToken</key>
+		<string>555895be68538ef61530108075b9f272</string>
+		<key>FacebookDisplayName</key>
+		<string>TinyDroplets</string>
 		<!-- ✅ UI Settings -->
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
@@ -112,20 +114,11 @@
 		<false/>
 		<key>SKAdNetworkItems</key>
 		<array/>
-
-		<!-- Disable ATS entirely -->
-		<key>NSAppTransportSecurity</key>
-		<dict>
-			<key>NSAllowsArbitraryLoads</key>
-			<true/>
-		</dict>
-		<!--Localize notification messages:  -->
+		<!-- ✅ Background Download -->
 		<key>FDAllFilesDownloadedMessage</key>
 		<string>All files have been downloaded</string>
-		<!-- changes this number to configure the maximum number of concurrent tasks -->
 		<key>FDMaximumConcurrentTasks</key>
 		<integer>5</integer>
-		<!--  -->
 		<key>BGTaskSchedulerPermittedIdentifiers</key>
 		<array>
 			<string>com.tinydroplets.tinydroplets.downloader</string>
