@@ -42,13 +42,11 @@ class _DashboardState extends State<Dashboard> {
         final currentIndex =
             state is DashboardNavigationState ? state.currentIndex : 0;
 
-        final themeState = context.watch<ThemeBloc>().state;
-        final Color activeIconColor =
-            themeState is DarkThemeState ? Colors.white : Colors.white;
-        final Color inactiveIconColor =
-            themeState is DarkThemeState ? Colors.white : Colors.white;
-        final Color buttonBackgroundColor =
-            themeState is DarkThemeState ? Colors.black : Colors.black;
+        context.watch<ThemeBloc>(); // still watch so widget rebuilds on theme change
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        const Color activeIconColor = Colors.white;
+        final Color inactiveIconColor = isDark ? Colors.white : Colors.black;
+        final Color buttonBackgroundColor = isDark ? Colors.black : Colors.white;
 
         return PopScope(
           canPop: false, // Prevent system navigation
@@ -93,59 +91,59 @@ class _DashboardState extends State<Dashboard> {
             }
           },
           child: Scaffold(
-            extendBody: true,
+            extendBody: false,
             body: IndexedStack(
               index: currentIndex,
               children: screens,
             ),
-            bottomNavigationBar: Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom),
+            bottomNavigationBar: Container(
+              color: buttonBackgroundColor, // matches nav bar, fills iOS safe area gap
               child: CurvedNavigationBar(
-                index: currentIndex,
-                items: [
-                  Icon(
-                    Icons.feed,
-                    size: 30,
-                    color:
-                        currentIndex == 0 ? activeIconColor : inactiveIconColor,
-                  ),
-                  Icon(
-                    Icons.ondemand_video_outlined,
-                    size: 30,
-                    color:
-                    currentIndex == 1 ? activeIconColor : inactiveIconColor,
-                  ),
-                  Icon(
-                    Icons.menu_book_rounded,
-                    size: 30,
-                    color:
-                        currentIndex == 2 ? activeIconColor : inactiveIconColor,
-                  ),
-                  Icon(
-                    CupertinoIcons.videocam_fill,
-                    size: 30,
-                    color:
-                        currentIndex == 3 ? activeIconColor : inactiveIconColor,
-                  ),
-                  Icon(
-                    CupertinoIcons.person,
-                    size: 30,
-                    color:
-                        currentIndex == 4 ? activeIconColor : inactiveIconColor,
-                  ),
-                ],
-                onTap: (index) {
-                  if (index != currentIndex) {
-                    context.read<DashboardBloc>().add(NavigateToIndex(index));
-                  }
-                },
-                height: 60,
-                color: buttonBackgroundColor,
-                buttonBackgroundColor: Color(AppColor.primaryColor),
-                backgroundColor: Colors.transparent,
-                animationCurve: Curves.easeInOut,
-                animationDuration: const Duration(milliseconds: 200),
-              ),
+              index: currentIndex,
+              items: [
+                Icon(
+                  Icons.feed,
+                  size: 30,
+                  color:
+                      currentIndex == 0 ? activeIconColor : inactiveIconColor,
+                ),
+                Icon(
+                  Icons.ondemand_video_outlined,
+                  size: 30,
+                  color:
+                  currentIndex == 1 ? activeIconColor : inactiveIconColor,
+                ),
+                Icon(
+                  Icons.menu_book_rounded,
+                  size: 30,
+                  color:
+                      currentIndex == 2 ? activeIconColor : inactiveIconColor,
+                ),
+                Icon(
+                  CupertinoIcons.videocam_fill,
+                  size: 30,
+                  color:
+                      currentIndex == 3 ? activeIconColor : inactiveIconColor,
+                ),
+                Icon(
+                  CupertinoIcons.person,
+                  size: 30,
+                  color:
+                      currentIndex == 4 ? activeIconColor : inactiveIconColor,
+                ),
+              ],
+              onTap: (index) {
+                if (index != currentIndex) {
+                  context.read<DashboardBloc>().add(NavigateToIndex(index));
+                }
+              },
+              height: 60,
+              color: buttonBackgroundColor,
+              buttonBackgroundColor: Color(AppColor.primaryColor),
+              backgroundColor: Colors.transparent,
+              animationCurve: Curves.easeInOut,
+              animationDuration: const Duration(milliseconds: 200),
+            ),
             ),
           ),
         );
