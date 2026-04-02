@@ -7,7 +7,6 @@ workflows:
       flutter: 3.35.5
 
       vars:
-        CM_KEYSTORE_PATH: my-release-key.jks
         CM_KEYSTORE_PASSWORD: Akshay@2024
         CM_KEY_ALIAS: my-key-alias
         CM_KEY_PASSWORD: Akshay@2024
@@ -21,15 +20,22 @@ workflows:
         script: |
           flutter pub get
 
+      # ✅ COPY KEYSTORE TO CORRECT LOCATION
+      - name: Move keystore
+        script: |
+          cp my-release-key.jks android/app/
+
+      # ✅ SET SIGNING CONFIG
       - name: Set up Android signing
         script: |
           cat > android/key.properties <<EOF
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_PASSWORD
           keyAlias=$CM_KEY_ALIAS
-          storeFile=$CM_KEYSTORE_PATH
+          storeFile=android/app/my-release-key.jks
           EOF
 
+      # ✅ BUILD SIGNED AAB
       - name: Build Signed AAB
         script: |
           flutter build appbundle --release \
