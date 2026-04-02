@@ -1,95 +1,36 @@
 workflows:
-  ios-workflow:
-    name: iOS Workflow
-    max_build_duration: 120
-    integrations:
-      app_store_connect: Codemagic CD
+  android-workflow:
+    name: Android Release Build
+    max_build_duration: 60
 
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.tinydroplets.tinydroplets
-
-      vars:
-        APP_ID: 6746761853
-
       flutter: 3.35.5
-      xcode: 26.0.1
-      cocoapods: 1.16.2
 
     scripts:
-      - name: Set up code signing settings on Xcode project
-        script: xcode-project use-profiles
-
-      # ✅ ENABLE SIGN IN WITH APPLE CAPABILITY
-      - name: Enable Sign in with Apple capability
+      - name: Clean project
         script: |
-          echo "Configuring Sign in with Apple entitlement..."
-
-          # Create entitlements file
-          cat > ios/Runner/Runner.entitlements <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>aps-environment</key>
-              <string>production</string>
-              <key>com.apple.developer.applesignin</key>
-              <array>
-                  <string>Default</string>
-              </array>
-          </dict>
-          </plist>
-          EOF
-
-          echo "Linking entitlements to Xcode project..."
-
-          /usr/libexec/PlistBuddy -c "Add :CODE_SIGN_ENTITLEMENTS string Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj || \
-          /usr/libexec/PlistBuddy -c "Set :CODE_SIGN_ENTITLEMENTS Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj
-
-      - name: Verify entitlements
-        script: |
-          echo "Verifying entitlements..."
-          cat ios/Runner/Runner.entitlements
+          flutter clean
 
       - name: Get Flutter packages
         script: |
-          flutter clean
           flutter pub get
-          flutter pub upgrade
 
-      - name: Install pods
+      - name: Build APK (Release)
         script: |
-          cd ios
-          rm -rf Pods Podfile.lock
-          pod repo update
-          pod cache clean --all
-          pod install --repo-update --verbose
-          cd ..
+          flutter build apk --release --build-name=1.2.13 --build-number=13
 
-      - name: Flutter build ipa
+      - name: Build AAB (Release)
         script: |
-          flutter build ipa --release \
-          --build-name=1.2.12 \
-          --build-number=1  \
-          --export-options-plist=/Users/builder/export_options.plist
+          flutter build appbundle --release --build-name=1.2.13 --build-number=13
 
     artifacts:
-      - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
+      - build/app/outputs/flutter-apk/app-release.apk
+      - build/app/outputs/bundle/release/app-release.aab
 
     publishing:
       email:
         recipients:
-          - devops.karigar@gmail.com
+          - kingniraj417@gmail.com
         notify:
           success: true
           failure: false
-
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
-        beta_groups:
-          - App testers
-        submit_to_app_store: false
