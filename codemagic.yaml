@@ -20,22 +20,22 @@ workflows:
         script: |
           flutter pub get
 
-      # ✅ COPY KEYSTORE TO CORRECT LOCATION
+      # ✅ Move keystore to correct folder
       - name: Move keystore
         script: |
           cp my-release-key.jks android/app/
 
-      # ✅ SET SIGNING CONFIG
+      # ✅ Correct signing config (FIXED)
       - name: Set up Android signing
         script: |
           cat > android/key.properties <<EOF
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_PASSWORD
           keyAlias=$CM_KEY_ALIAS
-          storeFile=android/app/my-release-key.jks
+          storeFile=my-release-key.jks
           EOF
 
-      # ✅ BUILD SIGNED AAB
+      # ✅ Build signed AAB
       - name: Build Signed AAB
         script: |
           flutter build appbundle --release \
