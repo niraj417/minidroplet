@@ -48,17 +48,26 @@ workflows:
           pod install --repo-update
           cd ..
 
-      - name: Build IPA (No Signing)
+      - name: Build iOS (No Code Sign)
         script: |
-          flutter build ipa --release \
-          --no-codesign \
-          --build-name=1.2.13 \
-          --build-number=13
+          flutter build ios --release --no-codesign
+
+      - name: Create IPA manually
+        script: |
+          cd build/ios/iphoneos
+          mkdir Payload
+          cp -r Runner.app Payload
+          zip -r app.ipa Payload
 
     artifacts:
+      # Android
       - build/app/outputs/flutter-apk/*.apk
       - build/app/outputs/bundle/release/*.aab
-      - build/ios/ipa/*.ipa
+
+      # iOS (manual IPA)
+      - build/ios/iphoneos/app.ipa
+
+      # Debug symbols
       - build/debug-info/**
 
     publishing:
