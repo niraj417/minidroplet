@@ -9,7 +9,7 @@ class ThemeManager {
 
     // primarySwatch:  MaterialColor(0xffF24D9A, Map<0xffF24D9A, Colors.grey>),
     bottomNavigationBarTheme:
-        BottomNavigationBarThemeData(backgroundColor: AppColor.grey),
+        BottomNavigationBarThemeData(backgroundColor: Colors.white),
     scaffoldBackgroundColor: AppColor.backgroundColor,
     cardColor: Colors.grey[100],
     /*appBarTheme: AppBarTheme(
