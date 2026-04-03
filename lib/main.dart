@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart'; // ✅ ADDED
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +17,6 @@ import 'package:tinydroplets/core/utils/bloc_provider_helper.dart';
 import 'package:tinydroplets/features/presentation/pages/splash_page/launcher_page.dart';
 
 import 'core/services/ad_service/ad_manager.dart';
-import 'core/services/internet_connectivity/widget/internet_checker.dart';
 import 'core/theme/theme_bloc/theme_bloc.dart';
 import 'core/theme/theme_bloc/theme_state.dart';
 import 'injections/dependency_injection.dart';
@@ -33,6 +33,11 @@ void main() async {
   GestureBinding.instance.resamplingEnabled = false;
 
   await MobileAds.instance.initialize();
+
+  // ✅ ADDED — Request App Tracking Transparency on iOS before ads load
+  if (Platform.isIOS) {
+    await requestTrackingPermission();
+  }
 
   if (Platform.isAndroid && !kDebugMode) {
     await applyNativeSecurity();
@@ -58,6 +63,23 @@ void main() async {
   }
 
   runApp(AppRestartWidget(child: BlocProviderHelper(child: MyApp())));
+}
+
+// ✅ ADDED — ATT permission request for iOS 14+
+Future<void> requestTrackingPermission() async {
+  try {
+    final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (status == TrackingStatus.notDetermined) {
+      // Small delay recommended by Apple — avoids rejection if called too early
+      await Future.delayed(const Duration(milliseconds: 500));
+      final result = await AppTrackingTransparency.requestTrackingAuthorization();
+      debugPrint('ATT permission result: $result');
+    } else {
+      debugPrint('ATT status already set: $status');
+    }
+  } catch (e) {
+    debugPrint('Error requesting ATT permission: $e');
+  }
 }
 
 Future<void> applyNativeSecurity() async {
@@ -92,29 +114,29 @@ void showScreenshotWarning() {
       context: navigatorKey.currentContext!,
       builder:
           (context) => Container(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.warning, color: Colors.orange, size: 36),
-            SizedBox(height: 12),
-            Text(
-              'Screenshot Detected',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.warning, color: Colors.orange, size: 36),
+                SizedBox(height: 12),
+                Text(
+                  'Screenshot Detected',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Taking screenshots of this content is not allowed for security reasons.',
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Understand'),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
-            Text(
-              'Taking screenshots of this content is not allowed for security reasons.',
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Understand'),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }
@@ -135,7 +157,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      InternetChecker().initialize(navigatorKey, context);
       AdManager().checkAdStatus(context);
       initialization();
     });
@@ -143,7 +164,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   void initialization() async {
     print("Pausing");
-    await Future.delayed(Duration(milliseconds: 300));
+    await Future.delayed(Duration(seconds: 3));
     print("unpausing");
     FlutterNativeSplash.remove();
   }
@@ -181,54 +202,21 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
 
         return Sizer(
-            builder: (context, orientation, deviceType) {
-              return MaterialApp(
-                navigatorKey: navigatorKey,
-                themeMode:
-                (state is DarkThemeState) ? ThemeMode.dark : ThemeMode.light,
-                debugShowCheckedModeBanner: false,
-                theme: theme,
-                darkTheme: ThemeManager.darkTheme.copyWith(
-                  primaryColor: Color(AppColor.primaryColor),
-                ),
-                home: LauncherPage(),
-                // home: NewOnboardingPage(),
-                // home: SizedBox.shrink(),
-                // home: LetsGetStartedPage(),
-                // home: SplashPage(),
-              );
-            }
+          builder: (context, orientation, deviceType) {
+            return MaterialApp(
+              navigatorKey: navigatorKey,
+              themeMode:
+                  (state is DarkThemeState) ? ThemeMode.dark : ThemeMode.light,
+              debugShowCheckedModeBanner: false,
+              theme: theme,
+              darkTheme: ThemeManager.darkTheme.copyWith(
+                primaryColor: Color(AppColor.primaryColor),
+              ),
+              home: LauncherPage(),
+            );
+          },
         );
       },
     );
   }
 }
-
-/*
-
-// For ios we can not hide or prevent this so we need to add this.
-
-Widget buildWatermarkedContent(Widget child) {
-  return Stack(
-    children: [
-      child,
-      Positioned.fill(
-        child: IgnorePointer(
-          child: Center(
-            child: Transform.rotate(
-              angle: -0.5,
-              child: Text(
-                "CONFIDENTIAL - UserID: 12345",
-                style: TextStyle(
-                  color: Colors.black.withOpacity(0.3),
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
-}*/
