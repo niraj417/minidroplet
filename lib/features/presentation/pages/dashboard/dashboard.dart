@@ -97,7 +97,11 @@ class _DashboardState extends State<Dashboard> {
               children: screens,
             ),
             bottomNavigationBar: Container(
-              color: buttonBackgroundColor, // matches nav bar, fills iOS safe area gap
+              color: buttonBackgroundColor,
+              // viewPadding.bottom = ~48dp for 3-button nav, 0 for gesture nav
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewPadding.bottom,
+              ),
               child: CurvedNavigationBar(
               index: currentIndex,
               items: [
