@@ -16,7 +16,7 @@ class AdUnitId {
     if (Platform.isAndroid) {
       return "ca-app-pub-8918303949279078/5455357299";
     } else if (Platform.isIOS) {
-      return "ca-app-pub-8918303949279078/5455357299";
+      return "ca-app-pub-8918303949279078/6429856790";
     } else {
       throw UnimplementedError("Unsupported platform");
     }
