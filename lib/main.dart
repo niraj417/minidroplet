@@ -8,6 +8,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sizer/sizer.dart';
 import 'package:tinydroplets/app_restart_widget.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
@@ -31,6 +32,10 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   GestureBinding.instance.resamplingEnabled = false;
+
+  if (Platform.isIOS) {
+    await Permission.appTrackingTransparency.request();
+  }
 
   await MobileAds.instance.initialize();
 
