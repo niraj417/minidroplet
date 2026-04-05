@@ -33,9 +33,6 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   GestureBinding.instance.resamplingEnabled = false;
 
-  if (Platform.isIOS) {
-    await Permission.appTrackingTransparency.request();
-  }
 
   await MobileAds.instance.initialize();
 
@@ -151,6 +148,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     await Future.delayed(Duration(milliseconds: 300));
     print("unpausing");
     FlutterNativeSplash.remove();
+
+    // Request ATT AFTER splash is removed so the iOS window is ready
+    if (Platform.isIOS) {
+      await Future.delayed(Duration(seconds: 1));
+      await Permission.appTrackingTransparency.request();
+    }
   }
 
   @override
