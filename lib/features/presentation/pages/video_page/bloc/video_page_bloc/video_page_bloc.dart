@@ -33,8 +33,8 @@ class VideoPageCubit extends Cubit<VideoPageState> {
       final results = await Future.wait([
         _dioClient.sendGetRequest(ApiEndpoints.recipeSlider),
         _dioClient.sendGetRequest(ApiEndpoints.recipeCategory),
-        _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe),
-        _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos),
+        _dioClient.sendGetRequest('${ApiEndpoints.recommendationRecipe}?limit=1000'),
+        _dioClient.sendGetRequest('${ApiEndpoints.allRecipeVideos}?limit=1000'),
         _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist),
         SubscriptionPaymentService.hasActiveSubscription(),
       ]);
@@ -118,7 +118,7 @@ class VideoPageCubit extends Cubit<VideoPageState> {
   Future<void> fetchRecommendationRecipe() async {
     try {
       final response =
-          await _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe);
+          await _dioClient.sendGetRequest('${ApiEndpoints.recommendationRecipe}?limit=1000');
       if (response.data['status'] == 1) {
         final data = RecipeRecommendationModel.fromJson(response.data);
         emit(state.copyWith(recommendationRecipeList: data.data ?? []));
@@ -131,7 +131,7 @@ class VideoPageCubit extends Cubit<VideoPageState> {
   Future<void> fetchAllRecipeVideo() async {
     try {
       final response =
-          await _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos);
+          await _dioClient.sendGetRequest('${ApiEndpoints.allRecipeVideos}?limit=1000');
       if (response.data['status'] == 1) {
         final data = AllRecipeVideoModel.fromJson(response.data);
         emit(state.copyWith(allRecipeVideoList: data.data));
