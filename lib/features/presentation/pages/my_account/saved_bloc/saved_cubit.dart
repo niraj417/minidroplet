@@ -81,7 +81,7 @@ class SavedItemsCubit extends Cubit<SavedItemsState> {
 
   Future<void> _fetchSavedEbooks() async {
     try {
-      final response = await dioClient.sendGetRequest(ApiEndpoints.savedEbook);
+      final response = await dioClient.sendGetRequest('${ApiEndpoints.savedEbook}?limit=1000');
       if (response.data['status'] == 1) {
         final ebooks = SavedItemModel.fromJson(response.data)
             .data
@@ -96,7 +96,7 @@ class SavedItemsCubit extends Cubit<SavedItemsState> {
 
   Future<void> _fetchSavedVideos() async {
     try {
-      final response = await dioClient.sendGetRequest(ApiEndpoints.savedVideo);
+      final response = await dioClient.sendGetRequest('${ApiEndpoints.savedVideo}?limit=1000');
       if (response.data['status'] == 1) {
         final videos = SavedItemModel.fromJson(response.data)
             .data
@@ -111,7 +111,7 @@ class SavedItemsCubit extends Cubit<SavedItemsState> {
 
   Future<void> _fetchSavedPlaylists() async {
     try {
-      final response = await dioClient.sendGetRequest(ApiEndpoints.savedPlaylist);
+      final response = await dioClient.sendGetRequest('${ApiEndpoints.savedPlaylist}?limit=1000');
       if (response.data['status'] == 1) {
         final playlists = SavedItemModel.fromJson(response.data)
             .data
