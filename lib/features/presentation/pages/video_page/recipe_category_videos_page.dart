@@ -137,6 +137,8 @@ class _RecipeCategoryVideoPageState extends State<RecipeCategoryVideoPage> {
       url += '&category_id=${widget.id}';
     }
 
+    url += '&limit=1000';
+
     final response = await _dioClient.sendGetRequest(url);
     final model = AllRecipeVideoModel.fromJson(response.data);
 
