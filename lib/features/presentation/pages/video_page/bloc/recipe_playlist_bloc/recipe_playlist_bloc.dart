@@ -18,7 +18,7 @@ class RecipePlaylistCubit extends Cubit<RecipePlaylistState> {
     try {
       final response = await _dioClient.sendPostRequest(
         ApiEndpoints.recipePlaylist,
-        {'playlist_id': playlistId},
+        {'playlist_id': playlistId, 'limit': 1000},
       );
 
       if (response.data['status'] == 1) {
