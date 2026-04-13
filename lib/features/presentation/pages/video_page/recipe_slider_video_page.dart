@@ -50,7 +50,7 @@ class _RecipeSubcategoryVideoPageState
   Future<void> _loadVideos() async {
     try {
       final response = await _dioClient.sendGetRequest(
-        '${ApiEndpoints.allRecipeVideosByMultipleSubcategories}?subcat_ids=${widget.subCategoryId}',
+        '${ApiEndpoints.allRecipeVideosByMultipleSubcategories}?subcat_ids=${widget.subCategoryId}&limit=1000',
       );
 
       final model = AllRecipeVideoModel.fromJson(response.data);
