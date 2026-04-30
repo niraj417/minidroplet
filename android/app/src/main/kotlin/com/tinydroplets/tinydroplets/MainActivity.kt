@@ -14,23 +14,33 @@ class MainActivity: AudioServiceActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Hardware acceleration — set after super.onCreate to avoid MIUI window manager crash
         window.setFlags(
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
         )
 
-        // Enable secure screen to prevent screenshots
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // FLAG_SECURE: wrapped in try-catch because MIUI/HyperOS on Redmi devices
+        // can throw when this is applied before the Flutter engine is fully attached.
+        try {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } catch (e: Exception) {
+            // Graceful degradation on MIUI — security flag will be applied via MethodChannel
+        }
 
         // Make the app draw behind system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // Handle splash screen for Android 12+
+        // Wrapped in try-catch: MIUI customizes the Android 12 splash screen API
+        // in an incompatible way, causing crashes on many Redmi devices.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Disable the Android splash screen fade out animation to avoid
-            // a flicker before the similar frame is drawn in Flutter.
-            splashScreen.setOnExitAnimationListener { splashScreenView ->
-                splashScreenView.remove()
+            try {
+                splashScreen.setOnExitAnimationListener { splashScreenView ->
+                    splashScreenView.remove()
+                }
+            } catch (e: Exception) {
+                // Graceful fallback on MIUI/HyperOS Redmi devices
             }
         }
     }
