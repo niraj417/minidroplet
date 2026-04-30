@@ -1,4 +1,42 @@
 workflows:
+  android-workflow:
+    name: Android APK (Release)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      vars:
+        PACKAGE_NAME: com.tinydroplets.tinydroplets
+        BUILD_NAME: "1.0.0"
+        BUILD_NUMBER: "22"
+
+      flutter: 3.35.5
+      java: 17
+
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter clean
+          flutter pub get
+
+      - name: Build APK (Split per ABI)
+        script: |
+          flutter build apk --release \
+            --split-per-abi \
+            --build-name=$BUILD_NAME \
+            --build-number=$BUILD_NUMBER
+
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+
+    publishing:
+      email:
+        recipients:
+          - devops.karigar@gmail.com
+        notify:
+          success: true
+          failure: true
+
   ios-workflow:
     name: iOS Workflow
     max_build_duration: 120
