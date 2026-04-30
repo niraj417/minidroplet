@@ -40,11 +40,11 @@ android {
         applicationId = "com.tinydroplets.tinydroplets"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion = flutter.minSdkVersion
+        minSdkVersion 21 // Raised from flutter default (16) to avoid MIUI/Redmi API crashes
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-//        multiDexEnabeld true
+        multiDexEnabled true // Required for Redmi devices with many dependencies
     }
     signingConfigs {
         release {
@@ -60,32 +60,27 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')        }
-    }
-
-    android {
-        packagingOptions {
-            jniLibs {
-                useLegacyPackaging = false
-            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
         }
     }
 
-
-    dependencies {
-
-            // ... other dependencies ...
-            implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
-            implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
-            //noinspection GradleDependency
-            implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
-
-//        def exoplayer_version = "...specify-version-here...."
-//        implementation "com.google.android.exoplayer:exoplayer-core:$exoplayer_version"
-//        implementation "com.google.android.exoplayer:exoplayer-dash:$exoplayer_version"
-//        implementation "com.google.android.exoplayer:exoplayer-hls:$exoplayer_version"
-//        implementation "com.google.android.exoplayer:exoplayer-smoothstreaming:$exoplayer_version"
+    // Fix for Redmi/MIUI: useLegacyPackaging=true ensures .so native libs are
+    // uncompressed and directly loadable — false causes UnsatisfiedLinkError crashes
+    // on older MIUI versions that can't handle compressed native libs.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
+}
+
+dependencies {
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
+    //noinspection GradleDependency
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
+    // MultiDex support for Redmi devices with many dependencies
+    implementation 'androidx.multidex:multidex:2.0.1'
 }
 
 flutter {
