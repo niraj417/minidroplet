@@ -120,7 +120,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - devops.karigar@gmail.com
+          - Kingniraj417@gmail.com
         notify:
           success: true
           failure: false
