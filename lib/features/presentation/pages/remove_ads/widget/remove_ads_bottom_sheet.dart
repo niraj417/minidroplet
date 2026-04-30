@@ -1,0 +1,345 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:tinydroplets/common/widgets/app_button.dart';
+import 'package:tinydroplets/core/utils/shared_pref.dart';
+import 'package:tinydroplets/features/presentation/pages/remove_ads/widget/purchase_details_bottom_sheet.dart';
+
+import '../../../../../core/network/api_endpoints.dart';
+import '../../../../../core/services/payment_service.dart';
+import '../../../../../core/services/remove_ads_payment.dart';
+import '../../../../../core/services/subscription_service.dart';
+import '../bloc/remove_ads_cubit.dart';
+import '../bloc/remove_ads_state.dart';
+
+class RemoveAdsBottomSheet extends StatefulWidget {
+  const RemoveAdsBottomSheet({super.key});
+
+  @override
+  State<RemoveAdsBottomSheet> createState() => _RemoveAdsBottomSheetState();
+}
+
+class _RemoveAdsBottomSheetState extends State<RemoveAdsBottomSheet> {
+  //late RemoveAdsPaymentService _paymentService;
+  late SubscriptionPaymentService _subscriptionPayment;// = SubscriptionPaymentService();
+  String? _orderId;
+  int? _planId;
+  String? _amount;
+  bool _creatingOrder = true;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<RemoveAdsCubit>().getRemoveAdsPrice();
+    //_paymentService = RemoveAdsPaymentService();
+    _subscriptionPayment = SubscriptionPaymentService();
+    _loadSubscriptionOrder();
+  }
+
+  Future<void> _loadSubscriptionOrder() async {
+    try {
+      await _subscriptionPayment.createSubscriptionOrder(plan: 2);
+
+      setState(() {
+        _orderId = _subscriptionPayment.orderId;
+        _planId = _subscriptionPayment.planId;
+        _amount = _subscriptionPayment.amount;
+        _creatingOrder = false;
+      });
+    } catch (e) {
+      _creatingOrder = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create order')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscriptionPayment.dispose();
+    //_paymentService.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.75,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (_, scrollController) {
+        return SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: BlocConsumer<RemoveAdsCubit, RemoveAdsState>(
+              listener: (context, state) {
+                if (state.errorMessage != null) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+                  context.read<RemoveAdsCubit>().resetError();
+                }
+          
+                if (state.isPurchased) {
+                  Navigator.pop(context);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const PurchaseDetailsBottomSheet(),
+                  );
+                }
+              },
+              builder: (context, state) {
+                if (state.isLoading && _creatingOrder) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+          
+                return SingleChildScrollView(
+                  controller: scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        /// Drag Indicator
+                        Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+          
+                        const SizedBox(height: 20),
+          
+                        /// HEADER
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF2C68EE), Color(0xFF5A8CFF)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: const [
+                              Icon(Icons.lock_open_rounded, size: 42, color: Colors.white),
+                              SizedBox(height: 10),
+                              Text(
+                                "Unlock Premium Content",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                "Subscribe to access exclusive paid materials",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+          
+                        const SizedBox(height: 20),
+          
+                        // /// DESCRIPTION
+                        // if (state.description != null)
+                        //   Text(
+                        //     state.description!,
+                        //     textAlign: TextAlign.center,
+                        //     style: TextStyle(
+                        //       color: Colors.grey.shade700,
+                        //       fontSize: 15,
+                        //       height: 1.4,
+                        //     ),
+                        //   ),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            _FeaturePoint(text: "Access premium baby care content"),
+                            _FeaturePoint(text: "Exclusive learning videos"),
+                            _FeaturePoint(text: "Expert-curated parenting guides"),
+                            _FeaturePoint(text: "Ad-free premium environment"),
+                          ],
+                        ),
+          
+          
+                        const SizedBox(height: 20),
+          
+                        /// PRICE CARD
+                        if (_amount != null)
+                          Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF2F6FF),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFF2C68EE),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  "One Time Payment",
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  "₹${_amount}",
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    color: Color(0xFF2C68EE),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+          
+                        const SizedBox(height: 30),
+          
+                        /// CTA BUTTON
+                        AppButton(
+                          text: 'Subscribe To Unlock',
+                          onPressed: () async {
+                            if (_orderId != null && _planId != null && _amount != null) {
+
+                              final prefData = await SharedPref.getLoginData();
+
+                              // _subscriptionPayment.makePayment(
+                              //   context: context,
+                              //   amount: _amount!,
+                              //   orderId: _orderId!,
+                              //   planId: _planId!,
+                              //   name: prefData?.data?.name ?? '',
+                              //   contact: prefData?.data?.mobile ?? '',
+                              //   email: prefData?.data?.email ?? '',
+                              //
+                              //   // 🔥 PAYMENT SUCCESS CALLBACK
+                              //   onSuccess: () async {
+                              //     await SharedPref.setBool("isSubscribed", true);
+                              //
+                              //     Navigator.pop(context);
+                              //
+                              //     showModalBottomSheet(
+                              //       context: context,
+                              //       isScrollControlled: true,
+                              //       backgroundColor: Colors.transparent,
+                              //       builder: (context) => const PurchaseDetailsBottomSheet(),
+                              //     );
+                              //
+                              //     setState(() {}); // 🔥 refresh bottomsheet UI
+                              //   },
+                              //
+                              //   // 🔥 PAYMENT FAILURE CALLBACK
+                              //   onFailure: (err) {
+                              //     ScaffoldMessenger.of(context)
+                              //         .showSnackBar(SnackBar(content: Text(err)));
+                              //   },
+                              // );
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+          
+                        if (Platform.isIOS)
+                          TextButton(
+                            onPressed: () async {
+                              final available =
+                              await InAppPurchase.instance.isAvailable();
+                              if (!available) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'In-app purchases not available.'),
+                                  ),
+                                );
+                                return;
+                              }
+          
+                              try {
+                                await InAppPurchase.instance.restorePurchases();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Restoring purchases...'),
+                                  ),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text('Restore failed: $e')),
+                                );
+                              }
+                            },
+                            child: const Text("Restore Purchases"),
+                          ),
+          
+                        const SizedBox(height: 12),
+          
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
+          
+                        const SizedBox(height: 10),
+                        Text(
+                          "Note: Your purchase will be verified automatically after payment.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FeaturePoint extends StatelessWidget {
+  final String text;
+  const _FeaturePoint({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Color(0xFF2C68EE), size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
