@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <!-- Required on Android 14+ (Redmi flagship devices) for audio foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     <uses-permission android:name="com.android.vending.BILLING"/>
 
 
@@ -55,7 +57,7 @@
         </service>
 
         <meta-data android:name="flutterEmbedding" android:value="2" />
-        <meta-data android:name="android.max_refresh_rate" android:value="120" />
+        <!-- Removed android.max_refresh_rate: causes crashes on some MIUI/HyperOS versions -->
         <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-8918303949279078~7689008088"/>
         <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
