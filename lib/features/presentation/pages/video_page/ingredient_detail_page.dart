@@ -354,7 +354,10 @@ class _IngredientDetailPageState extends State<IngredientDetailPage> {
     final childCard = Container(
       width: 150,
       margin: const EdgeInsets.only(right: 16.0),
-      child: WeekRecipeCard(recipe: item),
+      child: WeekRecipeCard(
+        recipe: item,
+        hasPremiumAccess: _hasPremiumAccess,
+      ),
     );
 
     // Keep ads ONLY for free content
