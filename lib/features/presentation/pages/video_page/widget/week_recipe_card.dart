@@ -46,6 +46,8 @@ class WeekRecipeCard extends StatelessWidget {
                     clipBehavior: Clip.hardEdge,
                     child: CustomImage(
                       imageUrl: recipe.thumbnail,
+                      width: 260,
+                      height: 140,
                     ),
                   ),
 
