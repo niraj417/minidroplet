@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
@@ -42,9 +45,14 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
+  static const int _maxCarouselItems = 5;
+  static const int _maxWeekRecipeItems = 8;
+  static const int _homeSectionCount = 15;
+
   late final VideoPageCubit _videoPageCubit;
   late final IngredientCategoryCubit _ingredientCategoryCubit;
   late final AgeGroupCubit _recipeAgeGroupCubit;
+  bool _isLowEndDevice = false;
 
   @override
   void initState() {
@@ -52,6 +60,7 @@ class _VideoPageState extends State<VideoPage> {
     _videoPageCubit = VideoPageCubit();
     _ingredientCategoryCubit = IngredientCategoryCubit(dioClient);
     _recipeAgeGroupCubit = AgeGroupCubit()..fetchAgeGroup();
+    _detectLowEndDevice();
   }
 
   @override
@@ -78,6 +87,41 @@ class _VideoPageState extends State<VideoPage> {
 
   bool _shouldShowAd(String priceType, bool hasPremium) {
     return priceType == 'free' && !hasPremium;
+  }
+
+  Future<void> _detectLowEndDevice() async {
+    try {
+      bool isLowEnd = false;
+
+      if (Platform.isAndroid) {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        isLowEnd =
+            androidInfo.isLowRamDevice || androidInfo.physicalRamSize <= 4096;
+        debugPrint(
+          'Recipe hub device profile: lowRam=${androidInfo.isLowRamDevice}, '
+          'physicalRamMb=${androidInfo.physicalRamSize}, '
+          'availableRamMb=${androidInfo.availableRamSize}',
+        );
+      } else if (Platform.isIOS) {
+        final iosInfo = await DeviceInfoPlugin().iosInfo;
+        isLowEnd = iosInfo.physicalRamSize <= 3072;
+        debugPrint(
+          'Recipe hub iOS device profile: physicalRamMb=${iosInfo.physicalRamSize}, '
+          'availableRamMb=${iosInfo.availableRamSize}',
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLowEndDevice = isLowEnd;
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Low-end device detection failed: $e');
+      debugPrint('$stackTrace');
+    }
   }
 
   @override
@@ -128,32 +172,7 @@ class _VideoPageState extends State<VideoPage> {
                     await _recipeAgeGroupCubit.fetchAgeGroup();
                     await context.read<VideoPageCubit>().refreshData();
                   },
-                  child: ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: SearchTextCard(
-                            text: 'Search, Favorite Recipe',
-                            onTap: () =>
-                                goto(context, const RecipeSearchFilterScreen()),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        _buildCarousel(state, context, hasPremium),
-                        _ageGroup(context),
-                        _ingredientCategory(context),
-                        const SizedBox(height: 10),
-                        _buildRecipePlaylist(state, context, hasPremium),
-                        const SizedBox(height: 10),
-                        _buildVideoCategory(state, context),
-                        const SizedBox(height: 10),
-                        _buildRecommendation(state, context, hasPremium),
-                        const SizedBox(height: 10),
-                        _buildRecipeOfTheWeek(state, context, hasPremium),
-                        const SizedBox(height: 120),
-                      ],
-                  ),
+                  child: _buildHomeList(state, context, hasPremium),
                 ),
                 /// ==============================
                 /// LOTTIE OVERLAY
@@ -179,6 +198,79 @@ class _VideoPageState extends State<VideoPage> {
       ),
     ),
     );
+  }
+
+  Widget _buildHomeList(
+    VideoPageState state,
+    BuildContext context,
+    bool hasPremium,
+  ) {
+    if (_isLowEndDevice) {
+      return ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        cacheExtent: 280,
+        itemCount: _homeSectionCount,
+        itemBuilder: (context, index) =>
+            _buildHomeSection(index, state, context, hasPremium),
+      );
+    }
+
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: List<Widget>.generate(
+        _homeSectionCount,
+        (index) => _buildHomeSection(index, state, context, hasPremium),
+        growable: false,
+      ),
+    );
+  }
+
+  Widget _buildHomeSection(
+    int index,
+    VideoPageState state,
+    BuildContext context,
+    bool hasPremium,
+  ) {
+    switch (index) {
+      case 0:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: SearchTextCard(
+            text: 'Search, Favorite Recipe',
+            onTap: () => goto(context, const RecipeSearchFilterScreen()),
+          ),
+        );
+      case 1:
+        return const SizedBox(height: 20);
+      case 2:
+        return _buildCarousel(state, context, hasPremium);
+      case 3:
+        return _ageGroup(context);
+      case 4:
+        return _ingredientCategory(context);
+      case 5:
+        return const SizedBox(height: 10);
+      case 6:
+        return _buildRecipePlaylist(state, context, hasPremium);
+      case 7:
+        return const SizedBox(height: 10);
+      case 8:
+        return _buildVideoCategory(state, context);
+      case 9:
+        return const SizedBox(height: 10);
+      case 10:
+        return _buildRecommendation(state, context, hasPremium);
+      case 11:
+        return const SizedBox(height: 10);
+      case 12:
+        return _buildRecipeOfTheWeek(state, context, hasPremium);
+      case 13:
+        return const SizedBox(height: 120);
+      case 14:
+        return const SizedBox.shrink();
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   // ================= INGREDIENT CATEGORY =================
@@ -211,6 +303,8 @@ class _VideoPageState extends State<VideoPage> {
         return SizedBox(
           height: 60,
           child: ListView.builder(
+            cacheExtent: _isLowEndDevice ? 120 : null,
+            addAutomaticKeepAlives: !_isLowEndDevice,
             scrollDirection: Axis.horizontal,
             itemCount: state.ageGroupList.length,
             itemBuilder: (context, index) {
@@ -259,9 +353,11 @@ class _VideoPageState extends State<VideoPage> {
   Widget _buildCarousel(
       VideoPageState state, BuildContext context, bool hasPremium) {
     if (state.recipeCarouselList.isEmpty) return const SizedBox.shrink();
+    final carouselItems =
+        state.recipeCarouselList.take(_maxCarouselItems).toList(growable: false);
 
     return CustomCarousel(
-      items: state.recipeCarouselList,
+      items: carouselItems,
       itemBuilder: (context, item, _) => GestureDetector(
         onTap: () => hasPremium
             ? goto(context, RecipeDetailScreen(videoId: item.id.toString()))
@@ -287,6 +383,8 @@ class _VideoPageState extends State<VideoPage> {
                 fit: BoxFit.contain,
                 width: 300,
                 height: 200,
+                memCacheWidth: 720,
+                memCacheHeight: 480,
               ),
             ),
           ),
@@ -323,6 +421,8 @@ class _VideoPageState extends State<VideoPage> {
           SizedBox(
             height: 70,
             child: ListView.builder(
+              cacheExtent: _isLowEndDevice ? 160 : null,
+              addAutomaticKeepAlives: !_isLowEndDevice,
               scrollDirection: Axis.horizontal,
               itemCount: state.allRecipeCategoryList.length.clamp(0, 5),
               itemBuilder: (context, index) => Padding(
@@ -402,6 +502,8 @@ class _VideoPageState extends State<VideoPage> {
           SizedBox(
             height: 255,
             child: ListView.builder(
+              cacheExtent: _isLowEndDevice ? 220 : null,
+              addAutomaticKeepAlives: !_isLowEndDevice,
               scrollDirection: Axis.horizontal,
               itemCount:
               state.recommendationRecipeList.length.clamp(0, 5),
@@ -497,6 +599,8 @@ class _VideoPageState extends State<VideoPage> {
           SizedBox(
             height: 255,
             child: ListView.builder(
+              cacheExtent: _isLowEndDevice ? 220 : null,
+              addAutomaticKeepAlives: !_isLowEndDevice,
               scrollDirection: Axis.horizontal,
               itemCount:
               state.recipeAllPlaylistList.length.clamp(0, 5),
@@ -544,6 +648,8 @@ class _VideoPageState extends State<VideoPage> {
             context.read<VideoPageCubit>().fetchAllRecipeVideo(),
       );
     }
+    final weekRecipes =
+        state.allRecipeVideoList.take(_maxWeekRecipeItems).toList(growable: false);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -562,10 +668,12 @@ class _VideoPageState extends State<VideoPage> {
           SizedBox(
             height: 170,
             child: ListView.builder(
+              cacheExtent: _isLowEndDevice ? 220 : null,
+              addAutomaticKeepAlives: !_isLowEndDevice,
               scrollDirection: Axis.horizontal,
-              itemCount: state.allRecipeVideoList.length,
+              itemCount: weekRecipes.length,
               itemBuilder: (context, index) {
-                final item = state.allRecipeVideoList[index];
+                final item = weekRecipes[index];
                 final card = Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: WeekRecipeCard(
