@@ -7,7 +7,6 @@ import '../../../../../../core/network/api_endpoints.dart';
 import '../../model/all_recipe_video_model.dart';
 import '../../model/ingredient_detail_model.dart';
 
-/// ---------- STATES ----------
 abstract class IngredientDetailState {}
 
 class IngredientDetailInitial extends IngredientDetailState {}
@@ -39,117 +38,160 @@ class IngredientDetailLoadedWithVideos extends IngredientDetailState {
   });
 }
 
-/// ---------- CUBIT ----------
 class IngredientDetailCubit extends Cubit<IngredientDetailState> {
-  final DioClient dioClient;
-
   IngredientDetailCubit(this.dioClient) : super(IngredientDetailInitial());
 
-  // Fixed fetchAll method
+  final DioClient dioClient;
+  int _requestToken = 0;
+
   Future<void> fetchAll(int ingredientId) async {
+    if (ingredientId <= 0) {
+      emit(IngredientDetailError('Invalid ingredient selected.'));
+      return;
+    }
+
+    final requestToken = ++_requestToken;
     emit(IngredientDetailLoading());
 
     try {
-      // Execute both APIs concurrently
-      final results = await Future.wait([
+      final results = await Future.wait<dynamic>([
         _fetchIngredientDetailsInternal(ingredientId),
         _fetchRelatedRecipesInternal(ingredientId),
       ]);
 
-      final ingredientData = results[0] as IngredientDetailDataModel?;
-      final relatedVideos = results[1] as List<AllRecipeVideoDataModel>?;
-
-      if (ingredientData != null) {
-        emit(IngredientDetailLoadedWithVideos(
-          ingredientData: ingredientData,
-          allRecipeVideoList: relatedVideos ?? [],
-        ));
-      } else {
-        emit(IngredientDetailError('Failed to fetch ingredient details'));
+      if (isClosed || requestToken != _requestToken) {
+        debugPrint(
+          'Skipping stale ingredient detail response for ingredientId=$ingredientId',
+        );
+        return;
       }
-    } catch (e) {
-      emit(IngredientDetailError(e.toString()));
+
+      final ingredientData = results[0] as IngredientDetailDataModel?;
+      final relatedVideos =
+          (results[1] as List<AllRecipeVideoDataModel>?) ?? const [];
+
+      if (ingredientData == null) {
+        emit(IngredientDetailError('Failed to fetch ingredient details.'));
+        return;
+      }
+
+      debugPrint(
+        'Loaded ingredientId=$ingredientId with ${relatedVideos.length} related recipes',
+      );
+      emit(
+        IngredientDetailLoadedWithVideos(
+          ingredientData: ingredientData,
+          allRecipeVideoList: relatedVideos,
+        ),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('fetchAll failed for ingredientId=$ingredientId: $e');
+      debugPrint('$stackTrace');
+      if (isClosed || requestToken != _requestToken) {
+        return;
+      }
+      emit(IngredientDetailError('Something went wrong while loading data.'));
     }
   }
 
-  // Internal method - doesn't emit states directly
-  Future<IngredientDetailDataModel?> _fetchIngredientDetailsInternal(int ingredientId) async {
+  Future<IngredientDetailDataModel?> _fetchIngredientDetailsInternal(
+    int ingredientId,
+  ) async {
     try {
       final response = await dioClient.sendPostRequest(
         ApiEndpoints.ingredientDetail,
         {'ingrediant_id': ingredientId.toString()},
       );
 
-      debugPrint("Ingredient details response: ---------> ${response.data}");
+      debugPrint('Ingredient detail response for $ingredientId: ${response.data}');
 
-      if (response.data != null) {
-        final model = IngredientDetailModel.fromJson(response.data);
-        if (model.status == 1 && model.data != null) {
-          return model.data!;
-        }
+      if (response.data is! Map<String, dynamic>) {
+        debugPrint('Ingredient detail response was not a JSON object');
+        return null;
       }
+
+      final model = IngredientDetailModel.fromJson(response.data);
+      if (model.status == 1 && model.data != null) {
+        return model.data;
+      }
+
+      debugPrint(
+        'Ingredient detail API returned status=${model.status}, message=${model.message}',
+      );
       return null;
-    } catch (e) {
-      debugPrint("Error fetching ingredient details: $e");
+    } catch (e, stackTrace) {
+      debugPrint('Error fetching ingredient details: $e');
+      debugPrint('$stackTrace');
       return null;
     }
   }
 
-  // Internal method - doesn't emit states directly
-  Future<List<AllRecipeVideoDataModel>?> _fetchRelatedRecipesInternal(int ingredientId) async {
+  Future<List<AllRecipeVideoDataModel>> _fetchRelatedRecipesInternal(
+    int ingredientId,
+  ) async {
     try {
-      debugPrint("🔍 Fetching related recipes for ingredient: $ingredientId");
+      debugPrint('Fetching related recipes for ingredientId=$ingredientId');
 
       final response = await dioClient.sendPostRequest(
         ApiEndpoints.relatedRecipe,
         {'ingrediant_id': ingredientId.toString()},
       );
 
-      debugPrint("📡 Related recipes RAW response: ${response.data}");
-      debugPrint("📡 Response status code: ${response.statusCode}");
+      debugPrint('Related recipes response for $ingredientId: ${response.data}');
+      debugPrint('Related recipes status code: ${response.statusCode}');
 
-      if (response.data != null) {
-        final model = AllRecipeVideoModel.fromJson(response.data);
-
-        debugPrint("📊 Model status: ${model.status}");
-        debugPrint("📊 Model message: ${model.message}");
-        debugPrint("📊 Model data length: ${model.data?.length ?? 0}");
-
-        if (model.status == 1 && model.data != null) {
-          debugPrint("✅ Successfully parsed ${model.data!.length} related recipes");
-          return model.data!;
-        } else {
-          debugPrint("❌ API returned status: ${model.status}, message: ${model.message}");
-        }
-      } else {
-        debugPrint("❌ Response data is null");
+      if (response.data is! Map<String, dynamic>) {
+        debugPrint('Related recipes response was not a JSON object');
+        return const [];
       }
-      return [];
-    } catch (e) {
-      debugPrint("💥 Error fetching related recipes: $e");
-      debugPrint("💥 Stack trace: ${StackTrace.current}");
-      return [];
+
+      final model = AllRecipeVideoModel.fromJson(response.data);
+      debugPrint(
+        'Related recipes parsed with status=${model.status}, count=${model.data.length}',
+      );
+
+      if (model.status == 1) {
+        return model.data;
+      }
+
+      debugPrint(
+        'Related recipes API returned status=${model.status}, message=${model.message}',
+      );
+      return const [];
+    } catch (e, stackTrace) {
+      debugPrint('Error fetching related recipes: $e');
+      debugPrint('$stackTrace');
+      return const [];
     }
   }
 
-  // Keep these for individual calls if needed
   Future<void> fetchIngredientDetails(int ingredientId) async {
+    if (ingredientId <= 0) {
+      emit(IngredientDetailError('Invalid ingredient selected.'));
+      return;
+    }
+
     emit(IngredientDetailLoading());
 
     final data = await _fetchIngredientDetailsInternal(ingredientId);
     if (data != null) {
       emit(IngredientDetailLoaded(data));
-    } else {
-      emit(IngredientDetailError('Failed to fetch ingredient details'));
+      return;
     }
+
+    emit(IngredientDetailError('Failed to fetch ingredient details.'));
   }
 
   Future<void> fetchRelatedRecipes(int ingredientId) async {
-    final videos = await _fetchRelatedRecipesInternal(ingredientId);
-    if (videos != null) {
-      emit(IngredientRelatedRecipesLoaded(videos));
-    } else {
-      emit(IngredientDetailError('Failed to fetch related recipes'));
+    if (ingredientId <= 0) {
+      emit(IngredientDetailError('Invalid ingredient selected.'));
+      return;
     }
+
+    final videos = await _fetchRelatedRecipesInternal(ingredientId);
+    if (isClosed) {
+      return;
+    }
+    emit(IngredientRelatedRecipesLoaded(videos));
   }
 }
