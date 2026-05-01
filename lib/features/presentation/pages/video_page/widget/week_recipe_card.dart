@@ -4,9 +4,6 @@ import 'package:tinydroplets/features/presentation/pages/video_page/model/all_re
 import '../../../../../core/constant/app_export.dart';
 
 class WeekRecipeCard extends StatelessWidget {
-  static const double _cardWidth = 150;
-  static const double _imageHeight = 140;
-
   final AllRecipeVideoDataModel recipe;
   final bool hasPremiumAccess;
 
@@ -27,30 +24,22 @@ class WeekRecipeCard extends StatelessWidget {
         Stack(
           children: [
             Container(
-              height: _imageHeight,
-              width: _cardWidth,
+              height: 140,
+              width: 260,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 color: Theme.of(context).cardColor,
               ),
               clipBehavior: Clip.hardEdge,
-              child: const RepaintBoundary(
-                child: SizedBox.expand(),
-              ),
-            ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20),
               child: CustomImage(
                 imageUrl: recipe.thumbnail,
-                width: _cardWidth,
-                height: _imageHeight,
-                memCacheWidth: 420,
-                memCacheHeight: 420,
+                width: 260,
+                height: 140,
               ),
             ),
             Container(
-              height: _imageHeight,
-              width: _cardWidth,
+              height: 140,
+              width: 260,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 color: Colors.black.withOpacity(0.3),
@@ -95,7 +84,6 @@ class WeekRecipeCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
             softWrap: true,
-            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),
