@@ -277,13 +277,17 @@ class _VideoPageState extends State<VideoPage> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CustomImage(
-              imageUrl: item.image,
-              fit: BoxFit.contain,
-              width: 300,
-              height: 200,
+          child: SizedBox(
+            width: 300,
+            height: 200,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CustomImage(
+                imageUrl: item.image,
+                fit: BoxFit.contain,
+                width: 300,
+                height: 200,
+              ),
             ),
           ),
         ),
