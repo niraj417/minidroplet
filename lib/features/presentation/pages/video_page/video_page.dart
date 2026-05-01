@@ -42,11 +42,22 @@ class VideoPage extends StatefulWidget {
 }
 
 class _VideoPageState extends State<VideoPage> {
+  late final VideoPageCubit _videoPageCubit;
+  late final IngredientCategoryCubit _ingredientCategoryCubit;
 
   @override
   void initState() {
     super.initState();
+    _videoPageCubit = VideoPageCubit();
+    _ingredientCategoryCubit = IngredientCategoryCubit(dioClient);
     context.read<AgeGroupCubit>().fetchAgeGroup();
+  }
+
+  @override
+  void dispose() {
+    _videoPageCubit.close();
+    _ingredientCategoryCubit.close();
+    super.dispose();
   }
 
   /// 🔐 SINGLE SOURCE OF TRUTH
@@ -71,20 +82,18 @@ class _VideoPageState extends State<VideoPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => VideoPageCubit()..refreshData(),
+        BlocProvider.value(
+          value: _videoPageCubit,
         ),
-        BlocProvider(
-          create: (_) => IngredientCategoryCubit(dioClient),
+        BlocProvider.value(
+          value: _ingredientCategoryCubit,
         ),
       ],
       child: BlocListener<InternetCubit, InternetState>(
         listener: (context, state) async {
 
-          if (state is InternetConnected) {
-            await context.read<AgeGroupCubit>().fetchAgeGroup();
-            await context.read<VideoPageCubit>().refreshData();
-          }
+          // Removed aggressive auto-refresh on InternetConnected to prevent duplicate API flooding
+          // which caused OOM crashes on low-end devices.
 
           if (state is InternetDisconnected) {
             NoInternetDialog(
@@ -102,9 +111,8 @@ class _VideoPageState extends State<VideoPage> {
         ),
         body: BlocBuilder<VideoPageCubit, VideoPageState>(
           builder: (context, state) {
-            final bool hasPremium = _hasPremiumAccess(state);
-
-            final bool isLoading = state.isLoading;
+                final bool hasPremium = _hasPremiumAccess(state);
+                final bool isLoading = state.isLoading;
 
             return Stack(
               children: [
@@ -116,6 +124,7 @@ class _VideoPageState extends State<VideoPage> {
                     await context.read<VideoPageCubit>().refreshData();
                   },
                   child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -550,7 +559,10 @@ class _VideoPageState extends State<VideoPage> {
                 final item = state.allRecipeVideoList[index];
                 final card = Padding(
                   padding: const EdgeInsets.only(right: 16),
-                  child: WeekRecipeCard(recipe: item),
+                  child: WeekRecipeCard(
+                    recipe: item,
+                    hasPremiumAccess: hasPremium,
+                  ),
                 );
 
                 if (_shouldShowAd(item.priceType,hasPremium)) {
