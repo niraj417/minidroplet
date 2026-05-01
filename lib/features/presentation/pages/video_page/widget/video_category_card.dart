@@ -16,6 +16,8 @@ class VideoCategoryCard extends StatelessWidget {
           Positioned.fill(
             child: CustomImage(
               imageUrl: category.image,
+              width: 150,
+              height: 70,
             ),
           ),
           Container(
