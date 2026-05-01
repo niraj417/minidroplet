@@ -14,6 +14,7 @@ import '../../model/recipe_recommendation_model.dart';
 
 class VideoPageCubit extends Cubit<VideoPageState> {
   final DioClient _dioClient = DioClient();
+  bool _isRefreshing = false;
 
   VideoPageCubit() : super(VideoPageState.initial()) {
     _fetchInitialData();
@@ -25,26 +26,24 @@ class VideoPageCubit extends Cubit<VideoPageState> {
 
 
   Future<void> refreshData() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
 
     emit(state.copyWith(isLoading: true));
 
     try {
-
-      final results = await Future.wait([
-        _dioClient.sendGetRequest(ApiEndpoints.recipeSlider),
-        _dioClient.sendGetRequest(ApiEndpoints.recipeCategory),
-        _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe),
-        _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos),
-        _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist),
-        SubscriptionPaymentService.hasActiveSubscription(),
-      ]);
-
-      final sliderResponse = results[0] as Response;
-      final categoryResponse = results[1] as Response;
-      final recommendationResponse = results[2] as Response;
-      final videoResponse = results[3] as Response;
-      final playlistResponse = results[4] as Response;
-      final subscription = results[5] as bool;
+      final sliderResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.recipeSlider);
+      final categoryResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.recipeCategory);
+      final recommendationResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe);
+      final videoResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos);
+      final playlistResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist);
+      final subscription =
+          await SubscriptionPaymentService.hasActiveSubscription();
 
       emit(
         state.copyWith(
@@ -73,6 +72,8 @@ class VideoPageCubit extends Cubit<VideoPageState> {
       debugPrint("Refresh error: $e");
 
       emit(state.copyWith(isLoading: false));
+    } finally {
+      _isRefreshing = false;
     }
   }
 
