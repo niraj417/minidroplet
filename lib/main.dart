@@ -28,6 +28,10 @@ void main() async {
   // Initialize SharedPref FIRST
   await SharedPref.init();
 
+  // Optimize global image cache for low-end devices
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 50; // 50 MB
+  PaintingBinding.instance.imageCache.maximumSize = 150; // 150 images
+
   await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
