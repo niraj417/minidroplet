@@ -9,14 +9,14 @@ class AllRecipeVideoModel {
   final String message;
   final List<AllRecipeVideoDataModel> data;
 
-  factory AllRecipeVideoModel.fromJson(Map<String, dynamic> json) {
+  factory AllRecipeVideoModel.fromJson(Map<String, dynamic>? json) {
+    final payload = json ?? const <String, dynamic>{};
     return AllRecipeVideoModel(
-      status: json["status"] ?? 0,
-      message: json["message"] ?? "",
-      data: json["data"] == null
-          ? []
-          : List<AllRecipeVideoDataModel>.from(
-              json["data"]!.map((x) => AllRecipeVideoDataModel.fromJson(x))),
+      status: _asInt(payload["status"]),
+      message: _asString(payload["message"]),
+      data: _asMapList(payload["data"])
+          .map(AllRecipeVideoDataModel.fromJson)
+          .toList(growable: false),
     );
   }
 
@@ -28,7 +28,7 @@ class AllRecipeVideoModel {
 
   @override
   String toString() {
-    return "$status, $message, $data, ";
+    return "$status, $message, $data";
   }
 }
 
@@ -69,24 +69,25 @@ class AllRecipeVideoDataModel {
   final DateTime? updatedAt;
   final String isBuy;
 
-  factory AllRecipeVideoDataModel.fromJson(Map<String, dynamic> json) {
+  factory AllRecipeVideoDataModel.fromJson(Map<String, dynamic>? json) {
+    final payload = json ?? const <String, dynamic>{};
     return AllRecipeVideoDataModel(
-      id: json["id"] ?? 0,
-      userId: json["user_id"]?.toString() ?? "",
-      series: json["series"]?.toString() ?? "",
-      category: json["category"]?.toString() ?? "",
-      title: json["title"]?.toString() ?? "",
-      thumbnail: json["thumbnail"]?.toString() ?? "",
-      description: json["description"]?.toString() ?? "",
-      uploadVideo: json["upload_video"]?.toString() ?? "",
-      price: json["price"]?.toString() ?? "0",
-      status: json["status"]?.toString() ?? "0",
-      mainPrice: json["main_price"]?.toString() ?? "0",
-      priceType: json["price_type"]?.toString() ?? "",
-      publishDate: json["publish_date"]?.toString() ?? "",
-      createdAt: DateTime.tryParse(json["created_at"]?.toString() ?? ""),
-      updatedAt: DateTime.tryParse(json["updated_at"]?.toString() ?? ""),
-      isBuy: json["is_buy"]?.toString() ?? "0",
+      id: _asInt(payload["id"]),
+      userId: _asString(payload["user_id"]),
+      series: _asString(payload["series"]),
+      category: _asString(payload["category"]),
+      title: _asString(payload["title"]),
+      thumbnail: _asString(payload["thumbnail"]),
+      description: _asString(payload["description"]),
+      uploadVideo: _asString(payload["upload_video"]),
+      price: _asString(payload["price"], fallback: "0"),
+      status: _asString(payload["status"], fallback: "0"),
+      mainPrice: _asString(payload["main_price"], fallback: "0"),
+      priceType: _asString(payload["price_type"]),
+      publishDate: _asString(payload["publish_date"]),
+      createdAt: _asDateTime(payload["created_at"]),
+      updatedAt: _asDateTime(payload["updated_at"]),
+      isBuy: _asString(payload["is_buy"], fallback: "0"),
     );
   }
 
@@ -111,6 +112,49 @@ class AllRecipeVideoDataModel {
 
   @override
   String toString() {
-    return "$id, $userId, $series, $category, $title, $thumbnail, $description, $uploadVideo, $price, $status, $mainPrice, $priceType, $publishDate, $createdAt, $updatedAt, $isBuy ";
+    return "$id, $userId, $series, $category, $title, $thumbnail, "
+        "$description, $uploadVideo, $price, $status, $mainPrice, "
+        "$priceType, $publishDate, $createdAt, $updatedAt, $isBuy";
   }
+}
+
+int _asInt(dynamic value, {int fallback = 0}) {
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+  if (value is String) {
+    return int.tryParse(value.trim()) ?? fallback;
+  }
+  return fallback;
+}
+
+String _asString(dynamic value, {String fallback = ""}) {
+  if (value == null) {
+    return fallback;
+  }
+  final text = value.toString().trim();
+  return text.isEmpty ? fallback : text;
+}
+
+DateTime? _asDateTime(dynamic value) {
+  final raw = _asString(value);
+  if (raw.isEmpty) {
+    return null;
+  }
+  return DateTime.tryParse(raw);
+}
+
+List<Map<String, dynamic>> _asMapList(dynamic value) {
+  if (value is! List) {
+    return const [];
+  }
+  return value
+      .whereType<Map>()
+      .map((item) => item.map(
+            (key, val) => MapEntry(key.toString(), val),
+          ))
+      .toList(growable: false);
 }
