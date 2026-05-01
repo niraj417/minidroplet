@@ -38,6 +38,8 @@ class RecipeCard extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: CustomImage(
                 imageUrl: recipe.videoThumbnail,
+                width: 155,
+                height: 210,
               ),
             ),
 
