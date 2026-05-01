@@ -4,6 +4,7 @@ import 'package:tinydroplets/features/presentation/pages/feed_page/widget/age_ci
 import 'package:tinydroplets/features/presentation/pages/feed_page/widget/horizontal_selecter_widget.dart';
 import '../../../../common/widgets/custom_expansion_tile.dart';
 import '../../../../core/constant/app_export.dart';
+import 'bloc/age_group_bloc/age_group_cubit.dart';
 import 'bloc/track_milestone_bloc/track_milestone_cubit.dart';
 
 class FeedActivityPage extends StatefulWidget {
@@ -28,24 +29,30 @@ class FeedActivityPage extends StatefulWidget {
 
 class _FeedActivityPageState extends State<FeedActivityPage> {
   late final TrackMilestoneCubit _cubit;
+  late final AgeGroupCubit _ageGroupCubit;
   int? _selectedAgeGroupId;
 
   @override
   void initState() {
     super.initState();
     _cubit = TrackMilestoneCubit();
+    _ageGroupCubit = AgeGroupCubit();
   }
 
   @override
   void dispose() {
+    _ageGroupCubit.close();
     _cubit.close();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _cubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _cubit),
+        BlocProvider.value(value: _ageGroupCubit),
+      ],
       child: Scaffold(
         body: Column(
           children: [
