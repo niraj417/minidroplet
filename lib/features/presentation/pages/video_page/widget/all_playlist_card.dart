@@ -38,6 +38,8 @@ class AllPlaylistCard extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: CustomImage(
                 imageUrl: recipe.thumbnail,
+                width: 155,
+                height: 210,
               ),
             ),
 
