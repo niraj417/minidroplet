@@ -44,17 +44,19 @@ class VideoPage extends StatefulWidget {
 class _VideoPageState extends State<VideoPage> {
   late final VideoPageCubit _videoPageCubit;
   late final IngredientCategoryCubit _ingredientCategoryCubit;
+  late final AgeGroupCubit _recipeAgeGroupCubit;
 
   @override
   void initState() {
     super.initState();
     _videoPageCubit = VideoPageCubit();
     _ingredientCategoryCubit = IngredientCategoryCubit(dioClient);
-    context.read<AgeGroupCubit>().fetchAgeGroup();
+    _recipeAgeGroupCubit = AgeGroupCubit()..fetchAgeGroup();
   }
 
   @override
   void dispose() {
+    _recipeAgeGroupCubit.close();
     _videoPageCubit.close();
     _ingredientCategoryCubit.close();
     super.dispose();
@@ -88,6 +90,9 @@ class _VideoPageState extends State<VideoPage> {
         BlocProvider.value(
           value: _ingredientCategoryCubit,
         ),
+        BlocProvider.value(
+          value: _recipeAgeGroupCubit,
+        ),
       ],
       child: BlocListener<InternetCubit, InternetState>(
         listener: (context, state) async {
@@ -120,7 +125,7 @@ class _VideoPageState extends State<VideoPage> {
                   backgroundColor: Color(AppColor.primaryColor),
                   color: Colors.white,
                   onRefresh: () async {
-                    await context.read<AgeGroupCubit>().fetchAgeGroup();
+                    await _recipeAgeGroupCubit.fetchAgeGroup();
                     await context.read<VideoPageCubit>().refreshData();
                   },
                   child: ListView(
