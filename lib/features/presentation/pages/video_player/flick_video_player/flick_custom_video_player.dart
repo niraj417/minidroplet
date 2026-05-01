@@ -140,7 +140,12 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
 
     // When buffering finishes, resume playback
     if (!value.isBuffering && _wasPlayingBeforeBuffering && !value.isPlaying) {
-      _controller.play();
+      // Don't auto-resume if the video reached the end
+      if (value.duration > Duration.zero && value.position >= value.duration) {
+        _wasPlayingBeforeBuffering = false;
+      } else {
+        _controller.play();
+      }
     }
 
     // Progress callback
