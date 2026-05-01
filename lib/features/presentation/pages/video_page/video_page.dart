@@ -3,7 +3,7 @@ import 'package:lottie/lottie.dart';
 import 'package:tinydroplets/common/widgets/no_data_widget.dart';
 import 'package:tinydroplets/common/widgets/search_text_card.dart';
 import 'package:tinydroplets/core/utils/shared_pref_key.dart';
-import 'package:tinydroplets/features/presentation/pages/video_page/all_recipe_category_page.dart';
+import 'package:tinydroplets/features/presentation/pages/video_page/all_recipe_category_page.dart' show AllRecipeCategoryPage;
 import 'package:tinydroplets/features/presentation/pages/video_page/all_recomend_recipe_page.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/all_week_recipe_page.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/ingredient_page.dart';
@@ -115,8 +115,7 @@ class _VideoPageState extends State<VideoPage> {
                     await context.read<AgeGroupCubit>().fetchAgeGroup();
                     await context.read<VideoPageCubit>().refreshData();
                   },
-                  child: SingleChildScrollView(
-                    child: Column(
+                  child: ListView(
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -140,7 +139,6 @@ class _VideoPageState extends State<VideoPage> {
                         _buildRecipeOfTheWeek(state, context, hasPremium),
                         const SizedBox(height: 120),
                       ],
-                    ),
                   ),
                 ),
                 /// ==============================
@@ -295,12 +293,14 @@ class _VideoPageState extends State<VideoPage> {
         children: [
           _sectionHeader(
             'Recipe Collection',
-                () => goto(
-              context,
-              AllRecipeCategoryPage(
-                allRecipeCategoryList: state.allRecipeCategoryList,
-              ),
-            ),
+            () {
+              goto(
+                context,
+                AllRecipeCategoryPage(
+                  allRecipeCategoryList: state.allRecipeCategoryList,
+                ),
+              );
+            },
           ),
           SizedBox(
             height: 70,
