@@ -89,6 +89,22 @@ class _VideoPageState extends State<VideoPage> {
     return priceType == 'free' && !hasPremium;
   }
 
+  bool _canOpenDirectly(String priceType, bool hasPremium) {
+    return priceType == 'free' || hasPremium;
+  }
+
+  bool _isFreePrice(String? price) {
+    final normalized = (price ?? '').trim();
+    return normalized.isEmpty || normalized == '0' || normalized == '0.00';
+  }
+
+  int _asInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
   Future<void> _detectLowEndDevice() async {
     try {
       bool isLowEnd = false;
@@ -358,20 +374,8 @@ class _VideoPageState extends State<VideoPage> {
 
     return CustomCarousel(
       items: carouselItems,
-      itemBuilder: (context, item, _) => GestureDetector(
-        onTap: () => hasPremium
-            ? goto(context, RecipeDetailScreen(videoId: item.id.toString()))
-            : goto(
-          context,
-          VideoCheckoutPage(
-            id: item.id,
-            title: item.title ?? '',
-            thumbnail: item.thumbnail ?? '',
-            amount: item.price ?? '',
-            mainPrice: item.mainPrice ?? '',
-          ),
-        ),
-        child: Padding(
+      itemBuilder: (context, item, _) {
+        final card = Padding(
           padding: const EdgeInsets.all(8),
           child: SizedBox(
             width: 300,
@@ -388,8 +392,23 @@ class _VideoPageState extends State<VideoPage> {
               ),
             ),
           ),
-        ),
-      ),
+        );
+
+        final shouldShowCarouselAd = _isFreePrice(item.price) && !hasPremium;
+
+        if (shouldShowCarouselAd) {
+          return InterstitialAdWidget(
+            onAdClosed: () => _openCarouselRecipe(context, item, hasPremium),
+            shouldShowAd: true,
+            child: card,
+          );
+        }
+
+        return GestureDetector(
+          onTap: () => _openCarouselRecipe(context, item, hasPremium),
+          child: card,
+        );
+      },
     );
   }
 
@@ -453,23 +472,24 @@ class _VideoPageState extends State<VideoPage> {
   }
 
   // ================= HEADER =================
-  Widget _sectionHeader(String title, VoidCallback onViewAll) {
+  Widget _sectionHeader(String title, VoidCallback? onViewAll) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title,
             style:
             const TextStyle(fontWeight: FontWeight.w500, fontSize: 19)),
-        TextButton(
-          onPressed: onViewAll,
-          child: Text(
-            'View all',
-            style: TextStyle(
-              color: Color(AppColor.primaryColor),
-              fontSize: 14,
+        if (onViewAll != null)
+          TextButton(
+            onPressed: onViewAll,
+            child: Text(
+              'View all',
+              style: TextStyle(
+                color: Color(AppColor.primaryColor),
+                fontSize: 14,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -477,6 +497,10 @@ class _VideoPageState extends State<VideoPage> {
   // =============================================================
   Widget _buildRecommendation(
       VideoPageState state, BuildContext context, bool hasPremium) {
+    if (state.isLoading && state.recommendationRecipeList.isEmpty) {
+      return _buildRecipeSkeletonSection(title: 'Recommendation', cardHeight: 255);
+    }
+
     if (state.recommendationRecipeList.isEmpty) {
       return NoDataWidget(
         onPressed: () =>
@@ -519,6 +543,7 @@ class _VideoPageState extends State<VideoPage> {
                   return InterstitialAdWidget(
                     onAdClosed: () =>
                         _openRecommendation(context, item, hasPremium),
+                    shouldShowAd: true,
                     child: card,
                   );
                 }
@@ -538,14 +563,15 @@ class _VideoPageState extends State<VideoPage> {
 
   void _openRecommendation(
       BuildContext context, dynamic item, bool hasPremium) {
+    final canOpenDirectly = _canOpenDirectly(item.priceType ?? '', hasPremium);
     if (item.type == 'playlist') {
-      hasPremium
+      canOpenDirectly
           ? goto(context,
           RecipePlaylistScreen(playlistId: item.id.toString()))
           : goto(
         context,
         PlaylistCheckoutPage(
-          id: int.parse(item.id),
+          id: _asInt(item.id),
           title: item.name ?? '',
           thumbnail: item.videoThumbnail ?? '',
           amount: item.price ?? '',
@@ -555,13 +581,13 @@ class _VideoPageState extends State<VideoPage> {
         ),
       );
     } else {
-      hasPremium
+      canOpenDirectly
           ? goto(context,
           RecipeDetailScreen(videoId: item.id.toString()))
           : goto(
         context,
         VideoCheckoutPage(
-          id: int.parse(item.id),
+          id: _asInt(item.id),
           title: item.videoTitle ?? '',
           thumbnail: item.videoThumbnail ?? '',
           amount: item.price ?? '',
@@ -571,9 +597,31 @@ class _VideoPageState extends State<VideoPage> {
     }
   }
 
+  void _openCarouselRecipe(BuildContext context, dynamic item, bool hasPremium) {
+    if (_isFreePrice(item.price) || hasPremium) {
+      goto(context, RecipeDetailScreen(videoId: item.id.toString()));
+      return;
+    }
+
+    goto(
+      context,
+      VideoCheckoutPage(
+        id: _asInt(item.id),
+        title: item.title ?? '',
+        thumbnail: item.thumbnail ?? '',
+        amount: item.price ?? '',
+        mainPrice: item.mainPrice ?? '',
+      ),
+    );
+  }
+
   // =============================================================
   Widget _buildRecipePlaylist(
       VideoPageState state, BuildContext context, bool hasPremium) {
+    if (state.isLoading && state.recipeAllPlaylistList.isEmpty) {
+      return _buildRecipeSkeletonSection(title: 'Superfood Category', cardHeight: 255);
+    }
+
     if (state.recipeAllPlaylistList.isEmpty) {
       return NoDataWidget(
         onPressed: () =>
@@ -606,30 +654,22 @@ class _VideoPageState extends State<VideoPage> {
               state.recipeAllPlaylistList.length.clamp(0, 5),
               itemBuilder: (context, index) {
                 final item = state.recipeAllPlaylistList[index];
-                print("Has Preiumn bhelu : ${hasPremium}");
-                return Padding(
+                final card = Padding(
                   padding: const EdgeInsets.only(right: 16),
-                  child: GestureDetector(
-                    onTap: () => hasPremium
-                        ? goto(
-                      context,
-                      RecipePlaylistScreen(
-                          playlistId: item.id.toString()),
-                    )
-                        : goto(
-                      context,
-                      PlaylistCheckoutPage(
-                        id: item.id,
-                        title: item.name,
-                        thumbnail: item.thumbnail,
-                        amount: item.price,
-                        mainPrice: item.mainPrice,
-                        totalVideo: item.totalVideos,
-                        description: item.description,
-                      ),
-                    ),
-                    child: AllPlaylistCard(recipe: item),
-                  ),
+                  child: AllPlaylistCard(recipe: item),
+                );
+
+                if (_shouldShowAd(item.priceType, hasPremium)) {
+                  return InterstitialAdWidget(
+                    onAdClosed: () => _openPlaylist(context, item, hasPremium),
+                    shouldShowAd: true,
+                    child: card,
+                  );
+                }
+
+                return GestureDetector(
+                  onTap: () => _openPlaylist(context, item, hasPremium),
+                  child: card,
                 );
               },
             ),
@@ -642,6 +682,10 @@ class _VideoPageState extends State<VideoPage> {
   // =============================================================
   Widget _buildRecipeOfTheWeek(
       VideoPageState state, BuildContext context, bool hasPremium) {
+    if (state.isLoading && state.allRecipeVideoList.isEmpty) {
+      return _buildRecipeSkeletonSection(title: 'Recipe Of The Week', cardHeight: 170);
+    }
+
     if (state.allRecipeVideoList.isEmpty) {
       return NoDataWidget(
         onPressed: () =>
@@ -684,48 +728,91 @@ class _VideoPageState extends State<VideoPage> {
 
                 if (_shouldShowAd(item.priceType,hasPremium)) {
                   return InterstitialAdWidget(
-                    onAdClosed: () => item.priceType == 'free' ?  goto(
-                      context,
-                      RecipeDetailScreen(
-                          videoId: item.id.toString()),
-                    ) : hasPremium
-                        ? goto(
-                      context,
-                      RecipeDetailScreen(
-                          videoId: item.id.toString()),
-                    )
-                        : goto(
-                      context,
-                      VideoCheckoutPage(
-                        id: item.id,
-                        title: item.title,
-                        thumbnail: item.thumbnail,
-                        amount: item.price,
-                        mainPrice: item.mainPrice,
-                      ),
-                    ),
+                    onAdClosed: () => _openWeekRecipe(context, item, hasPremium),
+                    shouldShowAd: true,
                     child: card,
                   );
                 }
 
                 return GestureDetector(
-                  onTap: () => hasPremium
-                      ? goto(
-                    context,
-                    RecipeDetailScreen(
-                        videoId: item.id.toString()),
-                  )
-                      : goto(
-                    context,
-                    VideoCheckoutPage(
-                      id: item.id,
-                      title: item.title,
-                      thumbnail: item.thumbnail,
-                      amount: item.price,
-                      mainPrice: item.mainPrice,
-                    ),
-                  ),
+                  onTap: () => _openWeekRecipe(context, item, hasPremium),
                   child: card,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openPlaylist(BuildContext context, dynamic item, bool hasPremium) {
+    if (_canOpenDirectly(item.priceType, hasPremium)) {
+      goto(
+        context,
+        RecipePlaylistScreen(playlistId: item.id.toString()),
+      );
+      return;
+    }
+
+    goto(
+      context,
+      PlaylistCheckoutPage(
+        id: item.id,
+        title: item.name,
+        thumbnail: item.thumbnail,
+        amount: item.price,
+        mainPrice: item.mainPrice,
+        totalVideo: item.totalVideos,
+        description: item.description,
+      ),
+    );
+  }
+
+  void _openWeekRecipe(BuildContext context, dynamic item, bool hasPremium) {
+    if (_canOpenDirectly(item.priceType, hasPremium)) {
+      goto(
+        context,
+        RecipeDetailScreen(videoId: item.id.toString()),
+      );
+      return;
+    }
+
+    goto(
+      context,
+      VideoCheckoutPage(
+        id: item.id,
+        title: item.title,
+        thumbnail: item.thumbnail,
+        amount: item.price,
+        mainPrice: item.mainPrice,
+      ),
+    );
+  }
+
+  Widget _buildRecipeSkeletonSection({
+    required String title,
+    required double cardHeight,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(title, null),
+          SizedBox(
+            height: cardHeight,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: 4,
+              separatorBuilder: (_, __) => const SizedBox(width: 16),
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 155,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 );
               },
             ),
