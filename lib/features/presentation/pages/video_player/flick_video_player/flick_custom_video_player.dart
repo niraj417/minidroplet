@@ -18,8 +18,8 @@ class FlickCustomVideoPlayer extends StatefulWidget {
 }
 
 class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
-  late FlickManager flickManager;
-  late VideoPlayerController _controller;
+  FlickManager? flickManager;
+  VideoPlayerController? _controller;
   bool _isLoading = true;
   String? _error;
 
@@ -32,11 +32,12 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
   void _attachProgressListener() {
     if (widget.onProgress == null) return;
 
-    _controller.addListener(() {
-      if (!_controller.value.isInitialized) return;
+    _controller?.addListener(() {
+      final controller = _controller;
+      if (controller == null || !controller.value.isInitialized) return;
 
-      final position = _controller.value.position;
-      final duration = _controller.value.duration;
+      final position = controller.value.position;
+      final duration = controller.value.duration;
 
       widget.onProgress?.call(position, duration);
     });
@@ -66,23 +67,23 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
       );
 
       // CRITICAL: Add listener BEFORE initialization
-      _controller.addListener(_videoListener);
+      _controller?.addListener(_videoListener);
 
       // Initialize and wait for completion
-      await _controller.initialize();
+      await _controller?.initialize();
       //     .then((_) {
       //   setState(() {});
       //   _attachProgressListener(); // SAFE
       // });
 
       // Verify the video is actually loaded
-      if (_controller.value.hasError) {
+      if (_controller == null || _controller!.value.hasError) {
         throw Exception(
-          'Video initialization failed: ${_controller.value.errorDescription}',
+          'Video initialization failed: ${_controller?.value.errorDescription}',
         );
       }
 
-      if (!_controller.value.isInitialized) {
+      if (!_controller!.value.isInitialized) {
         throw Exception('Video failed to initialize properly');
       }
 
@@ -90,7 +91,7 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
 
       // Create FlickManager only after successful initialization
       flickManager = FlickManager(
-        videoPlayerController: _controller,
+        videoPlayerController: _controller!,
         autoPlay: false,
         autoInitialize: false, // We already initialized
       );
@@ -101,9 +102,9 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
 
       // iOS SPECIFIC: Small delay then attempt to play
       await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted && _controller.value.isInitialized) {
+      if (mounted && _controller?.value.isInitialized == true) {
         // Test if video can play by attempting a small seek
-        await _controller.seekTo(const Duration(seconds: 0));
+        await _controller?.seekTo(const Duration(seconds: 0));
       }
     } catch (e) {
       debugPrint('Video initialization error: $e');
@@ -120,7 +121,11 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
   bool _wasPlayingBeforeBuffering = false;
 
   void _videoListener() {
-    final value = _controller.value;
+    final controller = _controller;
+    if (controller == null) {
+      return;
+    }
+    final value = controller.value;
 
     if (value.hasError) {
       debugPrint('Video player error: ${value.errorDescription}');
@@ -144,7 +149,7 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
       if (value.duration > Duration.zero && value.position >= value.duration) {
         _wasPlayingBeforeBuffering = false;
       } else {
-        _controller.play();
+        controller.play();
       }
     }
 
@@ -156,11 +161,9 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
 
   @override
   void dispose() {
-    _controller.removeListener(_videoListener);
-    if (!_isLoading && _error == null) {
-      flickManager.dispose();
-    }
-    _controller.dispose();
+    _controller?.removeListener(_videoListener);
+    flickManager?.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -235,10 +238,10 @@ class _FlickCustomVideoPlayerState extends State<FlickCustomVideoPlayer> {
     return Container(
       color: Colors.black,
       child: Center(
-        child: AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
+          child: AspectRatio(
+          aspectRatio: _controller?.value.aspectRatio ?? (16 / 9),
           child: FlickVideoPlayer(
-            flickManager: flickManager,
+            flickManager: flickManager!,
             flickVideoWithControls: FlickVideoWithControls(
               controls: const FlickPortraitControls(),
               // controls: Platform.isIOS ? const IOSVideoControls() : const FlickPortraitControls(),
