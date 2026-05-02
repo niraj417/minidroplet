@@ -1,12 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get_it/get_it.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tinydroplets/core/services/ad_service/ad_manager.dart';
 import 'package:tinydroplets/core/services/notification_services.dart';
 import 'package:tinydroplets/core/services/fcm_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter/foundation.dart';
 
 import '../core/network/api_controller.dart';
 import '../core/services/payment_service.dart';
@@ -15,25 +14,54 @@ import '../core/services/payment_service/payment_bloc.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> setupLocator() async {
-  //final sharedPrefs = await SharedPreferences.getInstance();
-  //sl.registerSingleton<SharedPreferences>(sharedPrefs);
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp();
+  }
 
-  await Firebase.initializeApp();
+  if (!sl.isRegistered<FirebaseMessaging>()) {
+    sl.registerSingleton<FirebaseMessaging>(FirebaseMessaging.instance);
+  }
 
-  final firebaseMessaging = FirebaseMessaging.instance;
-  sl.registerSingleton<FirebaseMessaging>(firebaseMessaging);
+  if (!sl.isRegistered<FCMService>()) {
+    sl.registerSingleton<FCMService>(FCMService());
+  }
+  if (!sl.isRegistered<PaymentService>()) {
+    sl.registerLazySingleton<PaymentService>(() => PaymentService());
+  }
+  if (!sl.isRegistered<Razorpay>()) {
+    sl.registerLazySingleton(() => Razorpay());
+  }
+  if (!sl.isRegistered<PaymentBloc>()) {
+    sl.registerLazySingleton(() => PaymentBloc(razorpay: sl(), dioClient: sl()));
+  }
+  if (!sl.isRegistered<DioClient>()) {
+    sl.registerSingleton<DioClient>(DioClient());
+  }
+  if (!sl.isRegistered<AdManager>()) {
+    sl.registerSingleton<AdManager>(AdManager());
+  }
 
-  final fcmService = FCMService();
-  sl.registerSingleton<FCMService>(fcmService);
-  sl.registerLazySingleton<PaymentService>(() => PaymentService());
-  sl.registerLazySingleton(() => Razorpay());
+  _initializeOptionalMessagingServices();
+}
 
-  sl.registerLazySingleton(() => PaymentBloc(razorpay: sl(), dioClient: sl()));
+void _initializeOptionalMessagingServices() {
+  Future<void>(() async {
+    try {
+      await NotificationService().initialize();
+    } catch (e) {
+      debugPrint('Notification service init failed: $e');
+    }
 
-  await NotificationService().initialize();
+    try {
+      await sl<FCMService>().initializeFCMToken();
+    } catch (e) {
+      debugPrint('FCM token init failed: $e');
+    }
 
-  await fcmService.initializeFCMToken();
-  await fcmService.setupBackgroundHandler();
-  sl.registerSingleton<DioClient>(DioClient());
-  sl.registerSingleton<AdManager>(AdManager());
+    try {
+      await sl<FCMService>().setupBackgroundHandler();
+    } catch (e) {
+      debugPrint('FCM background handler setup failed: $e');
+    }
+  });
 }
