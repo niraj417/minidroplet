@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -22,33 +23,67 @@ import 'core/theme/theme_bloc/theme_bloc.dart';
 import 'core/theme/theme_bloc/theme_state.dart';
 import 'injections/dependency_injection.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+Future<void> main() async {
+  await runZonedGuarded(() async {
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      debugPrint('Flutter error: ${details.exceptionAsString()}');
+    };
 
-  // Initialize SharedPref FIRST
-  await SharedPref.init();
+    await SharedPref.init();
 
-  // Optimize global image cache for low-end devices
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 50; // 50 MB
-  PaintingBinding.instance.imageCache.maximumSize = 150; // 150 images
+    // Optimize global image cache for low-end devices.
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 1024 * 1024 * 50;
+    PaintingBinding.instance.imageCache.maximumSize = 150;
+    GestureBinding.instance.resamplingEnabled = false;
 
-  await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  GestureBinding.instance.resamplingEnabled = false;
+    await _initializeCoreServices();
+    runApp(AppRestartWidget(child: BlocProviderHelper(child: MyApp())));
+    unawaited(_initializeDeferredServices());
+  }, (error, stackTrace) {
+    debugPrint('Uncaught startup error: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  });
+}
 
+Future<void> _initializeCoreServices() async {
+  try {
+    await setupLocator();
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing service locator: $e');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+}
 
-  await MobileAds.instance.initialize();
+Future<void> _initializeDeferredServices() async {
+  try {
+    await FlutterDownloader.initialize(debug: kDebugMode, ignoreSsl: kDebugMode);
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing downloader: $e');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  try {
+    await MobileAds.instance.initialize();
+  } catch (e, stackTrace) {
+    debugPrint('Error initializing mobile ads: $e');
+    debugPrintStack(stackTrace: stackTrace);
+  }
 
   if (Platform.isAndroid && !kDebugMode) {
-    await applyNativeSecurity();
+    try {
+      await applyNativeSecurity();
+    } catch (e, stackTrace) {
+      debugPrint('Error applying native security: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   if (Platform.isIOS) {
     setupScreenshotDetection();
   }
-
-  await setupLocator();
 
   if (Platform.isAndroid) {
     try {
@@ -58,12 +93,11 @@ void main() async {
         androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error initializing audio background: $e');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
-
-  runApp(AppRestartWidget(child: BlocProviderHelper(child: MyApp())));
 }
 
 Future<void> applyNativeSecurity() async {
