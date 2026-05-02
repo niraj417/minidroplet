@@ -309,7 +309,6 @@ class AdState extends Equatable {
 
 class AdCubit extends Cubit<AdState> {
   final DioClient _dio;
-  static final Random _random = Random();
   InterstitialAd? _interstitialAd;
 
   // Keep track of all created banner ads for proper disposal
