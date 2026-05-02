@@ -1,6 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe_all_playlist_model.dart';
 
 import '../../../../../../core/network/api_controller.dart';
@@ -13,7 +13,7 @@ import '../../model/recipe_recommendation_model.dart';
 // Add other necessary imports
 
 class VideoPageCubit extends Cubit<VideoPageState> {
-  final DioClient _dioClient = DioClient();
+  final DioClient _dioClient = GetIt.instance<DioClient>();
   bool _isRefreshing = false;
 
   VideoPageCubit() : super(VideoPageState.initial()) {
@@ -32,45 +32,37 @@ class VideoPageCubit extends Cubit<VideoPageState> {
     emit(state.copyWith(isLoading: true));
 
     try {
-      final sliderResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.recipeSlider);
-      final categoryResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.recipeCategory);
-      final recommendationResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe);
-      final videoResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos);
-      final playlistResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist);
-      final subscription =
-          await SubscriptionPaymentService.hasActiveSubscription();
+      final sliderResponse = await _dioClient.sendGetRequest(ApiEndpoints.recipeSlider);
+      final categoryResponse = await _dioClient.sendGetRequest(ApiEndpoints.recipeCategory);
 
       emit(
         state.copyWith(
-          recipeCarouselList:
-          FeedSliderModel.fromJson(sliderResponse.data).data,
-
-          allRecipeCategoryList:
-          RecipeCategoryModel.fromJson(categoryResponse.data).data,
-
-          recommendationRecipeList:
-          RecipeRecommendationModel.fromJson(recommendationResponse.data).data ?? [],
-
-          allRecipeVideoList:
-          AllRecipeVideoModel.fromJson(videoResponse.data).data,
-
-          recipeAllPlaylistList:
-          RecipeAllPlaylistModel.fromJson(playlistResponse.data).data,
-
-          subscribed: subscription,
+          recipeCarouselList: FeedSliderModel.fromJson(sliderResponse.data).data,
+          allRecipeCategoryList: RecipeCategoryModel.fromJson(categoryResponse.data).data,
           isLoading: false,
         ),
       );
 
+      final recommendationResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe);
+      final videoResponse = await _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos);
+      final playlistResponse =
+          await _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist);
+      final subscription = await SubscriptionPaymentService.hasActiveSubscription();
+
+      emit(
+        state.copyWith(
+          recommendationRecipeList:
+              RecipeRecommendationModel.fromJson(recommendationResponse.data).data ?? [],
+          allRecipeVideoList: AllRecipeVideoModel.fromJson(videoResponse.data).data,
+          recipeAllPlaylistList:
+              RecipeAllPlaylistModel.fromJson(playlistResponse.data).data,
+          subscribed: subscription,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
-
       debugPrint("Refresh error: $e");
-
       emit(state.copyWith(isLoading: false));
     } finally {
       _isRefreshing = false;
