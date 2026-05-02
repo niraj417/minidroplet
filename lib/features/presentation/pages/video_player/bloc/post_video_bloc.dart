@@ -12,7 +12,7 @@ part 'post_video_state.dart';
 
 class VideoBloc extends Bloc<VideoEvent, VideoState> {
   static VideoBloc? _currentPlayingBloc;
-   VideoPlayerController? videoController;
+  VideoPlayerController? videoController;
   Timer? _controlsTimer;
 
   VideoPlayerController? get controller => videoController;
@@ -54,16 +54,34 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
   Future<void> _onInitializeVideo(InitializeVideo event, Emitter<VideoState> emit) async {
     emit(const VideoLoading());
     try {
-      await Future.delayed(Duration(milliseconds: 1000));
+      final previousController = videoController;
+      if (previousController != null) {
+        await previousController.dispose();
+        videoController = null;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 250));
       videoController = VideoPlayerController.networkUrl(Uri.parse(event.videoUrl))
         ..addListener(() {
-          if (!videoController!.value.isPlaying) {
-            add(UpdatePosition(videoController!.value.position));
+          final controller = videoController;
+          if (controller == null || !controller.value.isInitialized) {
+            return;
+          }
+          if (!controller.value.isPlaying && !isClosed) {
+            add(UpdatePosition(controller.value.position));
           }
         })
         ..setLooping(true);
 
       await videoController?.initialize();
+      if (videoController == null || !videoController!.value.isInitialized) {
+        throw Exception('This device could not initialize the video player.');
+      }
+      if (videoController!.value.hasError) {
+        throw Exception(
+          videoController!.value.errorDescription ?? 'Unsupported video format on this device.',
+        );
+      }
       emit(VideoPlaying(
         videoUrl: event.videoUrl,
         isPlaying: false,
@@ -74,24 +92,33 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
         duration: videoController!.value.duration,
       ));
     } catch (e) {
-      print('Error initializing video: $e');
-      emit(VideoError(error: e.toString()));
+      debugPrint('Error initializing video: $e');
+      emit(
+        VideoError(
+          error: 'Video playback is not available on this device right now.',
+        ),
+      );
     }
   }
   Future<void> _onPlayVideo(PlayVideo event, Emitter<VideoState> emit) async {
-    if (state is VideoPlaying) {
+    if (state is VideoPlaying && videoController?.value.isInitialized == true) {
       if (_currentPlayingBloc != null && _currentPlayingBloc != this) {
         _currentPlayingBloc!.add(const PauseVideo());
       }
       _currentPlayingBloc = this;
 
-      await videoController!.play();
-      emit((state as VideoPlaying).copyWith(isPlaying: true));
+      try {
+        await videoController!.play();
+        emit((state as VideoPlaying).copyWith(isPlaying: true));
+      } catch (e) {
+        debugPrint('Video play error: $e');
+        emit(const VideoError(error: 'This video cannot play on this device.'));
+      }
     }
   }
 
   Future<void> _onPauseVideo(PauseVideo event, Emitter<VideoState> emit) async {
-    if (state is VideoPlaying) {
+    if (state is VideoPlaying && videoController != null) {
       await videoController!.pause();
       emit((state as VideoPlaying).copyWith(isPlaying: false));
       if (_currentPlayingBloc == this) {
@@ -104,7 +131,7 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
     if (state is VideoPlaying) {
       final currentState = state as VideoPlaying;
       final newVolumeZero = !currentState.isVolumeZero;
-      videoController!.setVolume(newVolumeZero ? 0.0 : 100.0);
+      videoController?.setVolume(newVolumeZero ? 0.0 : 1.0);
       emit(currentState.copyWith(isVolumeZero: newVolumeZero));
     }
   }
@@ -171,13 +198,16 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
           ));
         }
       } catch (e) {
-        print('Error during seek: $e');
+        debugPrint('Error during seek: $e');
       }
     }
   }
 
   Future<void> _onNavigateToFullscreen(NavigateToFullscreen event, Emitter<VideoState> emit) async {
     if (state is VideoPlaying) {
+      if (navigatorKey.currentContext == null || videoController == null) {
+        return;
+      }
       final currentState = state as VideoPlaying;
       final currentPosition = videoController!.value.position;
 
@@ -200,7 +230,7 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
   }
 
   Future<void> _onStopVideo(StopVideo event, Emitter<VideoState> emit) async {
-    await videoController!.pause();
+    await videoController?.pause();
     if (_currentPlayingBloc == this) {
       _currentPlayingBloc = null;
     }
@@ -208,8 +238,8 @@ class VideoBloc extends Bloc<VideoEvent, VideoState> {
   }
 
   @override
-  Future<void> close() {
-    videoController!.dispose();
+  Future<void> close() async {
+    await videoController?.dispose();
     if (_currentPlayingBloc == this) {
       _currentPlayingBloc = null;
     }
