@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -30,6 +31,33 @@ Future<void> main() async {
     FlutterError.onError = (details) {
       FlutterError.presentError(details);
       debugPrint('Flutter error: ${details.exceptionAsString()}');
+    };
+    PlatformDispatcher.instance.onError = (error, stackTrace) {
+      debugPrint('Platform error: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      return true;
+    };
+    ErrorWidget.builder = (details) {
+      debugPrint('Widget build error: ${details.exceptionAsString()}');
+      return Material(
+        color: Colors.white,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.error_outline, size: 44, color: Colors.orange),
+                SizedBox(height: 12),
+                Text(
+                  'Something could not be shown on this device.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     };
 
     await SharedPref.init();
@@ -110,7 +138,7 @@ Future<void> applyNativeSecurity() async {
     const platform = MethodChannel(
       'com.tinydroplets.tinydroplets/secure_screen',
     );
-    await platform.invokeMethod('disableSecureScreen');
+    await platform.invokeMethod('enableSecureScreen');
     debugPrint('Native screen security enabled');
   } catch (e) {
     debugPrint('Error enabling native security: $e');
@@ -182,14 +210,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   void initialization() async {
-    print("Pausing");
-    await Future.delayed(Duration(milliseconds: 300));
-    print("unpausing");
+    await Future.delayed(const Duration(milliseconds: 300));
     FlutterNativeSplash.remove();
 
     // Request ATT AFTER splash is removed so the iOS window is ready
     if (Platform.isIOS) {
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
       await Permission.appTrackingTransparency.request();
     }
   }
