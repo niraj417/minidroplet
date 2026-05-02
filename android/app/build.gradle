@@ -77,8 +77,6 @@ android {
 dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.19.1'
-    //noinspection GradleDependency
-    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
     // MultiDex support for Redmi devices with many dependencies
     implementation 'androidx.multidex:multidex:2.0.1'
 }
