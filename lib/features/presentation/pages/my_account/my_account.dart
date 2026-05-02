@@ -273,7 +273,6 @@ class _MyAccountState extends State<MyAccount> {
                         value: context.read<ThemeBloc>().state is DarkThemeState,
                         onChanged: (bool value) {
                           context.read<ThemeBloc>().add(ToggleThemeEvent());
-                          context.read<ThemeBloc>().add(FetchPrimaryColorEvent());
                         },
                       );
                     },
