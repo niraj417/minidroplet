@@ -69,6 +69,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
       // TODO: implement initState
       super.initState();
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<FeedBloc>().refreshFeed();
         context.read<FeedActivityCubit>().fetchFeedActivityData();
       });
       _loadSubscriptionState();
