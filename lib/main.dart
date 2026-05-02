@@ -258,6 +258,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 navigatorKey: navigatorKey,
                 themeMode:
                 (state is DarkThemeState) ? ThemeMode.dark : ThemeMode.light,
+                themeAnimationDuration: Duration.zero,
                 debugShowCheckedModeBanner: false,
                 theme: theme,
                 darkTheme: ThemeManager.darkTheme.copyWith(
