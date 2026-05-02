@@ -14,7 +14,7 @@ class VideoLoading extends VideoState {
 
 class VideoError extends VideoState {
   final String error;
-  VideoError({required this.error});
+  const VideoError({required this.error});
 }
 class VideoPlaying extends VideoState {
   final String videoUrl;
