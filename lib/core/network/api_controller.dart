@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:tinydroplets/core/constant/app_export.dart';
 import 'package:tinydroplets/core/network/api_endpoints.dart';
@@ -6,8 +7,8 @@ import '../utils/shared_pref.dart';
 
 final logger = Logger(
   printer: PrettyPrinter(
-    colors: true,
-    printEmojis: true,
+    colors: kDebugMode,
+    printEmojis: false,
     dateTimeFormat: DateTimeFormat.dateAndTime,
   ),
 );
@@ -54,19 +55,21 @@ class DioClient {
   Interceptor _loggingInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) {
-        logger.d('Request: ${options.method} ${options.path}');
-        logger.d('Headers: ${options.headers}');
-        logger.d('Body: ${options.data}');
+        if (kDebugMode) {
+          logger.d('Request: ${options.method} ${options.path}');
+        }
         return handler.next(options);
       },
       onResponse: (response, handler) {
-        logger.i(
-          'Response --------> [${response.statusCode}]: ${response.data}',
-        );
+        if (kDebugMode) {
+          logger.i('Response [${response.statusCode}] ${response.requestOptions.path}');
+        }
         return handler.next(response);
       },
       onError: (DioException error, handler) {
-        logger.e(error.message);
+        if (kDebugMode) {
+          logger.e(error.message);
+        }
         return handler.next(error);
       },
     );
@@ -84,7 +87,15 @@ class DioClient {
           errorMessage = error.message;
         }
 
-        throw Exception(errorMessage);
+        handler.next(
+          DioException(
+            requestOptions: error.requestOptions,
+            response: error.response,
+            type: error.type,
+            error: error.error,
+            message: errorMessage,
+          ),
+        );
       },
     );
   }
@@ -93,14 +104,17 @@ class DioClient {
     try {
       final response = await _dio.get(endPoint, options: Options());
       if (response.statusCode == 200 && response.data['status'] == 1) {
-        logger.w("$endPoint \n${response.data}");
-
+        if (kDebugMode) {
+          logger.w('GET success: $endPoint');
+        }
         return response;
       } else {
         throw Exception(response.data['message'] ?? 'Unknown error occurred.');
       }
     } catch (error) {
-      logger.e("CMS DATA $error");
+      if (kDebugMode) {
+        logger.e("GET error $endPoint: $error");
+      }
 
       _handleError(error);
       rethrow;
@@ -114,7 +128,9 @@ class DioClient {
     try {
       final response = await _dio.post(endPoint, data: data);
       if (response.statusCode == 200 && response.data['status'] == 1) {
-        logger.w("$endPoint \n${response.data}");
+        if (kDebugMode) {
+          logger.w('POST success: $endPoint');
+        }
         return response;
       } else {
         throw Exception(response.data['message'] ?? 'Unknown error occurred.');
@@ -128,10 +144,14 @@ class DioClient {
   void _handleError(Object error) {
     if (error is DioException) {
       final errorMessage = error.response?.data?['message'] ?? error.message;
-      logger.e('Dio error $errorMessage');
+      if (kDebugMode) {
+        logger.e('Dio error $errorMessage');
+      }
       // CommonMethods.showSnackBar(context, errorMessage);
     } else {
-      logger.e('Error: ${error.toString()}');
+      if (kDebugMode) {
+        logger.e('Error: ${error.toString()}');
+      }
     }
   }
 }
