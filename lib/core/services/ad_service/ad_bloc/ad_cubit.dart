@@ -61,7 +61,6 @@ class AdState extends Equatable {
 
 class AdCubit extends Cubit<AdState> {
   final DioClient _dio;
-  static final Random _random = Random();
   InterstitialAd? _interstitialAd;
 
   AdCubit(this._dio) : super(const AdState());
@@ -495,13 +494,6 @@ class AdCubit extends Cubit<AdState> {
 
     if (state.interstitialAdStatus != AdStatus.enabled) {
       CommonMethods.devLog(logName: "Interstitial Ad Show", message: "Skipped - Ads not enabled");
-      onAdClosed?.call();
-      return;
-    }
-
-    // Random chance to show ad (1 in 3 chance)
-    if (_random.nextInt(3) != 0) {
-      CommonMethods.devLog(logName: "Interstitial Ad Show", message: "Skipped - Random chance");
       onAdClosed?.call();
       return;
     }
