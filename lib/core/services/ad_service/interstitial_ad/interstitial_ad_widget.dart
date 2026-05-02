@@ -1,66 +1,21 @@
-/*
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../ad_bloc/ad_cubit.dart';
-import '../ad_manager.dart';
 
-
-class InterstitialAdWidget extends StatefulWidget {
-  final Widget child;
-  final VoidCallback? onAdClosed;
-
-  const InterstitialAdWidget({
-    super.key,
-    required this.child,
-    this.onAdClosed,
-  });
-
-  @override
-  State<InterstitialAdWidget> createState() => _InterstitialAdWidgetState();
-}
-
-class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<AdCubit>().loadInterstitialAd();
-  }
-
-  void _showAd() {
-    if (AdManager().shouldShowAds(context)) {
-      context.read<AdCubit>().showInterstitialAd(
-        onAdClosed: widget.onAdClosed,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _showAd,
-      child: widget.child,
-    );
-  }
-}*/
-
-
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../ad_bloc/ad_cubit.dart';
 import '../ad_manager.dart';
 
 class InterstitialAdWidget extends StatefulWidget {
   final Widget child;
   final VoidCallback? onAdClosed;
-  final VoidCallback? onTapWithoutAd; // For cases where ad shouldn't show
-  final bool shouldShowAd; // Condition to determine if ad should show
+  final VoidCallback? onTapWithoutAd;
+  final bool shouldShowAd;
 
   const InterstitialAdWidget({
     super.key,
     required this.child,
     this.onAdClosed,
     this.onTapWithoutAd,
-    this.shouldShowAd = true, // Default to true for backward compatibility
+    this.shouldShowAd = true,
   });
 
   @override
@@ -68,6 +23,8 @@ class InterstitialAdWidget extends StatefulWidget {
 }
 
 class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
+  bool _isWaitingForAd = false;
+
   @override
   void initState() {
     super.initState();
@@ -77,25 +34,81 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
   }
 
   void _handleTap() {
+    final adCubit = context.read<AdCubit>();
+
     if (widget.shouldShowAd && AdManager().shouldShowAds(context)) {
-      context.read<AdCubit>().showInterstitialAd(
-        onAdClosed: widget.onAdClosed,
-      );
-    } else {
-      // Either ads are disabled or this item shouldn't show ads
-      if (widget.onTapWithoutAd != null) {
-        widget.onTapWithoutAd!();
-      } else if (widget.onAdClosed != null) {
-        widget.onAdClosed!();
+      if (adCubit.state.isInterstitialAdLoaded) {
+        adCubit.showInterstitialAd(onAdClosed: widget.onAdClosed);
+        return;
       }
+
+      setState(() {
+        _isWaitingForAd = true;
+      });
+      adCubit.loadInterstitialAd();
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!mounted || !_isWaitingForAd) {
+          return;
+        }
+        setState(() {
+          _isWaitingForAd = false;
+        });
+        _continueWithoutAd();
+      });
+      return;
+    }
+
+    _continueWithoutAd();
+  }
+
+  void _continueWithoutAd() {
+    if (widget.onTapWithoutAd != null) {
+      widget.onTapWithoutAd!();
+    } else if (widget.onAdClosed != null) {
+      widget.onAdClosed!();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _handleTap,
-      child: widget.child,
+    return BlocListener<AdCubit, AdState>(
+      listenWhen: (previous, current) =>
+          _isWaitingForAd &&
+          previous.isInterstitialAdLoaded != current.isInterstitialAdLoaded,
+      listener: (context, state) {
+        if (!_isWaitingForAd || !mounted) {
+          return;
+        }
+
+        if (state.isInterstitialAdLoaded) {
+          setState(() {
+            _isWaitingForAd = false;
+          });
+          context.read<AdCubit>().showInterstitialAd(
+                onAdClosed: widget.onAdClosed,
+              );
+        }
+      },
+      child: GestureDetector(
+        onTap: _handleTap,
+        child: Stack(
+          children: [
+            widget.child,
+            if (_isWaitingForAd)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.15),
+                  alignment: Alignment.center,
+                  child: const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
