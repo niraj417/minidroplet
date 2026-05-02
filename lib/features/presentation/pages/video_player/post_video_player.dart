@@ -182,6 +182,33 @@ class VideoPlayerWidget extends StatelessWidget {
             );
           }
 
+          if (state is VideoError) {
+            return AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Container(
+                color: Colors.black,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      CupertinoIcons.exclamationmark_triangle,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      state.error,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           return const SizedBox.shrink();
         },
       ),
