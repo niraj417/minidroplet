@@ -34,27 +34,11 @@ class BlocProviderHelper extends StatelessWidget {
         BlocProvider<DashboardBloc>(create: (_) => DashboardBloc()),
         BlocProvider<ThemeBloc>(create: (context) => ThemeBloc()),
         BlocProvider(create: (_) => FeedActivityCubit(dioClient)),
-        BlocProvider<FeedBloc>(
-          create:
-              (context) =>
-                  FeedBloc()
-                    ..add(FeedCarouselData())
-                    ..add(FeedPostData())
-                    ..add(FeedPlaylistData())
-                    ..add(FeedHomepageCarouselData()),
-        ),
+        BlocProvider<FeedBloc>(create: (context) => FeedBloc()),
         BlocProvider(
           create: (_) => CourseBloc(),
         ),
-        BlocProvider(
-          create:
-              (context) =>
-                  EbookBloc()
-                    ..add(FetchEbookCarouselData())
-                    ..add(FetchAllEbookData())
-                    ..add(FetchRecentlyViewedEbookData())
-                    ..add(FetchEbookPageCarouselsData()),
-        ),
+        BlocProvider(create: (context) => EbookBloc()),
         BlocProvider(create: (context) => SearchEbookBloc()),
 
         // BlocProvider<VideoBloc>(create: (context) => VideoBloc(),),
@@ -71,7 +55,6 @@ class BlocProviderHelper extends StatelessWidget {
         BlocProvider(create: (_) => IngredientCubit(dioClient)),
         BlocProvider(create: (_) => IngredientDetailCubit(dioClient)),
         BlocProvider(create: (_) => RemoveAdsCubit(dioClient: dioClient)),
-        BlocProvider(create: (_) => FeedActivityCubit(DioClient())),
         BlocProvider(create: (_) => ProfileCompletionCubit()),
       ],
       child: child,
