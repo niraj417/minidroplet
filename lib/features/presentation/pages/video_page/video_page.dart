@@ -176,8 +176,8 @@ class _VideoPageState extends State<VideoPage> {
         ),
         body: BlocBuilder<VideoPageCubit, VideoPageState>(
           builder: (context, state) {
-                final bool hasPremium = _hasPremiumAccess(state);
-                final bool isLoading = state.isLoading;
+            final bool hasPremium = _hasPremiumAccess(state);
+            final bool isLoading = state.isLoading;
 
             return Stack(
               children: [
@@ -190,19 +190,18 @@ class _VideoPageState extends State<VideoPage> {
                   },
                   child: _buildHomeList(state, context, hasPremium),
                 ),
-                /// ==============================
-                /// LOTTIE OVERLAY
-                /// ==============================
                 if (isLoading)
                   Positioned.fill(
-                    child: Container(
-                      color: Colors.white.withOpacity(0.6),
-                      child: Center(
-                        child: Lottie.asset(
-                          AppVector.waterDropLoading,
-                          width: 120,
-                          height: 120,
-                          repeat: true,
+                    child: IgnorePointer(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.45),
+                        child: Center(
+                          child: Lottie.asset(
+                            AppVector.waterDropLoading,
+                            width: 120,
+                            height: 120,
+                            repeat: true,
+                          ),
                         ),
                       ),
                     ),
@@ -368,6 +367,10 @@ class _VideoPageState extends State<VideoPage> {
   // ================= CAROUSEL =================
   Widget _buildCarousel(
       VideoPageState state, BuildContext context, bool hasPremium) {
+    if (state.isLoading && state.recipeCarouselList.isEmpty) {
+      return _buildCarouselSkeleton();
+    }
+
     if (state.recipeCarouselList.isEmpty) return const SizedBox.shrink();
     final carouselItems =
         state.recipeCarouselList.take(_maxCarouselItems).toList(growable: false);
@@ -414,6 +417,13 @@ class _VideoPageState extends State<VideoPage> {
 
   // ================= VIDEO CATEGORY =================
   Widget _buildVideoCategory(VideoPageState state, BuildContext context) {
+    if (state.isLoading && state.allRecipeCategoryList.isEmpty) {
+      return const SizedBox(
+        height: 70,
+        child: Center(child: Loader()),
+      );
+    }
+
     if (state.allRecipeCategoryList.isEmpty) {
       return NoDataWidget(
         onPressed: () =>
@@ -818,6 +828,29 @@ class _VideoPageState extends State<VideoPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCarouselSkeleton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: SizedBox(
+        height: 216,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: 3,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            return Container(
+              width: 300,
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
