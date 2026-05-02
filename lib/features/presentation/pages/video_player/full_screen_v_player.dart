@@ -167,6 +167,23 @@ class FullScreenVideoPlayer extends StatelessWidget {
               );
             }
 
+            if (state is VideoError) {
+              return Scaffold(
+                backgroundColor: Colors.black,
+                appBar: AppBar(backgroundColor: Colors.transparent),
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      state.error,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              );
+            }
+
             return const SizedBox.shrink();
           },
         ),
