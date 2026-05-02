@@ -43,6 +43,12 @@ class _EbookPageState extends State<EbookPage> {
     isSubscribed =
         SharedPref.getBool(SharedPrefKeys.hasPremiumAccess) ?? false;
     ebookCarouselItems = [];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<EbookBloc>().add(RefreshEbookData());
+    });
   }
 
   Future<void> _handleRefresh(BuildContext context) async {
