@@ -6,7 +6,7 @@ import 'theme_state.dart';
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   ThemeBloc() : super(SharedPref.getTheme() ? DarkThemeState() : LightThemeState()) {
-    _initializePrimaryColor();
+    add(FetchPrimaryColorEvent());
 
     on<ToggleThemeEvent>(
           (event, emit) async {
@@ -24,10 +24,5 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       await AppColor.fetchAndSetPrimaryColor();
       emit(state is LightThemeState ? LightThemeState() : DarkThemeState());
     });
-  }
-
-  Future<void> _initializePrimaryColor() async {
-    await AppColor.fetchAndSetPrimaryColor();
-    add(FetchPrimaryColorEvent());
   }
 }
