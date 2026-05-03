@@ -310,14 +310,22 @@ class AdState extends Equatable {
 class AdCubit extends Cubit<AdState> {
   final DioClient _dio;
   InterstitialAd? _interstitialAd;
+  Future<InitializationStatus>? _mobileAdsInitialization;
 
   // Keep track of all created banner ads for proper disposal
   final List<BannerAd> _activeBannerAds = [];
 
   AdCubit(this._dio) : super(const AdState());
 
+  Future<void> _ensureMobileAdsInitialized() async {
+    _mobileAdsInitialization ??= MobileAds.instance.initialize();
+    await _mobileAdsInitialization;
+  }
+
   Future<void> checkAdsStatus() async {
     try {
+      await _ensureMobileAdsInitialized();
+
       emit(state.copyWith(
         bannerAdStatus: AdStatus.loading,
         interstitialAdStatus: AdStatus.loading,
@@ -372,6 +380,8 @@ class AdCubit extends Cubit<AdState> {
       CommonMethods.devLog(logName: "Banner Ad Creation", message: "Skipped - Status not enabled");
       return null;
     }
+
+    await _ensureMobileAdsInitialized();
 
     CommonMethods.devLog(logName: "Banner Ad Creation", message: "Creating new banner ad instance");
 
@@ -440,6 +450,8 @@ class AdCubit extends Cubit<AdState> {
       CommonMethods.devLog(logName: "Interstitial Ad", message: "Skipped loading - Status: ${state.interstitialAdStatus}, Loaded: ${state.isInterstitialAdLoaded}");
       return;
     }
+
+    await _ensureMobileAdsInitialized();
 
     CommonMethods.devLog(logName: "Interstitial Ad", message: "Starting interstitial ad load");
 
