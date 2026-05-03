@@ -275,12 +275,14 @@ class AdState extends Equatable {
   final AdStatus bannerAdStatus;
   final AdStatus interstitialAdStatus;
   final bool isInterstitialAdLoaded;
+  final bool isInterstitialAdLoading;
   final String errorMessage;
 
   const AdState({
     this.bannerAdStatus = AdStatus.loading,
     this.interstitialAdStatus = AdStatus.loading,
     this.isInterstitialAdLoaded = false,
+    this.isInterstitialAdLoading = false,
     this.errorMessage = '',
   });
 
@@ -288,12 +290,15 @@ class AdState extends Equatable {
     AdStatus? bannerAdStatus,
     AdStatus? interstitialAdStatus,
     bool? isInterstitialAdLoaded,
+    bool? isInterstitialAdLoading,
     String? errorMessage,
   }) {
     return AdState(
       bannerAdStatus: bannerAdStatus ?? this.bannerAdStatus,
       interstitialAdStatus: interstitialAdStatus ?? this.interstitialAdStatus,
       isInterstitialAdLoaded: isInterstitialAdLoaded ?? this.isInterstitialAdLoaded,
+      isInterstitialAdLoading:
+          isInterstitialAdLoading ?? this.isInterstitialAdLoading,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -303,6 +308,7 @@ class AdState extends Equatable {
     bannerAdStatus,
     interstitialAdStatus,
     isInterstitialAdLoaded,
+    isInterstitialAdLoading,
     errorMessage,
   ];
 }
@@ -446,10 +452,23 @@ class AdCubit extends Cubit<AdState> {
   bool get isInterstitialAdEnabled => state.interstitialAdStatus == AdStatus.enabled;
 
   Future<void> loadInterstitialAd() async {
-    if (state.interstitialAdStatus != AdStatus.enabled || state.isInterstitialAdLoaded) {
-      CommonMethods.devLog(logName: "Interstitial Ad", message: "Skipped loading - Status: ${state.interstitialAdStatus}, Loaded: ${state.isInterstitialAdLoaded}");
+    if (state.interstitialAdStatus != AdStatus.enabled ||
+        state.isInterstitialAdLoaded ||
+        state.isInterstitialAdLoading) {
+      CommonMethods.devLog(
+        logName: "Interstitial Ad",
+        message:
+            "Skipped loading - Status: ${state.interstitialAdStatus}, Loaded: ${state.isInterstitialAdLoaded}, Loading: ${state.isInterstitialAdLoading}",
+      );
       return;
     }
+
+    emit(
+      state.copyWith(
+        isInterstitialAdLoading: true,
+        errorMessage: '',
+      ),
+    );
 
     await _ensureMobileAdsInitialized();
 
@@ -462,7 +481,12 @@ class AdCubit extends Cubit<AdState> {
         onAdLoaded: (ad) {
           CommonMethods.devLog(logName: "Interstitial Ad", message: "Ad loaded successfully");
           _interstitialAd = ad;
-          emit(state.copyWith(isInterstitialAdLoaded: true));
+          emit(
+            state.copyWith(
+              isInterstitialAdLoaded: true,
+              isInterstitialAdLoading: false,
+            ),
+          );
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdShowedFullScreenContent: (ad) {
@@ -471,7 +495,12 @@ class AdCubit extends Cubit<AdState> {
             onAdDismissedFullScreenContent: (ad) {
               CommonMethods.devLog(logName: "Interstitial Ad", message: "Ad dismissed full screen content");
               ad.dispose();
-              emit(state.copyWith(isInterstitialAdLoaded: false));
+              emit(
+                state.copyWith(
+                  isInterstitialAdLoaded: false,
+                  isInterstitialAdLoading: false,
+                ),
+              );
               _interstitialAd = null;
               // Preload next interstitial ad
               Future.delayed(const Duration(seconds: 1), loadInterstitialAd);
@@ -479,7 +508,12 @@ class AdCubit extends Cubit<AdState> {
             onAdFailedToShowFullScreenContent: (ad, error) {
               CommonMethods.devLog(logName: "Interstitial Ad", message: "Failed to show ad: $error");
               ad.dispose();
-              emit(state.copyWith(isInterstitialAdLoaded: false));
+              emit(
+                state.copyWith(
+                  isInterstitialAdLoaded: false,
+                  isInterstitialAdLoading: false,
+                ),
+              );
               _interstitialAd = null;
               // Retry loading after delay
               Future.delayed(const Duration(seconds: 30), loadInterstitialAd);
@@ -491,7 +525,13 @@ class AdCubit extends Cubit<AdState> {
         },
         onAdFailedToLoad: (error) {
           CommonMethods.devLog(logName: "Interstitial Ad", message: "Failed to load ad: $error");
-          emit(state.copyWith(isInterstitialAdLoaded: false));
+          emit(
+            state.copyWith(
+              isInterstitialAdLoaded: false,
+              isInterstitialAdLoading: false,
+              errorMessage: error.toString(),
+            ),
+          );
           _interstitialAd = null;
           // Retry loading after 1 minute
           Future.delayed(const Duration(minutes: 1), loadInterstitialAd);
@@ -529,7 +569,12 @@ class AdCubit extends Cubit<AdState> {
       onAdDismissedFullScreenContent: (ad) {
         CommonMethods.devLog(logName: "Interstitial Ad Show", message: "Ad dismissed - calling onAdClosed callback");
         ad.dispose();
-        emit(state.copyWith(isInterstitialAdLoaded: false));
+        emit(
+          state.copyWith(
+            isInterstitialAdLoaded: false,
+            isInterstitialAdLoading: false,
+          ),
+        );
         _interstitialAd = null;
 
         // Call the callback after ad is dismissed
@@ -541,7 +586,13 @@ class AdCubit extends Cubit<AdState> {
       onAdFailedToShowFullScreenContent: (ad, error) {
         CommonMethods.devLog(logName: "Interstitial Ad Show", message: "Failed to show ad: $error - calling onAdClosed callback");
         ad.dispose();
-        emit(state.copyWith(isInterstitialAdLoaded: false));
+        emit(
+          state.copyWith(
+            isInterstitialAdLoaded: false,
+            isInterstitialAdLoading: false,
+            errorMessage: error.toString(),
+          ),
+        );
         _interstitialAd = null;
 
         // Call the callback even if ad failed to show
@@ -568,7 +619,12 @@ class AdCubit extends Cubit<AdState> {
   Future<void> forceReloadInterstitialAd() async {
     _interstitialAd?.dispose();
     _interstitialAd = null;
-    emit(state.copyWith(isInterstitialAdLoaded: false));
+    emit(
+      state.copyWith(
+        isInterstitialAdLoaded: false,
+        isInterstitialAdLoading: false,
+      ),
+    );
     await loadInterstitialAd();
   }
 
@@ -578,6 +634,7 @@ class AdCubit extends Cubit<AdState> {
       'bannerAdStatus': state.bannerAdStatus.toString(),
       'interstitialAdStatus': state.interstitialAdStatus.toString(),
       'isInterstitialAdLoaded': state.isInterstitialAdLoaded,
+      'isInterstitialAdLoading': state.isInterstitialAdLoading,
       'activeBannerAdsCount': _activeBannerAds.length,
       'errorMessage': state.errorMessage,
     };
