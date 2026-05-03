@@ -409,8 +409,7 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                 /// ==========================
                 /// LOADING LOTTIE OVERLAY
                 /// ==========================
-                if (isFeedLoading && !hasError)
-                //if (isFeedLoading && state.error == null)
+                if (isFeedLoading && state.error == null)
                   Positioned.fill(
                     child: Container(
                       color: Colors.white.withOpacity(0.6),
