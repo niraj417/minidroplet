@@ -160,30 +160,6 @@ import 'bloc/homepage_recipe_slider_bloc/homepage_recipe_slider_bloc.dart';
                     state.homepageCarousels == null ||
                     activityState is! FeedActivityLoaded;
 
-            bool _pageReady = false;
-
-            final bool hasError = state.error != null;
-
-            print('🔍 FeedBloc State Analysis:');
-            print('   - State type: ${state.runtimeType}');
-            print('   - Has error: ${state.error != null}');
-            print('   - Error: ${state.error}');
-            print('   - Is post loading: ${state.isPostLoading}');
-            print('   - Post data: ${state.postData}');
-            print('   - Post data length: ${state.postData?.length ?? 0}');
-            print('   - Is carousel loading: ${state.isCarouselLoading}');
-            print('   - Carousel data: ${state.carouselData}');
-            print('   - Carousel data length: ${state.carouselData?.length ?? 0}');
-
-            // Add this temporary debug widget to see what's happening
-            if (state.postData != null && state.postData!.isNotEmpty) {
-              print('✅ POST DATA FOUND: ${state.postData!.length} posts');
-              print('   First post title: ${state.postData![0].title}');
-              print('   First post description: ${state.postData![0].description}');
-            } else {
-              print('❌ NO POST DATA or empty');
-            }
-
             if (state.error != null) {
               // return Center(child: Text(state.error!));
               //return SizedBox.shrink();
