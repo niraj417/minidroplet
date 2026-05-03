@@ -29,7 +29,12 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
   void initState() {
     super.initState();
     if (widget.shouldShowAd) {
-      context.read<AdCubit>().loadInterstitialAd();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        context.read<AdCubit>().loadInterstitialAd();
+      });
     }
   }
 
@@ -45,7 +50,9 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
       setState(() {
         _isWaitingForAd = true;
       });
-      adCubit.loadInterstitialAd();
+      if (!adCubit.state.isInterstitialAdLoading) {
+        adCubit.loadInterstitialAd();
+      }
       Future.delayed(const Duration(seconds: 3), () {
         if (!mounted || !_isWaitingForAd) {
           return;
