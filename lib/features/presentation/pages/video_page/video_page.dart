@@ -28,6 +28,7 @@ import '../../../../common/widgets/guest_user_restriction.dart';
 import '../../../../common/widgets/loader.dart';
 import '../../../../core/constant/app_export.dart';
 import '../../../../core/constant/app_vector.dart';
+import '../../../../core/services/ad_service/ad_bloc/ad_cubit.dart';
 import '../../../../core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import '../../../../core/services/internet_connectivity/internet_cubit.dart';
 import '../../../../core/services/internet_connectivity/internet_state.dart';
@@ -60,6 +61,12 @@ class _VideoPageState extends State<VideoPage> {
     _videoPageCubit = VideoPageCubit();
     _ingredientCategoryCubit = IngredientCategoryCubit(dioClient);
     _recipeAgeGroupCubit = AgeGroupCubit()..fetchAgeGroup();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<AdCubit>().loadInterstitialAd();
+    });
     _detectLowEndDevice();
   }
 
