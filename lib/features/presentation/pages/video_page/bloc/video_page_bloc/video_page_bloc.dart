@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -32,13 +33,14 @@ class VideoPageCubit extends Cubit<VideoPageState> {
     emit(state.copyWith(isLoading: true));
 
     try {
-      final responses = await Future.wait([
+      final subscriptionFuture =
+          SubscriptionPaymentService.hasActiveSubscription();
+      final responses = await Future.wait<Response<dynamic>>([
         _dioClient.sendGetRequest(ApiEndpoints.recipeSlider),
         _dioClient.sendGetRequest(ApiEndpoints.recipeCategory),
         _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe),
         _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos),
         _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist),
-        SubscriptionPaymentService.hasActiveSubscription(),
       ]);
 
       final sliderResponse = responses[0];
@@ -46,7 +48,7 @@ class VideoPageCubit extends Cubit<VideoPageState> {
       final recommendationResponse = responses[2];
       final videoResponse = responses[3];
       final playlistResponse = responses[4];
-      final subscription = responses[5] as bool;
+      final subscription = await subscriptionFuture;
 
       emit(
         state.copyWith(
@@ -58,7 +60,8 @@ class VideoPageCubit extends Cubit<VideoPageState> {
                 recommendationResponse.data,
               ).data ??
               [],
-          allRecipeVideoList: AllRecipeVideoModel.fromJson(videoResponse.data).data,
+          allRecipeVideoList:
+              AllRecipeVideoModel.fromJson(videoResponse.data).data,
           recipeAllPlaylistList:
               RecipeAllPlaylistModel.fromJson(playlistResponse.data).data,
           subscribed: subscription,
