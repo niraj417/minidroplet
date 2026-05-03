@@ -32,28 +32,32 @@ class VideoPageCubit extends Cubit<VideoPageState> {
     emit(state.copyWith(isLoading: true));
 
     try {
-      final sliderResponse = await _dioClient.sendGetRequest(ApiEndpoints.recipeSlider);
-      final categoryResponse = await _dioClient.sendGetRequest(ApiEndpoints.recipeCategory);
+      final responses = await Future.wait([
+        _dioClient.sendGetRequest(ApiEndpoints.recipeSlider),
+        _dioClient.sendGetRequest(ApiEndpoints.recipeCategory),
+        _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe),
+        _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos),
+        _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist),
+        SubscriptionPaymentService.hasActiveSubscription(),
+      ]);
+
+      final sliderResponse = responses[0];
+      final categoryResponse = responses[1];
+      final recommendationResponse = responses[2];
+      final videoResponse = responses[3];
+      final playlistResponse = responses[4];
+      final subscription = responses[5] as bool;
 
       emit(
         state.copyWith(
-          recipeCarouselList: FeedSliderModel.fromJson(sliderResponse.data).data,
-          allRecipeCategoryList: RecipeCategoryModel.fromJson(categoryResponse.data).data,
-          isLoading: false,
-        ),
-      );
-
-      final recommendationResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.recommendationRecipe);
-      final videoResponse = await _dioClient.sendGetRequest(ApiEndpoints.allRecipeVideos);
-      final playlistResponse =
-          await _dioClient.sendGetRequest(ApiEndpoints.recipeAllPlaylist);
-      final subscription = await SubscriptionPaymentService.hasActiveSubscription();
-
-      emit(
-        state.copyWith(
-          recommendationRecipeList:
-              RecipeRecommendationModel.fromJson(recommendationResponse.data).data ?? [],
+          recipeCarouselList:
+              FeedSliderModel.fromJson(sliderResponse.data).data,
+          allRecipeCategoryList:
+              RecipeCategoryModel.fromJson(categoryResponse.data).data,
+          recommendationRecipeList: RecipeRecommendationModel.fromJson(
+                recommendationResponse.data,
+              ).data ??
+              [],
           allRecipeVideoList: AllRecipeVideoModel.fromJson(videoResponse.data).data,
           recipeAllPlaylistList:
               RecipeAllPlaylistModel.fromJson(playlistResponse.data).data,
