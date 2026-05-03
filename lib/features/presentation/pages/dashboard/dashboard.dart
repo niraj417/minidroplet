@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,16 +27,77 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  final List<Widget> screens = [
-    const FeedPage(),
-    const CourseListPage(),
-    const EbookPage(),
-    VideoPage(),
-    BlocProvider(
-      create: (_) => ProfileCubit(),
-      child: const MyAccount(),
-    ),
-  ];
+  bool _isLowEndDevice = false;
+  final Map<int, Widget> _screenCache = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _screenCache[0] = _buildScreen(0);
+    _detectLowEndDevice();
+  }
+
+  Future<void> _detectLowEndDevice() async {
+    try {
+      bool isLowEnd = false;
+
+      if (Platform.isAndroid) {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        isLowEnd =
+            androidInfo.isLowRamDevice || androidInfo.physicalRamSize <= 4096;
+      } else if (Platform.isIOS) {
+        final iosInfo = await DeviceInfoPlugin().iosInfo;
+        isLowEnd = iosInfo.physicalRamSize <= 3072;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isLowEndDevice = isLowEnd;
+        if (isLowEnd) {
+          final homeScreen = _screenCache[0] ?? _buildScreen(0);
+          _screenCache
+            ..clear()
+            ..[0] = homeScreen;
+        }
+      });
+    } catch (e) {
+      debugPrint('Dashboard low-end detection failed: $e');
+    }
+  }
+
+  Widget _buildScreen(int index) {
+    switch (index) {
+      case 0:
+        return const FeedPage();
+      case 1:
+        return const CourseListPage();
+      case 2:
+        return const EbookPage();
+      case 3:
+        return VideoPage();
+      case 4:
+        return BlocProvider(
+          create: (_) => ProfileCubit(),
+          child: const MyAccount(),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _getScreen(int index) {
+    if (_isLowEndDevice) {
+      _screenCache
+        ..clear()
+        ..[index] = _buildScreen(index);
+      return _screenCache[index]!;
+    }
+
+    return _screenCache.putIfAbsent(index, () => _buildScreen(index));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,16 +156,22 @@ class _DashboardState extends State<Dashboard> {
           },
           child: Scaffold(
             extendBody: false,
-            body: IndexedStack(
-              index: currentIndex,
-              children: screens,
-            ),
+            body:
+                _isLowEndDevice
+                    ? KeyedSubtree(
+                      key: ValueKey(currentIndex),
+                      child: _getScreen(currentIndex),
+                    )
+                    : IndexedStack(
+                      index: currentIndex,
+                      children: List<Widget>.generate(
+                        5,
+                        _getScreen,
+                        growable: false,
+                      ),
+                    ),
             bottomNavigationBar: Container(
-              color: buttonBackgroundColor,
-              // viewPadding.bottom = ~48dp for 3-button nav, 0 for gesture nav
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewPadding.bottom,
-              ),
+              color: buttonBackgroundColor, // matches nav bar, fills iOS safe area gap
               child: CurvedNavigationBar(
               index: currentIndex,
               items: [
