@@ -25,21 +25,11 @@ class InterstitialAdWidget extends StatefulWidget {
 class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
   bool _isWaitingForAd = false;
 
-  void _runAfterCurrentFrame(VoidCallback? callback) {
-    if (callback == null || !mounted) {
+  void _handleAdClosed() {
+    if (!mounted) {
       return;
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      callback();
-    });
-  }
-
-  void _handleAdClosed() {
-    _runAfterCurrentFrame(widget.onAdClosed);
+    widget.onAdClosed?.call();
   }
 
   @override
@@ -87,7 +77,7 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
 
   void _continueWithoutAd() {
     if (widget.onTapWithoutAd != null) {
-      _runAfterCurrentFrame(widget.onTapWithoutAd);
+      widget.onTapWithoutAd!.call();
     } else if (widget.onAdClosed != null) {
       _handleAdClosed();
     }
