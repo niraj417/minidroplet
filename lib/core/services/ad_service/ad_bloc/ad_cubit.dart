@@ -568,6 +568,7 @@ class AdCubit extends Cubit<AdState> {
       },
       onAdDismissedFullScreenContent: (ad) {
         CommonMethods.devLog(logName: "Interstitial Ad Show", message: "Ad dismissed - calling onAdClosed callback");
+        onAdClosed?.call();
         ad.dispose();
         emit(
           state.copyWith(
@@ -577,14 +578,12 @@ class AdCubit extends Cubit<AdState> {
         );
         _interstitialAd = null;
 
-        // Call the callback after ad is dismissed
-        onAdClosed?.call();
-
         // Preload next interstitial ad
         Future.delayed(const Duration(seconds: 1), loadInterstitialAd);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         CommonMethods.devLog(logName: "Interstitial Ad Show", message: "Failed to show ad: $error - calling onAdClosed callback");
+        onAdClosed?.call();
         ad.dispose();
         emit(
           state.copyWith(
@@ -594,9 +593,6 @@ class AdCubit extends Cubit<AdState> {
           ),
         );
         _interstitialAd = null;
-
-        // Call the callback even if ad failed to show
-        onAdClosed?.call();
 
         // Retry loading after delay
         Future.delayed(const Duration(seconds: 30), loadInterstitialAd);
