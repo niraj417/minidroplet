@@ -25,6 +25,23 @@ class InterstitialAdWidget extends StatefulWidget {
 class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
   bool _isWaitingForAd = false;
 
+  void _runAfterCurrentFrame(VoidCallback? callback) {
+    if (callback == null || !mounted) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      callback();
+    });
+  }
+
+  void _handleAdClosed() {
+    _runAfterCurrentFrame(widget.onAdClosed);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +60,7 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
 
     if (widget.shouldShowAd && AdManager().shouldShowAds(context)) {
       if (adCubit.state.isInterstitialAdLoaded) {
-        adCubit.showInterstitialAd(onAdClosed: widget.onAdClosed);
+        adCubit.showInterstitialAd(onAdClosed: _handleAdClosed);
         return;
       }
 
@@ -70,9 +87,9 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
 
   void _continueWithoutAd() {
     if (widget.onTapWithoutAd != null) {
-      widget.onTapWithoutAd!();
+      _runAfterCurrentFrame(widget.onTapWithoutAd);
     } else if (widget.onAdClosed != null) {
-      widget.onAdClosed!();
+      _handleAdClosed();
     }
   }
 
@@ -92,7 +109,7 @@ class _InterstitialAdWidgetState extends State<InterstitialAdWidget> {
             _isWaitingForAd = false;
           });
           context.read<AdCubit>().showInterstitialAd(
-                onAdClosed: widget.onAdClosed,
+                onAdClosed: _handleAdClosed,
               );
         }
       },
