@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:tinydroplets/common/navigation/navigation_service.dart';
 import 'package:tinydroplets/common/widgets/custom_image.dart';
+import 'package:tinydroplets/core/services/ad_service/interstitial_ad/interstitial_ad_widget.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/all_recipe_page.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe_detail_model.dart';
 import 'package:tinydroplets/features/presentation/pages/video_page/model/recipe_filter_model.dart';
@@ -49,6 +50,35 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
 
   bool get _hasPremiumAccess =>
       SubscriptionStateManager.hasPremiumAccess(_subscriptionStatus);
+
+  bool _isFreeRecipe(Map<String, dynamic> recipe) =>
+      (recipe['price_type'] ?? '').toString().toLowerCase() == 'free';
+
+  bool _shouldShowAd(Map<String, dynamic> recipe) =>
+      _isFreeRecipe(recipe) && !_hasPremiumAccess;
+
+  void _openRecipe(Map<String, dynamic> recipe) {
+    if (_isFreeRecipe(recipe) || _hasPremiumAccess) {
+      goto(
+        context,
+        RecipeDetailScreen(
+          videoId: recipe['id'].toString(),
+        ),
+      );
+      return;
+    }
+
+    goto(
+      context,
+      VideoCheckoutPage(
+        id: recipe['id'],
+        title: recipe['title'],
+        thumbnail: recipe['cover_image'],
+        amount: recipe['price'],
+        mainPrice: recipe['main_price'],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -175,98 +205,86 @@ class _RecipeSearchFilterScreenState extends State<RecipeSearchFilterScreen> {
         itemCount: _recipes.length,
         itemBuilder: (context, index) {
           final recipe = _recipes[index];
-
-          return Padding(
+          final card = Padding(
             padding: const EdgeInsets.all(8),
-            child: GestureDetector(
-              onTap: () {
-                if (_hasPremiumAccess) {
-                  goto(
-                    context,
-                    RecipeDetailScreen(
-                      videoId: recipe['id'].toString(),
-                    ),
-                  );
-                } else {
-                  goto(
-                    context,
-                    VideoCheckoutPage(
-                      id: recipe['id'],
-                      title: recipe['title'],
-                      thumbnail: recipe['cover_image'],
-                      amount: recipe['price'],
-                      mainPrice: recipe['main_price'],
-                    ),
-                  );
-                }
-              },
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: CustomImage(
-                              imageUrl: recipe['cover_image'],
-                              height: 180,
-                              width: MediaQuery.of(context).size.width,
-                              fit: BoxFit.cover,
-                            ),
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CustomImage(
+                            imageUrl: recipe['cover_image'],
+                            height: 180,
+                            width: MediaQuery.of(context).size.width,
+                            fit: BoxFit.cover,
                           ),
-                          const Positioned.fill(
-                            child: Icon(
-                              Icons.play_circle_fill_outlined,
-                              size: 42,
-                              color: Colors.white,
-                            ),
+                        ),
+                        const Positioned.fill(
+                          child: Icon(
+                            Icons.play_circle_fill_outlined,
+                            size: 42,
+                            color: Colors.white,
                           ),
-                          if (!_hasPremiumAccess)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius:
-                                  BorderRadius.circular(6),
-                                ),
-                                child: const Icon(
-                                  Icons.lock,
-                                  size: 16,
-                                  color: Colors.black,
-                                ),
+                        ),
+                        if (!_hasPremiumAccess && !_isFreeRecipe(recipe))
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius:
+                                    BorderRadius.circular(6),
+                              ),
+                              child: const Icon(
+                                Icons.lock,
+                                size: 16,
+                                color: Colors.black,
                               ),
                             ),
-                        ],
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      recipe['title'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        recipe['title'] ?? '',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        recipe['description'] ?? '',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      recipe['description'] ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ),
+          );
+
+          if (_shouldShowAd(recipe)) {
+            return InterstitialAdWidget(
+              onAdClosed: () => _openRecipe(recipe),
+              child: card,
+            );
+          }
+
+          return GestureDetector(
+            onTap: () => _openRecipe(recipe),
+            child: card,
           );
         },
       ),
