@@ -56,27 +56,24 @@ class CarouselVideoCard extends StatelessWidget {
         final bool hasAccess = snapshot.data ?? false;
         print("has Access ${hasAccess}");
 
-        final Widget card = GestureDetector(
-          onTap: () => _onTap(context, hasAccess),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildThumbnail(context, hasAccess),
-              const SizedBox(height: 5),
-              SizedBox(
-                width: 180,
-                child: Text(
-                  video.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+        final Widget card = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildThumbnail(context, hasAccess),
+            const SizedBox(height: 5),
+            SizedBox(
+              width: 180,
+              child: Text(
+                video.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
 
         /// 🔕 Ads ONLY for:
@@ -84,13 +81,17 @@ class CarouselVideoCard extends StatelessWidget {
         /// - user has NO subscription
         /// - user is NOT on trial
         if (!_shouldShowAds(hasAccess: hasAccess)) {
-          return card;
+          return GestureDetector(
+            onTap: () => _onTap(context, hasAccess),
+            child: card,
+          );
         }
 
         return InterstitialAdWidget(
           onAdClosed: () => _onTap(context, hasAccess),
           child: card,
         );
+
       },
     );
   }
